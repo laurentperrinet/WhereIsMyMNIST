@@ -87,7 +87,7 @@ size=256
 
 test_sample_ratio=5/100
 #folder names
-imdir_org,fixdir_org='ALLSTIMULI/ALLSTIMULI','ALLFIXATIONMAPS/ALLFIXATIONMAPS'
+imdir_org,fixdir_org='ALLSTIMULI','ALLFIXATIONMAPS'
 #imdir_new,fixdir_new='GLOBAL_IMAGES','GLOBAL_FIXATIONMAPS'
 #imdir_test,fixdir_test='GLOBAL_IMAGES_TEST','GLOBAL_FIXATIONMAPS_TEST'
 #creating empty folders:
@@ -490,8 +490,8 @@ print('n_hidden1', n_hidden1, ' / n_hidden2', n_hidden2)
 verbose = 1
 train = True
 
-do_cuda = torch.cuda.is_available()
-device = torch.cuda.device("cuda" if do_cuda else "cpu")
+#do_cuda = torch.cuda.is_available()
+#device = torch.cuda.device("cpu") #"cuda" if do_cuda else "cpu")
 
 
 # In[284]:
@@ -500,6 +500,7 @@ device = torch.cuda.device("cuda" if do_cuda else "cpu")
 transform = Transform(tensor = True)
 transform_test = Transform(tensor = True, test = True)
 
+image_dir_white = imdir_white
 image_dir = imdir #'GLOBAL_IMAGES_ALL'
 fix_dir = fixdir #'GLOBAL_FIXATIONMAPS_ALL'
 
@@ -514,7 +515,7 @@ train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = tr
 train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=4)
 
 test_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform_test, index = index_test)
-test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=4)
+test_loader = data.DataLoader(test_dataset, batch_size = minibatch_size, shuffle=True, num_workers=4)
 
 
 # #### Network
@@ -645,7 +646,7 @@ def test(net, minibatch_size, optimizer=optimizer,
 
         
 FIC_NAME = '2018-11-28-Malek recap.npy'
-EPOCHS = 150
+EPOCHS = 1
 
 if not os.path.exists(FIC_NAME):
     for epoch in range(EPOCHS) :#range(1, 100):
