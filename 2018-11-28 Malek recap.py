@@ -111,46 +111,47 @@ def create_images(imdir, fixdir, whitening = False):
 	#default parameters for the whitening
 	im = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
 
-	if not os.path.exists(imdir):
-		for idx in range(N):
-			if idx%100==0:
-				print('Avancement=',int(idx/N*100),'%')
-			#loading images and fixations
-			img_name = os.path.join(imdir_org,image_files[idx])
-			fix_name = os.path.join(fixdir_org,fixation_files[idx])
-			image = PIL.Image.open(img_name)
-			fixation=PIL.Image.open(fix_name)
-			#resizing
-			image=image.resize((size,size))
-			fixation=fixation.resize((size,size))
-			#saving in a temporary file:
-			image.save('temp_image.jpeg')
-			#whitening
-			image=im.imread('temp_image.jpeg')
-				##whitening only works for pair shape
-			raws=image.shape[0]
-			columns=image.shape[1]
-			if raws%2!=0:
-				image=image[:-1,:]
-				fixation=fixation[:-1,:]
-			if columns%2!=0:
-				image=image[:,:-1]
-				fixation=fixation[:,:-1]
-			raws=image.shape[0]
-			columns=image.shape[1]
-			im.set_size((raws,columns))
-			##apply whitening
-			if whitening:
-				image = im.whitening(image)
-			image = ((image - image.min()) * (1/(image.max() - image.min()) * 255)).astype('uint8')
-			#saving
-			np.save(os.path.join(imdir,image_files[idx][:-5]), np.array(image,dtype=np.uint8))
-			np.save(os.path.join(fixdir,fixation_files[idx][:-4]), np.array(fixation,dtype=np.uint8))
-		print('Avancement= 100 %')
-		print('COMPLETE : GLOBAL IMAGES AND FIXATION MAPS GENERATED SUCCESSFULLY.')
+	for idx in range(N):
+		if idx%100==0:
+			print('Avancement=',int(idx/N*100),'%')
+		#loading images and fixations
+		img_name = os.path.join(imdir_org,image_files[idx])
+		fix_name = os.path.join(fixdir_org,fixation_files[idx])
+		image = PIL.Image.open(img_name)
+		fixation=PIL.Image.open(fix_name)
+		#resizing
+		image=image.resize((size,size))
+		fixation=fixation.resize((size,size))
+		#saving in a temporary file:
+		image.save('temp_image.jpeg')
+		#whitening
+		image=im.imread('temp_image.jpeg')
+			##whitening only works for pair shape
+		raws=image.shape[0]
+		columns=image.shape[1]
+		if raws%2!=0:
+			image=image[:-1,:]
+			fixation=fixation[:-1,:]
+		if columns%2!=0:
+			image=image[:,:-1]
+			fixation=fixation[:,:-1]
+		raws=image.shape[0]
+		columns=image.shape[1]
+		im.set_size((raws,columns))
+		##apply whitening
+		if whitening:
+			image = im.whitening(image)
+		image = ((image - image.min()) * (1/(image.max() - image.min()) * 255)).astype('uint8')
+		#saving
+		np.save(os.path.join(imdir,image_files[idx][:-5]), np.array(image,dtype=np.uint8))
+		np.save(os.path.join(fixdir,fixation_files[idx][:-4]), np.array(fixation,dtype=np.uint8))
+	print('Avancement= 100 %')
+	print('COMPLETE : GLOBAL IMAGES AND FIXATION MAPS GENERATED SUCCESSFULLY.')
 
-create_images(imdir, fixdir, whitening = False)
-create_images(imdir_white, fixdir_white, whitening = True)
+if not os.path.exists(imdir):
+	create_images(imdir, fixdir, whitening = False)
+if not os.path.exists(imdir_white):
+	create_images(imdir_white, fixdir_white, whitening = True)
 
 # ## Vision stuff
 
