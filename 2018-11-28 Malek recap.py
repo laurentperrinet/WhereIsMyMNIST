@@ -85,100 +85,72 @@ if not(os.path.exists('ALLFIXATIONMAPS')):
 #size used for downsizing images
 size=256
 
-test_sample_ratio=5/100
 #folder names
 imdir_org,fixdir_org='ALLSTIMULI','ALLFIXATIONMAPS'
-#imdir_new,fixdir_new='GLOBAL_IMAGES','GLOBAL_FIXATIONMAPS'
-#imdir_test,fixdir_test='GLOBAL_IMAGES_TEST','GLOBAL_FIXATIONMAPS_TEST'
-#creating empty folders:
-
 imdir, fixdir = 'GLOBAL_IMAGES_ALL_PLAIN','GLOBAL_FIXATIONMAPS_ALL_PLAIN'
 imdir_white, fixdir_white = 'GLOBAL_IMAGES_ALL_WHITE','GLOBAL_FIXATIONMAPS_ALL_WHITE'
 
+def create_images(imdir, fixdir, whitening = False):
+	for directory in [imdir,fixdir]:
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+			
+	#image and fixation names
+	import fnmatch #fnmatch to keep only image files
+	image_files =fnmatch.filter(os.listdir(imdir_org), '*.jpeg')
+	fixation_files = []
+	for image_name in image_files:
+		fixation_files.append(image_name[:-5] +'_fixMap.jpg')
+	#number of images : 1003
+	N=len(image_files)
+	print('Total number of images :', N)
 
+	#import SLIP for whitening and PIL for resizing
+	import SLIP
+	import PIL
+	#default parameters for the whitening
+	im = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
 
-# In[5]:
+	if not os.path.exists(imdir):
+		for idx in range(N):
+			if idx%100==0:
+				print('Avancement=',int(idx/N*100),'%')
+			#loading images and fixations
+			img_name = os.path.join(imdir_org,image_files[idx])
+			fix_name = os.path.join(fixdir_org,fixation_files[idx])
+			image = PIL.Image.open(img_name)
+			fixation=PIL.Image.open(fix_name)
+			#resizing
+			image=image.resize((size,size))
+			fixation=fixation.resize((size,size))
+			#saving in a temporary file:
+			image.save('temp_image.jpeg')
+			#whitening
+			image=im.imread('temp_image.jpeg')
+				##whitening only works for pair shape
+			raws=image.shape[0]
+			columns=image.shape[1]
+			if raws%2!=0:
+				image=image[:-1,:]
+				fixation=fixation[:-1,:]
+			if columns%2!=0:
+				image=image[:,:-1]
+				fixation=fixation[:,:-1]
+			raws=image.shape[0]
+			columns=image.shape[1]
+			im.set_size((raws,columns))
+			##apply whitening
+			if whitening:
+				image = im.whitening(image)
+			image = ((image - image.min()) * (1/(image.max() - image.min()) * 255)).astype('uint8')
+			#saving
+			np.save(os.path.join(imdir,image_files[idx][:-5]), np.array(image,dtype=np.uint8))
+			np.save(os.path.join(fixdir,fixation_files[idx][:-4]), np.array(fixation,dtype=np.uint8))
+		print('Avancement= 100 %')
+		print('COMPLETE : GLOBAL IMAGES AND FIXATION MAPS GENERATED SUCCESSFULLY.')
 
-
-for directory in [imdir,fixdir]:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-#image and fixation names
-import fnmatch #fnmatch to keep only image files
-image_files =fnmatch.filter(os.listdir(imdir_org), '*.jpeg')
-fixation_files = []
-for image_name in image_files:
-    fixation_files.append(image_name[:-5] +'_fixMap.jpg')
-#number of images : 1003
-N=len(image_files)
-#N_test=int(l*test_sample_ratio)
-#N_train=l-N_test
-print('Total number of images :', N)
-#import SLIP for whitening and PIL for resizing
-import SLIP
-import PIL
-#default parameters for the whitening
-im = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
-
-
-# In[6]:
-
-
-#print(os.listdir(imdir_org))
-
-
-# In[7]:
-
-
-if not os.path.exists(imdir):
-    for idx in range(N):
-        if idx%100==0:
-            print('Avancement=',int(idx/N*100),'%')
-        #check if file exists
-        '''if idx<=N_train:
-            img_dir,fix_dir=imdir_new,fixdir_new
-        else:
-            img_dir,fix_dir=imdir_test,fixdir_test'''
-        #if not (os.path.exists(os.path.join(img_dir,image_files[idx][:-5])) and os.path.exists(os.path.join(fix_dir,fixation_files[idx][:-4])) ):
-        #loading images and fixations
-        img_name = os.path.join(imdir_org,image_files[idx])
-        fix_name = os.path.join(fixdir_org,fixation_files[idx])
-        image = PIL.Image.open(img_name)
-        fixation=PIL.Image.open(fix_name)
-        #resizing
-        image=image.resize((size,size))
-        fixation=fixation.resize((size,size))
-        #saving in a temporary file:
-        image.save('temp_image.jpeg')
-        #whitening
-        image=im.imread('temp_image.jpeg')
-            ##whitening only works for pair shape
-        raws=image.shape[0]
-        columns=image.shape[1]
-        if raws%2!=0:
-            image=image[:-1,:]
-            fixation=fixation[:-1,:]
-        if columns%2!=0:
-            image=image[:,:-1]
-            fixation=fixation[:,:-1]
-        raws=image.shape[0]
-        columns=image.shape[1]
-        im.set_size((raws,columns))
-            ##apply whitening
-        image = im.whitening(image)
-        image = ((image - image.min()) * (1/(image.max() - image.min()) * 255)).astype('uint8')
-        #saving
-        '''if idx<=N_train:
-            img_dir,fix_dir=imdir_new,fixdir_new
-        else:
-            img_dir,fix_dir=imdir_test,fixdir_test'''
-        np.save(os.path.join(imdir,image_files[idx][:-5]), np.array(image,dtype=np.uint8))
-        np.save(os.path.join(fixdir,fixation_files[idx][:-4]), np.array(fixation,dtype=np.uint8))
-    print('Avancement= 100 %')
-    print('COMPLETE : GLOBAL IMAGES AND FIXATION MAPS GENERATED SUCCESSFULLY.')
-
-
-
+create_images(imdir, fixdir, whitening = False)
+create_images(imdir_white, fixdir_white, whitening = True)
 
 # ## Vision stuff
 
@@ -645,11 +617,11 @@ def test(net, minibatch_size, optimizer=optimizer,
 # In[308]:
 
         
-FIC_NAME = '2018-11-28-Malek recap.npy'
+FIC_NAME = '2018-11-28-Malek recap test.npy'
 EPOCHS = 1
 
 if not os.path.exists(FIC_NAME):
-    for epoch in range(EPOCHS) :#range(1, 100):
+    for epoch in range(EPOCHS) :
         print(epoch)
         train(net, minibatch_size)
         Accuracy = test(net, minibatch_size)
