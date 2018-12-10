@@ -455,16 +455,16 @@ lr = 1e-4 #0.05
 
 n_hidden1_white = 2000 #800 #
 n_hidden1 = 500 #200 #
-n_hidden2 = 500 #50 #
-n_hidden3 = 50  #10 #50
-n_hidden4 = 500 #50
+n_hidden2 = 200 #500 #50 #
+n_hidden3 = 20  #10 #50
+n_hidden4 = 200 #500 #50
 
 print('n_hidden1', n_hidden1, ' / n_hidden2', n_hidden2)
 verbose = 1
 train = True
 
 #do_cuda = torch.cuda.is_available()
-#device = torch.cuda.device("cpu") #"cuda" if do_cuda else "cpu")
+#device = torch.cuda.device("cuda" if do_cuda else "cpu")
 
 
 # In[284]:
@@ -481,8 +481,8 @@ n = len(os.listdir(image_dir))
 index = np.arange(n)
 np.random.shuffle(index)
 print(index)
-index_train = index[:900]
-index_test = index[900:]
+index_train = index[:800]
+index_test = index[800:]
 
 train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform, index = index_train)
 train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=4)
@@ -618,8 +618,8 @@ def test(net, minibatch_size, optimizer=optimizer,
 # In[308]:
 
         
-FIC_NAME = '2018-11-28-Malek recap test.npy'
-EPOCHS = 1
+FIC_NAME = '2018-11-28-Malek-recap-200-20-200.npy'
+EPOCHS = 1500
 
 if not os.path.exists(FIC_NAME):
     for epoch in range(EPOCHS) :
