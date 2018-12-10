@@ -508,6 +508,7 @@ transform = Transform(tensor = True)
 transform_test = Transform(tensor = True, test = True)
 
 image_dir = imdir #'GLOBAL_IMAGES_ALL'
+image_dir_white = imdir_white #'GLOBAL_IMAGES_ALL'
 fix_dir = fixdir #'GLOBAL_FIXATIONMAPS_ALL'
 
 '''image_names=os.listdir(image_dir)
