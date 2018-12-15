@@ -380,22 +380,6 @@ class Transform(object):
             return {'image': image_colliculus, 'image_white': image_retina, 'fixation': m_coll_mult}   
         
 
-class ToTensor(object):
-    """Convert ndarrays in sample to Tensors."""
-
-    def __call__(self, sample):
-        image, image_white, fixmap = sample['image'], sample['image_white'], sample['fixation']
-
-        # swap color axis because
-        # numpy image: H x W x C
-        # torch image: C X H X W
-        #image = image.transpose((2, 0, 1))
-        
-        return {'image': torch.from_numpy(image),
-                'image_white': torch.from_numpy(image_white),
-                'fixation': torch.from_numpy(landmarks)}
-
-
 # In[257]:
 
 
@@ -418,8 +402,11 @@ class ImageDataset(data.Dataset):
             self.image_names=os.listdir(imdir)
             self.fix_names=os.listdir(fixdir)
         else:
-            self.image_names=np.array(os.listdir(imdir))[index]
-            self.fix_names=np.array(os.listdir(fixdir))[index]
+            self.image_names = []
+            self.fix_names = []
+            for repeat in range(25):
+                self.image_names += np.array(os.listdir(imdir))[index].tolist()
+                self.fix_names += np.array(os.listdir(fixdir))[index].tolist()
         self.transform = transform # we do not use transforms
         #self.data_loader=data.DataLoader(self,batch_size=batch_size) : did not work
         
@@ -487,6 +474,9 @@ if False :
 minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-500-gpu'
+EPOCHS = 1500
+
 n_hidden1_white = 500 #2000 #800 #
 n_hidden1 = 500 #200 #
 n_hidden2 = 100 #500 #50 #
@@ -497,9 +487,10 @@ print('n_hidden1', n_hidden1, ' / n_hidden2', n_hidden2)
 verbose = 1
 train = True
 
-#do_cuda = torch.cuda.is_available()
-#device = torch.cuda.device("cuda" if do_cuda else "cpu")
-
+do_cuda = torch.cuda.is_available()
+device = 'cuda:0' #torch.cuda.device("0" if do_cuda else "cpu")
+print(device)
+#device = torch.cuda.device(0)
 
 # In[284]:
 
@@ -527,10 +518,10 @@ index_train = index[:800]
 index_test = index[800:]
 
 train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform, index = index_train)
-train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=10)
+train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=4)
 
 test_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform_test, index = index_test)
-test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=10)
+test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=4)
 
 # #### Network
 
@@ -544,25 +535,25 @@ class Net(torch.nn.Module):
     def __init__(self, n_hidden1, n_hidden1_white, n_hidden2, n_hidden3, n_hidden4, n_output):
         super(Net, self).__init__()
         ## White
-        self.conv1_white = nn.Conv3d(2, 16, 3, bias = BIAS, stride=1, padding=1)
-        self.conv2_white = nn.Conv3d(16, 64, 3, bias = BIAS, stride=1, padding=1)
-        self.conv3_white = nn.Conv3d(64, 256, 3, bias = BIAS, stride=1, padding=1)
-        self.pool_white = nn.MaxPool3d(2, stride=2)
+        self.conv1_white = nn.Conv3d(2, 16, 3, bias = BIAS, stride=1, padding=1).to(device)
+        self.conv2_white = nn.Conv3d(16, 64, 3, bias = BIAS, stride=1, padding=1).to(device)
+        self.conv3_white = nn.Conv3d(64, 256, 3, bias = BIAS, stride=1, padding=1).to(device)
+        self.pool_white = nn.MaxPool3d(2, stride=2).to(device)
         # taille 256 *  3 (az) * 2 (ecc) * 1 (thet)
-        self.hidden1_white = torch.nn.Linear(256 * 3 * 2, n_hidden1_white, bias = BIAS)
-        self.hidden2_white = torch.nn.Linear(n_hidden1_white, n_hidden2, bias = BIAS)
+        self.hidden1_white = torch.nn.Linear(256 * 3 * 2, n_hidden1_white, bias = BIAS).to(device)
+        self.hidden2_white = torch.nn.Linear(n_hidden1_white, n_hidden2, bias = BIAS).to(device)
         
         ## Grey
-        self.conv1_grey = nn.Conv2d(1, 8, 2, bias = BIAS, stride=2, padding=0)
-        self.conv2_grey = nn.Conv2d(8, 16, 2, bias = BIAS, stride=2, padding=0)
-        self.conv3_grey = nn.Conv2d(16, 32, 2, bias = BIAS, stride=2, padding=0)
+        self.conv1_grey = nn.Conv2d(1, 8, 2, bias = BIAS, stride=2, padding=0).to(device)
+        self.conv2_grey = nn.Conv2d(8, 16, 2, bias = BIAS, stride=2, padding=0).to(device)
+        self.conv3_grey = nn.Conv2d(16, 32, 2, bias = BIAS, stride=2, padding=0).to(device)
         # taille 32 * 3 * 2
-        self.hidden1 = torch.nn.Linear(32 * 3 * 2, n_hidden1, bias = BIAS)
-        self.hidden2 = torch.nn.Linear(n_hidden1, n_hidden2, bias = BIAS)
+        self.hidden1 = torch.nn.Linear(32 * 3 * 2, n_hidden1, bias = BIAS).to(device)
+        self.hidden2 = torch.nn.Linear(n_hidden1, n_hidden2, bias = BIAS).to(device)
         
-        self.hidden3 = torch.nn.Linear(n_hidden2, n_hidden3, bias = BIAS)
-        self.hidden4 = torch.nn.Linear(n_hidden3, n_hidden4, bias = True)
-        self.predict = torch.nn.Linear(n_hidden4, n_output, bias = True)
+        self.hidden3 = torch.nn.Linear(n_hidden2, n_hidden3, bias = BIAS).to(device)
+        self.hidden4 = torch.nn.Linear(n_hidden3, n_hidden4, bias = True).to(device)
+        self.predict = torch.nn.Linear(n_hidden4, n_output, bias = True).to(device)
         #self.dropout = nn.Dropout(p = 0.5) 
         
     def forward(self, image, image_white):
@@ -603,7 +594,7 @@ class Net(torch.nn.Module):
 
 
 net = Net(n_hidden1=n_hidden1,          n_hidden1_white=n_hidden1_white,          n_hidden2=n_hidden2,          n_hidden3=n_hidden3,          n_hidden4=n_hidden4,          n_output=N_azimuth*N_eccentricity)
-
+net.to(device)
 
 # In[290]:
 
@@ -633,9 +624,9 @@ def train(net, minibatch_size,           optimizer=optimizer,           vsize = 
     for batch_idx, batch in enumerate(train_loader):
         optimizer.zero_grad()
        
-        log_image_batch = batch['image'].float()
-        log_image_batch_white = batch['image_white'].float()
-        log_fixmap_batch = batch['fixation'].float()
+        log_image_batch = batch['image'].float().to(device)
+        log_image_batch_white = batch['image_white'].float().to(device)
+        log_fixmap_batch = batch['fixation'].float().to(device)
         
         prediction = net(log_image_batch, log_image_batch_white)
         loss = loss_func(prediction, log_fixmap_batch) 
@@ -646,7 +637,7 @@ def train(net, minibatch_size,           optimizer=optimizer,           vsize = 
         if verbose and batch_idx % 10 == 0:
             print('[{}/{}] Loss: {} Time: {:.2f} mn'.format(
                 batch_idx * minibatch_size, len(train_loader.dataset),
-                loss.data.numpy(), (time.time()-t_start)/60))
+                loss.data.cpu().numpy(), (time.time()-t_start)/60))
     return net
 
 
@@ -659,30 +650,28 @@ def test(net, minibatch_size, optimizer=optimizer,
     #for batch_idx, (data, label) in enumerate(test_loader):
     batch = next(iter(test_loader))
     batch_size = len(batch)
-    prediction = net(batch['image'].float(), batch['image_white'].float())
-    loss = loss_func(prediction, batch['fixation'].float())
+    prediction = net(batch['image'].float().to(device), batch['image_white'].float().to(device))
+    loss = loss_func(prediction, batch['fixation'].float().to(device))
 
-    return loss.data.numpy()
+    return loss.data.cpu().numpy()
 
 
 # In[308]:
 
         
-<<<<<<< HEAD
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-25-nhidden1-800.npy'
-=======
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-nhidden1-500.npy'
->>>>>>> d1e0dd817e9b6778638b6b260237b14fc836656f
-EPOCHS = 1500
 
-if not os.path.exists(FIC_NAME):
+if not os.path.exists(FIC_NAME+'.npy'):
     for epoch in range(EPOCHS) :
         print(epoch)
         train(net, minibatch_size)
         Accuracy = test(net, minibatch_size)
-        print('Test set: Final Accuracy: {:.3f}'.format(Accuracy * 1.)) # print que le pourcentage de réussite final
-        torch.save(net, FIC_NAME)    
+        mes = 'Test set: Final Accuracy: {:.3f}'.format(Accuracy * 1.) # print que le pourcentage de réussite final
+        print(mes)
+        with open(FIC_NAME + '.txt','a') as f:
+            f.write(mes + '\n')
+        torch.save(net, FIC_NAME+'.npy')    
+        np.save(FIC_NAME + '-index.npy', index)
 else:
-    net = torch.load(FIC_NAME)    
+    net = torch.load(FIC_NAME+'.npy')    
 
 
