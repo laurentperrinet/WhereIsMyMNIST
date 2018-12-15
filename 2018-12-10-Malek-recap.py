@@ -347,18 +347,18 @@ class Transform(object):
         plt.imshow(fixmap, cmap = 'gray')'''
         
         image_retina = retina_vector @ np.ravel(image_white)
-        #image_retina /= np.std(image_retina)
+        image_retina /= np.std(image_retina)
         
         image_colliculus = colliculus_vector @ np.ravel(image)
         #image_colliculus -= np.mean(image_colliculus)
-        #image_colliculus /= np.std(image_colliculus)
+        image_colliculus /= np.std(image_colliculus)
         
         fixmap_colliculus = colliculus_vector @ np.ravel(fixmap)
         fixmap_colliculus = fixmap_colliculus/np.sum(fixmap_colliculus)
         
         if not self.test:
             m_coll = fixmap_colliculus/sum(fixmap_colliculus)
-            m_coll_mult = np.random.multinomial(25, m_coll)
+            m_coll_mult = np.random.multinomial(1, m_coll)
             #m_coll_mult[np.where(m_coll_mult > 1)] = 1
             m_coll_mult = np.array(m_coll_mult)/np.sum(m_coll_mult)
         
@@ -487,7 +487,7 @@ if False :
 minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
-n_hidden1_white = 2000 #800 #
+n_hidden1_white = 500 #2000 #800 #
 n_hidden1 = 500 #200 #
 n_hidden2 = 100 #500 #50 #
 n_hidden3 = 10  #10 #50
@@ -527,10 +527,10 @@ index_train = index[:800]
 index_test = index[800:]
 
 train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform, index = index_train)
-train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=25)
+train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=10)
 
 test_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform_test, index = index_test)
-test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=25)
+test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=10)
 
 # #### Network
 
@@ -544,9 +544,9 @@ class Net(torch.nn.Module):
     def __init__(self, n_hidden1, n_hidden1_white, n_hidden2, n_hidden3, n_hidden4, n_output):
         super(Net, self).__init__()
         ## White
-        self.conv1_white = nn.Conv3d(2, 16, 2, bias = BIAS, stride=1, padding=1)
-        self.conv2_white = nn.Conv3d(16, 64, 2, bias = BIAS, stride=1, padding=1)
-        self.conv3_white = nn.Conv3d(64, 256, 2, bias = BIAS, stride=1, padding=1)
+        self.conv1_white = nn.Conv3d(2, 16, 3, bias = BIAS, stride=1, padding=1)
+        self.conv2_white = nn.Conv3d(16, 64, 3, bias = BIAS, stride=1, padding=1)
+        self.conv3_white = nn.Conv3d(64, 256, 3, bias = BIAS, stride=1, padding=1)
         self.pool_white = nn.MaxPool3d(2, stride=2)
         # taille 256 *  3 (az) * 2 (ecc) * 1 (thet)
         self.hidden1_white = torch.nn.Linear(256 * 3 * 2, n_hidden1_white, bias = BIAS)
@@ -668,7 +668,7 @@ def test(net, minibatch_size, optimizer=optimizer,
 # In[308]:
 
         
-FIC_NAME = '2018-12-10-Malek-recap.npy'
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-25-nhidden1-800.npy'
 EPOCHS = 1500
 
 if not os.path.exists(FIC_NAME):
