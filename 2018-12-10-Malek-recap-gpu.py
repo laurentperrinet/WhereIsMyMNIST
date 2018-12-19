@@ -474,7 +474,7 @@ if False :
 minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-500-gpu'
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-500-withbias-gpu'
 EPOCHS = 1500
 
 n_hidden1_white = 500 #2000 #800 #
@@ -488,7 +488,11 @@ verbose = 1
 train = True
 
 do_cuda = torch.cuda.is_available()
-device = 'cuda:0' #torch.cuda.device("0" if do_cuda else "cpu")
+device = 'cpu' #'cuda:0' #torch.cuda.device("0" if do_cuda else "cpu")
+if device == 'cpu' :
+    NUM_WORKERS = 25
+else:
+    NUM_WORKERS = 4
 print(device)
 #device = torch.cuda.device(0)
 
@@ -518,17 +522,17 @@ index_train = index[:800]
 index_test = index[800:]
 
 train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform, index = index_train)
-train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=4)
+train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=NUM_WORKERS)
 
 test_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform_test, index = index_test)
-test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=4)
+test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=NUM_WORKERS)
 
 # #### Network
 
 
 BIAS = True
 
-BIAS = False #True
+#BIAS = False #True
 
 class Net(torch.nn.Module):
     
