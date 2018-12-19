@@ -358,7 +358,7 @@ class Transform(object):
         
         if not self.test:
             m_coll = fixmap_colliculus/sum(fixmap_colliculus)
-            m_coll_mult = np.random.multinomial(25, m_coll)
+            m_coll_mult = np.random.multinomial(1, m_coll)
             #m_coll_mult[np.where(m_coll_mult > 1)] = 1
             m_coll_mult = np.array(m_coll_mult)/np.sum(m_coll_mult)
         
@@ -527,10 +527,10 @@ index_train = index[:800]
 index_test = index[800:]
 
 train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform, index = index_train)
-train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=25)
+train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=10)
 
 test_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform_test, index = index_test)
-test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=25)
+test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=10)
 
 # #### Network
 
@@ -668,7 +668,11 @@ def test(net, minibatch_size, optimizer=optimizer,
 # In[308]:
 
         
+<<<<<<< HEAD
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-25-nhidden1-800.npy'
+=======
 FIC_NAME = '2018-12-10-Malek-recap-kernel-3-nhidden1-500.npy'
+>>>>>>> d1e0dd817e9b6778638b6b260237b14fc836656f
 EPOCHS = 1500
 
 if not os.path.exists(FIC_NAME):
