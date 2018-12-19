@@ -474,7 +474,11 @@ if False :
 minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
+<<<<<<< HEAD
 FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-5-nhidden1-500-nobias'
+=======
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-500-withbias-gpu'
+>>>>>>> 8e8d2f6a6a36e7e2df0a2757ebc9af4cbd87a8ef
 EPOCHS = 1500
 NUM_WORKERS = 10
 
@@ -489,10 +493,18 @@ verbose = 1
 train = True
 
 do_cuda = torch.cuda.is_available()
+<<<<<<< HEAD
 if do_cuda:
     device = 'cuda:0'
 else:
     device = 'cpu' #torch.cuda.device("0" if do_cuda else "cpu")
+=======
+device = 'cpu' #'cuda:0' #torch.cuda.device("0" if do_cuda else "cpu")
+if device == 'cpu' :
+    NUM_WORKERS = 25
+else:
+    NUM_WORKERS = 4
+>>>>>>> 8e8d2f6a6a36e7e2df0a2757ebc9af4cbd87a8ef
 print(device)
 #device = torch.cuda.device(0)
 
@@ -532,7 +544,7 @@ test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuf
 
 BIAS = True
 
-BIAS = False #True
+#BIAS = False #True
 
 class Net(torch.nn.Module):
     
