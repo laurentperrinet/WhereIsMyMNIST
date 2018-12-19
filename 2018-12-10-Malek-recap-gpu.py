@@ -358,7 +358,7 @@ class Transform(object):
         
         if not self.test:
             m_coll = fixmap_colliculus/sum(fixmap_colliculus)
-            m_coll_mult = np.random.multinomial(1, m_coll)
+            m_coll_mult = np.random.multinomial(5, m_coll)
             #m_coll_mult[np.where(m_coll_mult > 1)] = 1
             m_coll_mult = np.array(m_coll_mult)/np.sum(m_coll_mult)
         
@@ -474,8 +474,9 @@ if False :
 minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-500-gpu'
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-5-nhidden1-500-nobias'
 EPOCHS = 1500
+NUM_WORKERS = 10
 
 n_hidden1_white = 500 #2000 #800 #
 n_hidden1 = 500 #200 #
@@ -488,7 +489,10 @@ verbose = 1
 train = True
 
 do_cuda = torch.cuda.is_available()
-device = 'cuda:0' #torch.cuda.device("0" if do_cuda else "cpu")
+if do_cuda:
+    device = 'cuda:0'
+else:
+    device = 'cpu' #torch.cuda.device("0" if do_cuda else "cpu")
 print(device)
 #device = torch.cuda.device(0)
 
@@ -518,10 +522,10 @@ index_train = index[:800]
 index_test = index[800:]
 
 train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform, index = index_train)
-train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=4)
+train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=NUM_WORKERS)
 
 test_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform_test, index = index_test)
-test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=4)
+test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=NUM_WORKERS)
 
 # #### Network
 
@@ -552,8 +556,8 @@ class Net(torch.nn.Module):
         self.hidden2 = torch.nn.Linear(n_hidden1, n_hidden2, bias = BIAS).to(device)
         
         self.hidden3 = torch.nn.Linear(n_hidden2, n_hidden3, bias = BIAS).to(device)
-        self.hidden4 = torch.nn.Linear(n_hidden3, n_hidden4, bias = True).to(device)
-        self.predict = torch.nn.Linear(n_hidden4, n_output, bias = True).to(device)
+        self.hidden4 = torch.nn.Linear(n_hidden3, n_hidden4, bias = BIAS).to(device)
+        self.predict = torch.nn.Linear(n_hidden4, n_output, bias = BIAS).to(device)
         #self.dropout = nn.Dropout(p = 0.5) 
         
     def forward(self, image, image_white):
