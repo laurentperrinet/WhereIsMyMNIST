@@ -436,7 +436,7 @@ minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
 
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-5000-withbias-gpu'
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-5000-gpu'
 EPOCHS = 1500
 NUM_WORKERS = 10
 
@@ -457,9 +457,9 @@ else:
     device = 'cpu' #torch.cuda.device("0" if do_cuda else "cpu")
 
 if device == 'cpu' :
-    NUM_WORKERS = 4
-else:
     NUM_WORKERS = 10
+else:
+    NUM_WORKERS = 4
     
 print(device)
 #device = torch.cuda.device(0)
