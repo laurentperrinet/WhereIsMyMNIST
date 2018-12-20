@@ -358,7 +358,7 @@ class Transform(object):
         
         if not self.test:
             m_coll = fixmap_colliculus/sum(fixmap_colliculus)
-            m_coll_mult = np.random.multinomial(5, m_coll)
+            m_coll_mult = np.random.multinomial(1, m_coll)
             #m_coll_mult[np.where(m_coll_mult > 1)] = 1
             m_coll_mult = np.array(m_coll_mult)/np.sum(m_coll_mult)
         
@@ -427,45 +427,6 @@ class ImageDataset(data.Dataset):
 
 
 
-# In[276]:
-
-
-if False:
-    transform = Transform()
-    batch_size = 100
-    dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform)
-    dataloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
-    batch = next(iter(dataloader))
-
-
-# In[277]:
-
-
-if False :
-    fixmap_avg = sum(batch['fixation'])/batch_size
-
-    f = plt.figure(figsize = (15, 5))
-
-    i = 3
-
-    plt.subplot(131)
-    #for i in range(10):
-    plt.plot(batch['fixation'][i,:], 'g')
-    plt.plot(batch['fixation'][i,:] - fixmap_avg)
-    plt.plot(fixmap_avg,'r')
-
-    ax = f.add_subplot(132, projection='polar')
-    vec = batch['fixation'][i,:] 
-    ax.pcolor(theta, log_r, vec.reshape((N_azimuth, N_eccentricity)))
-    plt.plot(0,0, 'r+')
-
-    ax = f.add_subplot(133, projection='polar')
-    vec = batch['fixation'][i,:] - fixmap_avg
-    ax.pcolor(theta, log_r, vec.reshape((N_azimuth, N_eccentricity)))
-    plt.plot(0,0, 'r+')
-
-
-
 # #### Hyperparameters
 
 # In[281]:
@@ -474,37 +435,32 @@ if False :
 minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
-<<<<<<< HEAD
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-5-nhidden1-500-nobias'
-=======
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-500-withbias-gpu'
->>>>>>> 8e8d2f6a6a36e7e2df0a2757ebc9af4cbd87a8ef
+
+FIC_NAME = '2018-12-10-Malek-recap-kernel-3-multi-1-nhidden1-5000-withbias-gpu'
 EPOCHS = 1500
 NUM_WORKERS = 10
 
-n_hidden1_white = 500 #2000 #800 #
+n_hidden1_white = 5000 #500 #2000 #800 #
 n_hidden1 = 500 #200 #
-n_hidden2 = 100 #500 #50 #
-n_hidden3 = 10  #10 #50
-n_hidden4 = 500 #500 #50
+n_hidden2 = 1000 #100 #500 #50 #
+n_hidden3 = 100  #10 #50
+n_hidden4 = 2000 #500 #50
 
 print('n_hidden1', n_hidden1, ' / n_hidden2', n_hidden2)
 verbose = 1
 train = True
 
 do_cuda = torch.cuda.is_available()
-<<<<<<< HEAD
 if do_cuda:
     device = 'cuda:0'
 else:
     device = 'cpu' #torch.cuda.device("0" if do_cuda else "cpu")
-=======
-device = 'cpu' #'cuda:0' #torch.cuda.device("0" if do_cuda else "cpu")
+
 if device == 'cpu' :
-    NUM_WORKERS = 25
-else:
     NUM_WORKERS = 4
->>>>>>> 8e8d2f6a6a36e7e2df0a2757ebc9af4cbd87a8ef
+else:
+    NUM_WORKERS = 10
+    
 print(device)
 #device = torch.cuda.device(0)
 
@@ -542,27 +498,27 @@ test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuf
 # #### Network
 
 
+BIAS_CONV = False
 BIAS = True
 
-#BIAS = False #True
 
 class Net(torch.nn.Module):
     
     def __init__(self, n_hidden1, n_hidden1_white, n_hidden2, n_hidden3, n_hidden4, n_output):
         super(Net, self).__init__()
         ## White
-        self.conv1_white = nn.Conv3d(2, 16, 3, bias = BIAS, stride=1, padding=1).to(device)
-        self.conv2_white = nn.Conv3d(16, 64, 3, bias = BIAS, stride=1, padding=1).to(device)
-        self.conv3_white = nn.Conv3d(64, 256, 3, bias = BIAS, stride=1, padding=1).to(device)
+        self.conv1_white = nn.Conv3d(2, 256, 3, bias = BIAS_CONV, stride=1, padding=1).to(device)
+        self.conv2_white = nn.Conv3d(256, 512, 3, bias = BIAS_CONV, stride=1, padding=1).to(device)
+        self.conv3_white = nn.Conv3d(512, 1024, 3, bias = BIAS_CONV, stride=1, padding=1).to(device)
         self.pool_white = nn.MaxPool3d(2, stride=2).to(device)
         # taille 256 *  3 (az) * 2 (ecc) * 1 (thet)
         self.hidden1_white = torch.nn.Linear(256 * 3 * 2, n_hidden1_white, bias = BIAS).to(device)
         self.hidden2_white = torch.nn.Linear(n_hidden1_white, n_hidden2, bias = BIAS).to(device)
         
         ## Grey
-        self.conv1_grey = nn.Conv2d(1, 8, 2, bias = BIAS, stride=2, padding=0).to(device)
-        self.conv2_grey = nn.Conv2d(8, 16, 2, bias = BIAS, stride=2, padding=0).to(device)
-        self.conv3_grey = nn.Conv2d(16, 32, 2, bias = BIAS, stride=2, padding=0).to(device)
+        self.conv1_grey = nn.Conv2d(1, 8, 2, bias = BIAS_CONV, stride=2, padding=0).to(device)
+        self.conv2_grey = nn.Conv2d(8, 16, 2, bias = BIAS_CONV, stride=2, padding=0).to(device)
+        self.conv3_grey = nn.Conv2d(16, 32, 2, bias = BIAS_CONV, stride=2, padding=0).to(device)
         # taille 32 * 3 * 2
         self.hidden1 = torch.nn.Linear(32 * 3 * 2, n_hidden1, bias = BIAS).to(device)
         self.hidden2 = torch.nn.Linear(n_hidden1, n_hidden2, bias = BIAS).to(device)

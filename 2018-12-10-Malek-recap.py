@@ -535,7 +535,6 @@ test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuf
 # #### Network
 
 
-BIAS = True
 
 BIAS = False #True
 
