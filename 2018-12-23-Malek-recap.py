@@ -667,7 +667,7 @@ def test(net, minibatch_size, optimizer=optimizer,
 
         
 
-FIC_NAME = '2018-12-10-Malek-recap-kernel-3-nhidden1-500.npy'
+FIC_NAME = '2018-12-23-Malek-recap-withbias.npy'
 EPOCHS = 1500
 
 if not os.path.exists(FIC_NAME):
