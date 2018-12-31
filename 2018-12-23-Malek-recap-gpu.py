@@ -456,7 +456,7 @@ else:
     device = 'cpu' #torch.cuda.device("0" if do_cuda else "cpu")
 
 if device == 'cpu' :
-    NUM_WORKERS = 4
+    NUM_WORKERS = 10
 else:
     NUM_WORKERS = 4
     
