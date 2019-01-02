@@ -629,8 +629,6 @@ def test(net, minibatch_size, optimizer=optimizer,
 
 # In[308]:
 
-        
-
 if not os.path.exists(FIC_NAME+'.npy'):
     for epoch in range(EPOCHS) :
         print(epoch)
