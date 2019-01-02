@@ -435,7 +435,7 @@ minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
 
-FIC_NAME = '2018-12-23-Malek-recap-withbias'
+FIC_NAME = '2019-01-01-Malek-recap-withbias'
 EPOCHS = 1500
 
 train = True
