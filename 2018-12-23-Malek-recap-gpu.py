@@ -498,7 +498,7 @@ test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuf
 
 
 BIAS_CONV = False
-BIAS = True
+BIAS = False
 
 
 class Net(torch.nn.Module):
