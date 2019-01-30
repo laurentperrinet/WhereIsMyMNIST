@@ -1,0 +1,65 @@
+\section{Introduction}
+
+\subsection{Issue}
+
+\subsection{State of the art}
+
+\subsection{Outline}
+
+Notations :
+\begin{itemize}
+	\item $\boldsymbol{x}$ : visual field (signal)
+	\item $\boldsymbol{u}$ : target subjective position (emitter)
+	\item $\mathcal{T}_{\boldsymbol{\Delta u}}$ : eyes displacement command (visual transformation)	such that $\boldsymbol{u} \leftarrow \boldsymbol{u} + \Delta \boldsymbol{u}$
+	\item $\boldsymbol{y}$ : target category (emitter)
+\end{itemize}
+
+Generative model :
+$$ \boldsymbol{x} \sim P(X|\boldsymbol{y}, \boldsymbol{u}) $$
+
+Full inference (posterior):
+$$ P(Y, U|\boldsymbol{x}) \propto  P(\boldsymbol{x}|Y, U) $$
+
+Partial inference on object category:
+$$ P(Y|\boldsymbol{x}, \boldsymbol{u}) \propto  P(\boldsymbol{x}|Y, \boldsymbol{u}) $$
+
+Partial inference on object position:
+$$ P(U|\boldsymbol{x}, \boldsymbol{y}) \propto  P(\boldsymbol{x}|U, \boldsymbol{y}) $$
+
+Marginals:
+\begin{itemize}
+\item $ P(Y|\boldsymbol{x}) = \int P(Y|\boldsymbol{x}, \boldsymbol{u}) d\boldsymbol{u}$
+\item $ P(U|\boldsymbol{x}) = \int P(U|\boldsymbol{x}, \boldsymbol{y}) d\boldsymbol{y}$
+\end{itemize}
+
+Accuracy map : 
+$$A_{\boldsymbol{u}} = P(Y = \hat{\boldsymbol{y}}|\boldsymbol{x}, \boldsymbol{u})
+\text{,  knowing  : }
+ \boldsymbol{x} \sim P(X|\hat{\boldsymbol{y}}, \boldsymbol{u}) $$
+ 
+Action selection ($\boldsymbol{u}$ is unknown):
+\begin{itemize}
+	\item 
+
+\begin{enumerate}
+	\item Read $\boldsymbol{x}$
+	\item Estimate $\tilde{\boldsymbol{u}} \sim P(U|\boldsymbol{x})$ (Colliculus)
+	\item Choose action $\mathcal{T}_{\boldsymbol{\Delta u}}$ such that :
+			 $$\boldsymbol{u} \leftarrow \boldsymbol{u} + \underset{\Delta\boldsymbol{u}} {\text{ argmax }}
+			A_{\tilde{\boldsymbol{u}} + \Delta\boldsymbol{u}}$$
+	\item Read $\boldsymbol{x}'$ (Transformed input)
+	\item Classify $\tilde{\boldsymbol{y}} \sim P(Y|\boldsymbol{x}')$
+	\item Compare with true label $\hat{\boldsymbol{y}}$
+\end{enumerate}
+\end{itemize}
+
+Warning :
+\begin{itemize}
+	\item Refine transformation model (Generative process)
+	\item Ergodic assumption
+	\item Link with log posterior maximization (Entropy/Free Energy minimization) :
+	\begin{itemize}
+		\item unsupervised case
+		\item intrinsic motivation
+	\end{itemize}
+\end{itemize}
