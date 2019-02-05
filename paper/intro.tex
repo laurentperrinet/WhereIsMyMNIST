@@ -85,18 +85,17 @@ In a model-based approach, the \emph{accuracy maps} can be calculated using a pa
  \begin{itemize}
  \item Given a training set $\{(x_1, u_1, y_1), ..., (x_n, u_n, y_n)\}$:
  \begin{itemize}
- \item Train a classifier $p_\theta$ that estimates $p(Y|\boldsymbol{x}, \boldsymbol{u})$. 
+ \item Train a classifier $p_\theta$ that estimates $p(Y|\boldsymbol{x})$. 
  \end{itemize}
- \item Then, for each class $\hat{\boldsymbol{y}}$, taking $\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x}, \boldsymbol{u})$,\emph{ the classification rate $r_\theta(\boldsymbol{y}, \boldsymbol{u})$ is an estimator of the posterior expectation :}
+ \item Then, for each class $\hat{\boldsymbol{y}}$, taking $\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x})$,\emph{ the classification rate $r_\theta(\boldsymbol{u})$ is an estimator of the posterior expectation :}
  \begin{align*}
  r_\theta(\boldsymbol{u}) 
- %&= \frac{1}{|\{i:\boldsymbol{y}_i = \boldsymbol{y}\}|}\\
  &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})}
- \mathbb{E}_{\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x}, \boldsymbol{u})} \delta_{\hat{\boldsymbol{y}}=\tilde{\boldsymbol{y}}}\\
- &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p_\theta(\hat{\boldsymbol{y}}|\boldsymbol{x}, \boldsymbol{u})\\
- &\simeq \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}, \boldsymbol{u})
+ \mathbb{E}_{\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x})} \delta_{\hat{\boldsymbol{y}}=\tilde{\boldsymbol{y}}}\\
+ &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p_\theta(\hat{\boldsymbol{y}}|\boldsymbol{x})\\
+ &\simeq \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x})
  \end{align*} 
- that forms an \emph{accuracy map} for each retinocentric position $\boldsymbol{u}$.\\
+ that forms an \emph{accuracy map} for each target position $\boldsymbol{u}$.\\
  \end{itemize}
 
 \subsubsection{Parametric transformation (Colliculus?) map}
@@ -126,25 +125,26 @@ Once $p_\theta$ and $Q_\psi$ are trained, the recognition algorithm is straightf
 \paragraph{Single saccade algorithm:}
 \begin{enumerate}
 	\item Read the view $\boldsymbol{x}$
-	\item Choose $\delta\boldsymbol{e}$ according to $Q_\psi(.|\boldsymbol{x})$
+	\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$
 	\item Move the eye 
 	\item Update the view $\boldsymbol{x}'$
-	\item Identify the target with $\tilde{\boldsymbol{y}} \sim p_\theta(Y|\boldsymbol{x}',\hat{\boldsymbol{u}}')$
+	\item Identify the target with $\tilde{\boldsymbol{y}} \sim p_\theta(Y|\boldsymbol{x}')$
 \end{enumerate}
 
 
 \paragraph{Multi saccades algorithm:}
 \begin{enumerate}
-\item $\pi(Y) \leftarrow$ uniform distribution
+\item $q(Y) \leftarrow$ uniform distribution
 \item Read the view $\boldsymbol{x}$
-\item Choose $\delta\boldsymbol{e}$ according to $Q_\psi(.|\boldsymbol{x})$
-\item Repeat several times up to posterior confidence threshold:
+\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$
+\item Repeat several times up to some posterior confidence threshold:
 	\begin{enumerate}
 		\item Move the eye 		
 		\item Read $\boldsymbol{x}$
-		\item $\pi(Y) \leftarrow \pi(Y) \times p_\theta(Y|\boldsymbol{x},\hat{\boldsymbol{u}}')$
-		\item Normalize $\pi$ 
-		\item Choose $\delta\boldsymbol{e}$ according to $Q_\psi(.|\boldsymbol{x})$ (with some inhibition of return mechanism)
+		\item $q(Y) \leftarrow q(Y) \times p_\theta(Y|\boldsymbol{x})$
+		\item normalize $q$
+		\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$ (with some inhibition of return mechanism)
 	\end{enumerate}
+	\item Identify the target with $\tilde{\boldsymbol{y}} \sim q(Y)$
 \end{enumerate}
 
