@@ -10,9 +10,7 @@
 \begin{itemize}
 	\item $\boldsymbol{x}$ : visual field (image)
 	\item $\boldsymbol{y}$ : target category (categorical)
-	\item $\boldsymbol{z}$ : target position (real coordinates or categorical, head-centered referential)
-	\item $\boldsymbol{e}$ : eyes orientation (real coordinates or categorical, head-centered referential)
-	\item $\boldsymbol{u} = \boldsymbol{z} - \boldsymbol{e}$ : target position (real coordinates or categorical, retinocentric referential)
+	\item $\boldsymbol{u}$ : target position (real coordinates or categorical, retinocentric referential)
 
 \end{itemize}
 
@@ -22,8 +20,16 @@ $$ \boldsymbol{x} \sim P(X|\boldsymbol{y}, \boldsymbol{u}) $$
 Full inference (posterior):
 $$ P(Y, U|\boldsymbol{x}) \propto  P(\boldsymbol{x}|Y, U) $$
 
-%Independence assumption :
-%$$ P(Y, U|\boldsymbol{x}) = P(Y|\boldsymbol{x})  P(U|\boldsymbol{x}) $$
+Independence assumptions :
+\begin{equation} 
+P(Y, U) = P(Y)  P(U) \text{\emph{ (toujours vrai)}}
+\label{eq:indep-1}
+\end{equation}
+
+\begin{equation}  
+P(Y, U|X) = P(Y|X)  P(U|X) \text{\emph{ (faux s'il y a plusieurs cibles)}}
+\label{eq:indep-2}
+\end{equation}
 
 Partial inference on object category:
 $$ P(Y|\boldsymbol{x}, \boldsymbol{u}) \propto  P(\boldsymbol{x}|Y, \boldsymbol{u}) $$
@@ -37,147 +43,81 @@ Marginals:
 \item $ P(U|\boldsymbol{x}) = \int P(U|\boldsymbol{x}, \boldsymbol{y}) d\boldsymbol{y}$
 \end{itemize}
 
+\subsubsection{What we did so far...}
 
-\subsubsection{General case: Visual information gain maximization}\label{sec:case1}
-
-Consider a view $\boldsymbol{x}$ generated from a target $\boldsymbol{y}$ viewed at retinocentric position $\boldsymbol{u}$. 
-
-Consider first that :
+Consider a view $\boldsymbol{x}$ that contains a single target $\boldsymbol{y}$ at unknown retinocentric position $\boldsymbol{u}$. The brain needs to guess both  $\boldsymbol{y}$ and $\boldsymbol{u}$ with limited computational resources. 
+   
+We assume here that the brain adopts independence assumption (\ref{eq:indep-2}), making a separation between the ``Where'' and the ``What'' pathways, forming separate (and cheaper) inferences :
 \begin{itemize}
-	\item The generative model  $p(X|\boldsymbol{y}, \boldsymbol{u})$ is known
-	\item The retinocentric position  $\boldsymbol{u}$ is known.
-	\item The view $\boldsymbol{x}$ is known.
-	\item The target category  $\boldsymbol{y}$ is unknown.
-\end{itemize} 
-
-
-
-The question comes how to choose the new retinocentric position $\boldsymbol{u}'$ in order to maximize the \emph{mutual information} between $\boldsymbol{x}|\boldsymbol{u}$ (current view) and $\boldsymbol{x}'|\boldsymbol{u}'$ (future view).
-
-In general, the visual Information Gain between two visual fields $\boldsymbol{x}|\boldsymbol{u}$  and $\boldsymbol{x}'|\boldsymbol{u}'$ is:
-
-\begin{align*}
-\text{IG}(\boldsymbol{x}|\boldsymbol{u}; \boldsymbol{x}'| \boldsymbol{u}') 
-&= -\log p(\boldsymbol{x}|\boldsymbol{u}) 
-+ \log p(\boldsymbol{x}|\boldsymbol{u}, \boldsymbol{x}', \boldsymbol{u}')
-\end{align*}
-
-\paragraph{Information Gain Lower Bound}
-Consider now that given  $\boldsymbol{x}$ and $\boldsymbol{u}$, the target category  $\boldsymbol{y}$ can be \emph{inferred} using Bayes rule, i.e.:
-$$ P(Y|\boldsymbol{x}, \boldsymbol{u}) \propto  P(\boldsymbol{x}|Y, \boldsymbol{u}) $$
-Then, it can be shown (see \cite{dauce2018}) that :
-$$\text{IG}(\boldsymbol{x}|\boldsymbol{u}; \boldsymbol{x}'| \boldsymbol{u}') \geq \mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})} \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}') - \log(\pi(\boldsymbol{y})) \right]$$
-with  $\pi(\boldsymbol{y})$ the prior over the $\boldsymbol{y}$'s .
-When the prior is uniform, the information gain lower bound (IGLB) simplifies to $\mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})} \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right] + c$, with $c$ a constant.
-
-\paragraph{Predictive approach}
-One can adopt a \emph{predictive} approach to choose the new eye orientation $\boldsymbol{e}'$:
-\begin{itemize}
-	\item First choose a new retinocentric position $\boldsymbol{u}'$ that will maximize the  information gain.
-	\item Then choose $\boldsymbol{e}'$ such that $$\boldsymbol{z} - \boldsymbol{e}' = \boldsymbol{u}'$$ i.e. $$\boldsymbol{e}' = \boldsymbol{e} + \boldsymbol{u} - \boldsymbol{u}'$$
+\item $p(Y|\boldsymbol{x})$
+\item $p(U|\boldsymbol{x})$
 \end{itemize}
 
-The predictive approach needs three predictive steps:
+Another assumption is that the category $\boldsymbol{y}$ is \emph{translationally invariant}: given a transformation $\mathcal{T}$,
+$$\mathcal{T}(\boldsymbol{u}, \boldsymbol{y}) 
+= (\mathcal{T}(\boldsymbol{u}), \boldsymbol{y})$$
+
+Now, given $\boldsymbol{x}$ and the separation assumption, it is sensible to change the viewpoint to better estimate $\boldsymbol{y}$, because  $\boldsymbol{y}$ is invariant to the viewpoint transformation.
+
+This is where \emph{active inference} comes into the play:
 \begin{itemize}
-	\item $p(Y|\boldsymbol{x}, \boldsymbol{u})$ is the current posterior over the target category inferred from the current observation,
-	\item $\boldsymbol{x}'\sim p(X|\boldsymbol{y},\boldsymbol{u}')$ is the predicted view generated by the model assuming that the target $\boldsymbol{y}$ is seen from from $\boldsymbol{u}'$,
-	\item and $p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')$ is the predicted posterior from   assumption $\boldsymbol{y}$, given $\boldsymbol{x}'$ and $\boldsymbol{u}'$.
+\item Consider that the true target is $\hat{\boldsymbol{y}}$
+\item Consider that the target current retinocentric position is $\boldsymbol{u}$
+\item Then, for any translation $\delta \boldsymbol{u}$, the future posterior on the true target is estimated by:
+$\mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$
+\item And the optimal translation is:  $\underset{\delta\boldsymbol{u}}{\text{ argmax }}  \mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$
 \end{itemize}
 
-The optimal new retinocentric position is then:
-\begin{align*}
-\hat{\boldsymbol{u}}' &= \underset{\boldsymbol{u}' }{\text{ argmax }} 
- \mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})}  
- \left[\mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}')}
- \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right]\right]\\
-  %&= \underset{\boldsymbol{u}' \in \mathcal{U}}{\text{ argmax }} A(\boldsymbol{u}'|\boldsymbol{x}, \boldsymbol{u})
-\end{align*}
-
-Taking $\delta \boldsymbol{e} = \boldsymbol{u} - \boldsymbol{u}'$ the eye displacement, 
-\begin{align*}
-\widehat{\delta\boldsymbol{e}} &= \underset{\delta\boldsymbol{e} }{\text{ argmax }} 
-\mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})}  
-\left[\mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}- \delta \boldsymbol{e})}
-\left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}-\delta\boldsymbol{e})\right]\right]\\
-%&= \underset{\delta\boldsymbol{e}}{\text{ argmax }} A(\delta\boldsymbol{e}|\boldsymbol{x}, \boldsymbol{u})
-\end{align*}
-
-%For each possible target identity $\boldsymbol{y}$, $A_{\boldsymbol{y}}(\boldsymbol{u}') = \mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}')}
-%\left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right]$ is the \emph{class-specific log posterior} map and 
-
-
-\subsubsection{Link with acuracy maps}
-In a model-based approach, the \emph{accuracy maps} can be calculated using a parametric classifier : 
+If now $\boldsymbol{u}$ is unknown and needs to be guessed from $\boldsymbol{x}$, the optimal translation is:
+$$\underset{\delta\boldsymbol{u}}{\text{ argmax }} \mathbb{E}_{\boldsymbol{u}\sim p(U|\boldsymbol{x})} \mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$$
+with :
 \begin{itemize}
-	\item Given a training set $\{(x_1, u_1, y_1), ..., (x_n, u_n, y_n)\}$:
-	\begin{itemize}
-		\item Train a classifier $p_\theta$ that estimates $p(Y|\boldsymbol{x}, \boldsymbol{u})$. 
-	\end{itemize}
-	\item Then, for each class $\boldsymbol{y}$, taking $\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x}, \boldsymbol{u})$,\emph{ the classification rate $r_\theta(\boldsymbol{y}, \boldsymbol{u})$ is an estimator of the posterior expectation :}
-\begin{align*}
-r_\theta(\boldsymbol{y}, \boldsymbol{u}) 
-%&= \frac{1}{|\{i:\boldsymbol{y}_i = \boldsymbol{y}\}|}\\
-&= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\boldsymbol{y}, \boldsymbol{u})}
-\mathbb{E}_{\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x}, \boldsymbol{u})} \delta_{\boldsymbol{y}=\tilde{\boldsymbol{y}}}\\
-&= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\boldsymbol{y}, \boldsymbol{u})} p_\theta(\boldsymbol{y}|\boldsymbol{x}, \boldsymbol{u})\\
-&\simeq \mathbb{E}_{ \boldsymbol{x} \sim p(X|\boldsymbol{y}, \boldsymbol{u})} p(\boldsymbol{y}|\boldsymbol{x}, \boldsymbol{u})
-\end{align*} 
-that forms an \emph{accuracy map} for each class $\boldsymbol{y}$.\\
-\item Then, given a mixture $q$ on the target category, 
-\begin{align*}
- r_\theta(\boldsymbol{u}|q) &= \mathbb{E}_{\boldsymbol{y}\sim q(Y)} \left[\mathbb{E}_{ \boldsymbol{x} \sim p(X|\boldsymbol{y}, \boldsymbol{u})}  p_\theta(\boldsymbol{y}|\boldsymbol{x}, \boldsymbol{u}) \right]
-  %&\simeq \mathbb{E}_{\boldsymbol{y}\sim q(Y)}  
-%\left[\mathbb{E}_{ \boldsymbol{x} \sim p(X|\boldsymbol{y}, \boldsymbol{u})}
-%p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right]
-\end{align*} is a mixture of accuracy maps.
+\item $p(U|\boldsymbol{x})$ the inferred target position
+\item and $\mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$ the expected inference on the actual target.
 \end{itemize}
 
-%Then:
-%$$\tilde{A}_{\boldsymbol{y}}(\boldsymbol{u}') = \mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}')}$$
-
-\emph{(TODO : Attention il faudrait à partir de maintenant une carte qui moyenne les log posteriors car l'espérance du log n'est pas exactement égale au log de l'espérance, i.e. $r_{\theta}'(\boldsymbol{u}|q) = \mathbb{E}_{\boldsymbol{y}\sim q(Y)} \left[\mathbb{E}_{ \boldsymbol{x} \sim p(X|\boldsymbol{y}, \boldsymbol{u})}  \log p_\theta(\boldsymbol{y}|\boldsymbol{x}, \boldsymbol{u}) \right]$).}
-\newline
-
-One can now select $\boldsymbol{u}'$ with the parametric estimator:
-\begin{align*}
-\hat{\boldsymbol{u}}' &\simeq \underset{\boldsymbol{u}' }{\text{ argmax }} 
-\mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})}  
-\left[\mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}')}
-\left[\log p_\theta(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right]\right]\\
-&= \underset{\boldsymbol{u}' }{\text{ argmax }}  r_\theta(\boldsymbol{u}'|p(Y|\boldsymbol{x}, \boldsymbol{u}))
-%&= \underset{\boldsymbol{u}' \in \mathcal{U}}{\text{ argmax }} A(\boldsymbol{u}'|\boldsymbol{x}, \boldsymbol{u})
-\end{align*}
-
-
-
-%with $A(\delta\boldsymbol{e}|\boldsymbol{x}, \boldsymbol{u})$ the IGLB\footnote{Information Gain Lower Bound} map.
-
-and equivalently one can optimize $\delta\boldsymbol{e}$ with a \emph{transformation map}:
-$$r_\theta(\delta\boldsymbol{e}|\boldsymbol{u}, q) = r_\theta(\boldsymbol{u}-\delta\boldsymbol{e}|q)$$
-i.e.:
-\begin{align*}
-\widehat{\delta\boldsymbol{e}} &= \underset{\delta\boldsymbol{e}}{\text{ argmax }} 
- r_\theta(\delta\boldsymbol{e}|\boldsymbol{u}, p(Y|\boldsymbol{x}, \boldsymbol{u}))
-%&= \underset{\boldsymbol{u}' \in \mathcal{U}}{\text{ argmax }} A(\boldsymbol{u}'|\boldsymbol{x}, \boldsymbol{u})
-\end{align*}
-
-It must be noticed that the transformation map is maximal at $\delta\boldsymbol{e} = \boldsymbol{u} - \hat{\boldsymbol{u}}'$. Each initial $\boldsymbol{u}$ provides a different transformation map, that is a shift of the original log-accuracy map (\emph{Ergodic assumption??}).
+\subsubsection{Accuracy maps}
  
-\subsubsection{Colliculus map}
-Consider now that the target retinocentric position  $\boldsymbol{u}$ is unknown.
+In practice, it is computationally impossible to make exact guesses about the future observation $\boldsymbol{x}'$. Our second assumption is that instead of predicting future inferences on true target, the brain trains a \emph{parametric accuracy map} by experience (trial and error).
 
 
-Then the transformation map becomes :
+In a model-based approach, the \emph{accuracy maps} can be calculated using a parametric classifier : 
+ \begin{itemize}
+ \item Given a training set $\{(x_1, u_1, y_1), ..., (x_n, u_n, y_n)\}$:
+ \begin{itemize}
+ \item Train a classifier $p_\theta$ that estimates $p(Y|\boldsymbol{x}, \boldsymbol{u})$. 
+ \end{itemize}
+ \item Then, for each class $\hat{\boldsymbol{y}}$, taking $\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x}, \boldsymbol{u})$,\emph{ the classification rate $r_\theta(\boldsymbol{y}, \boldsymbol{u})$ is an estimator of the posterior expectation :}
+ \begin{align*}
+ r_\theta(\boldsymbol{u}) 
+ %&= \frac{1}{|\{i:\boldsymbol{y}_i = \boldsymbol{y}\}|}\\
+ &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})}
+ \mathbb{E}_{\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x}, \boldsymbol{u})} \delta_{\hat{\boldsymbol{y}}=\tilde{\boldsymbol{y}}}\\
+ &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p_\theta(\hat{\boldsymbol{y}}|\boldsymbol{x}, \boldsymbol{u})\\
+ &\simeq \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}, \boldsymbol{u})
+ \end{align*} 
+ that forms an \emph{accuracy map} for each retinocentric position $\boldsymbol{u}$.\\
+ \end{itemize}
 
+\subsubsection{Parametric transformation (Colliculus?) map}
+
+One can now select $\delta\boldsymbol{u}$ with the parametric estimator:
 \begin{align*}
-\widehat{\delta\boldsymbol{e}} &= \underset{\delta\boldsymbol{e}}{\text{ argmax }} 
-\mathbb{E}_{\boldsymbol{u}\sim p(U|\boldsymbol{x})}\left[r_\theta(\delta\boldsymbol{e}|\boldsymbol{u}, p_\theta(Y|\boldsymbol{x}, \boldsymbol{u}))\right]\\
-&= \underset{\delta\boldsymbol{e}}{\text{ argmax }} Q(\delta\boldsymbol{e}|\boldsymbol{x})
+\widehat{\delta\boldsymbol{u}} &\simeq \underset{\delta\boldsymbol{u}}{\text{ argmax }} 
+\mathbb{E}_{\boldsymbol{u}\sim p(U|\boldsymbol{x})}  
+r_\theta(\boldsymbol{u}+\delta\boldsymbol{u})\\
+%&= \underset{\boldsymbol{u}' \in \mathcal{U}}{\text{ argmax }} A(\boldsymbol{u}'|\boldsymbol{x}, \boldsymbol{u})
+&= \underset{\delta\boldsymbol{u}}{\text{ argmax }} Q(\delta\boldsymbol{u}|\boldsymbol{x})
 \end{align*}
-with $Q(\delta\boldsymbol{e}|\boldsymbol{x})$ the \emph{action value} map, that is a mixture of transformation maps given the view $\boldsymbol{x}$ and the marginal posterior estimate $p(U|\boldsymbol{x})$. 
+with $Q(\delta\boldsymbol{u}|\boldsymbol{x})$ the \emph{transformation} map, given the view $\boldsymbol{x}$ and the marginal posterior estimate $p(U|\boldsymbol{x})$. 
 
-We assume in the following that a parametric action value map $Q_\psi$ can be trained on top of the parametric classifier $p_\theta$ and its log accuracy map $r_\theta$.
-The training set is $\{(\boldsymbol{x}_1, \boldsymbol{u}_1), ..., (\boldsymbol{x}_n, \boldsymbol{u}_n)\}$ and the classifier learns to associate each $\boldsymbol{x}$ with its full action value map $Q(.|\boldsymbol{x})$. 
+It must be noticed that, given $\hat{\boldsymbol{u}} = \underset{\boldsymbol{u}}{\text{ argmax }} 
+r_\theta(\boldsymbol{u}))$,  the transformation map is maximal at $\delta\boldsymbol{u} = \hat{\boldsymbol{u}} - \boldsymbol{u}$. Each initial $\boldsymbol{u}$ provides a different transformation map, that is a shift of the original accuracy map (\emph{Ergodic assumption??}).
+ 
+We assume in the following that a parametric action value map $Q_\psi$ can be trained on top of the parametric classifier $p_\theta$ and its accuracy map $r_\theta$.
+The training set is $\{(\boldsymbol{x}_1, \boldsymbol{u}_1), ..., (\boldsymbol{x}_n, \boldsymbol{u}_n)\}$ and the accuracy map classifier learns to associate each $\boldsymbol{x}$ with its full transformation map $Q(.|\boldsymbol{x})$. 
+
+
 
 \subsubsection{Algorithms}
 
