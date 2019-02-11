@@ -167,8 +167,7 @@ from LogGabor import LogGabor
 N_theta, N_azimuth, N_eccentricity, N_phase, N_X, N_Y, rho = 6, 24, 16, 2, 256, 256, 1.21 #1.41 #1.25 #
 #N_theta, N_azimuth, N_eccentricity, N_phase, N_X, N_Y, rho = 6, 12, 8, 2, 256, 256, 1.41
 verbose = 1
-OFFSET_STD = 15
-OFFSET_MAX = 30
+
 
 
 # ## Pierre's stuff
@@ -180,8 +179,7 @@ OFFSET_MAX = 30
 # In[14]:
 
 
-def vectorization(N_theta=N_theta, N_azimuth=N_azimuth, N_eccentricity=N_eccentricity, N_phase=N_phase, \
-                  N_X=N_X, N_Y=N_Y, rho=rho, ecc_max=1, B_sf=.4, B_theta=np.pi/N_theta/2):
+def vectorization(N_theta=N_theta, N_azimuth=N_azimuth, N_eccentricity=N_eccentricity, N_phase=N_phase,                   N_X=N_X, N_Y=N_Y, rho=rho, ecc_max=1, B_sf=.4, B_theta=np.pi/N_theta/2):
     retina = np.zeros((N_theta, N_azimuth, N_eccentricity, N_phase, N_X*N_Y))
     parameterfile = 'https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py'
     lg = LogGabor(parameterfile)
@@ -196,34 +194,28 @@ def vectorization(N_theta=N_theta, N_azimuth=N_azimuth, N_eccentricity=N_eccentr
         for i_azimuth in range(N_azimuth):
             for i_eccentricity in range(N_eccentricity):
                 ecc = ecc_max * (1/rho)**(N_eccentricity - i_eccentricity)
-                r = np.sqrt(N_X**2 + N_Y**2) / 2 * ecc  # radius
-                #psi = (i_azimuth+(i_eccentricity % 2)*.5)*np.pi*2 / N_azimuth
-                psi = i_azimuth * np.pi * 2 / N_azimuth
-                theta_ref = i_theta*np.pi/N_theta
+                r = np.sqrt(N_X**2+N_Y**2) / 2 * ecc  # radius
                 sf_0 = 0.5 * 0.03 / ecc
-                x = N_X/2 + r * np.cos(psi)
-                y = N_Y/2 + r * np.sin(psi)
+                x = N_X/2 + r *                     np.cos((i_azimuth+(i_eccentricity % 2)*.5)*np.pi*2 / N_azimuth)
+                y = N_Y/2 + r *                     np.sin((i_azimuth+(i_eccentricity % 2)*.5)*np.pi*2 / N_azimuth)
                 for i_phase in range(N_phase):
                     params = {'sf_0': sf_0, 'B_sf': B_sf,
-                              'theta': theta_ref + psi, 'B_theta': B_theta}
+                              'theta': i_theta*np.pi/N_theta, 'B_theta': B_theta}
                     phase = i_phase * np.pi/2
                     # print(r, x, y, phase, params)
 
                     retina[i_theta, i_azimuth, i_eccentricity, i_phase, :] = lg.normalize(
-                        lg.invert(lg.loggabor(x, y, **params)*np.exp(-1j*phase))).ravel() * ecc
-
-
+                        lg.invert(lg.loggabor(x, y, **params)*np.exp(-1j*phase))).ravel() * 2 * np.pi * ecc
     return retina
 
 
 
-FIC_NAME = 'retina_256_24_ecc_16_expand_new.npy'
+FIC_NAME = 'retina_256_24_ecc_16_expand.npy'
 if not os.path.exists(FIC_NAME):
     retina = vectorization(N_theta, N_azimuth, N_eccentricity, N_phase, N_X, N_Y, rho) #, ecc_max=1)
     np.save(FIC_NAME, retina)
 else:
     retina = np.load(FIC_NAME)
-
 
 
 
@@ -233,13 +225,12 @@ retina_vector = retina.reshape((N_theta*N_azimuth*N_eccentricity*N_phase, N_X*N_
 # In[19]:
 
 
-FIC_NAME = 'retina_inverse_256_24_ecc_16_expand_new.npy'
+FIC_NAME = 'retina_inverse_256_24_ecc_16_expand.npy'
 if not os.path.exists(FIC_NAME):
     retina_inverse = np.linalg.pinv(retina_vector)
     np.save(FIC_NAME, retina_inverse)
 else:
     retina_inverse = np.load(FIC_NAME)
-print(retina_inverse.shape)
 
 
 # #### Orientation invariant power encoding (colliculus??)
@@ -305,16 +296,12 @@ class Transform(object):
             image = np.fliplr(image)
             fixmap = np.fliplr(fixmap)'''
         
-        if True : #not self.test:
-            m = fixmap/sum(fixmap.flatten())
-            m = m.flatten()
-            m_mult = np.random.multinomial(1, m).reshape(256, 256)
-            coord = np.where(m_mult == 1)
-            i_offset = 127 - coord[0][0]
-            j_offset = 127 - coord[1][0]
-        else:
-            i_offset = 0
-            j_offset = 0
+        m = fixmap/sum(fixmap.flatten())
+        m = m.flatten()
+        m_mult = np.random.multinomial(1, m).reshape(256, 256)
+        coord = np.where(m_mult == 1)
+        i_offset = 127 - coord[0][0]
+        j_offset = 127 - coord[1][0]
         
         '''i_offset = 0
         j_offset = -50'''
@@ -390,6 +377,8 @@ class Transform(object):
             return {'image': image_colliculus, 'image_white': image_retina, 'fixation': fixmap_colliculus}
         else:
             return {'image': image_colliculus, 'image_white': image_retina, 'fixation': m_coll_mult}   
+        
+
 # In[257]:
 
 
@@ -446,15 +435,14 @@ minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
 
-FIC_NAME = '2018-12-23-new-multi-1-withbias-regul'
+FIC_NAME = '2019-01-01-Malek-recap-noconvbias'
 EPOCHS = 1500
 
-verbose = 1
 train = True
 
 do_cuda = torch.cuda.is_available()
 if do_cuda:
-    device = 'cuda:1'
+    device = 'cuda:0'
 else:
     device = 'cpu' #torch.cuda.device("0" if do_cuda else "cpu")
 
@@ -476,6 +464,13 @@ image_dir = imdir #'GLOBAL_IMAGES_ALL'
 image_dir_white = imdir_white #'GLOBAL_IMAGES_ALL'
 fix_dir = fixdir #'GLOBAL_FIXATIONMAPS_ALL'
 
+'''image_names=os.listdir(image_dir)
+print (len(image_names))
+fix_names=os.listdir(fix_dir)
+print (len(fix_names))
+for i in range(len(image_names)):
+    if image_names[i][:7] != fix_names[i][:7]:
+        print(image_names[i], fix_names[i])'''
 
 n = len(os.listdir(image_dir))
 index = np.arange(n)
@@ -494,52 +489,59 @@ test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuf
 
 
 BIAS_CONV = False
-BIAS = False
-
-
-BIAS_CONV = True
-BIAS_DECONV = True #True
+BIAS = True
+BIAS_DECONV = False #True
 
 class Net(torch.nn.Module):
     
     def __init__(self):
         super(Net, self).__init__()
-        
-        ## Convolution
+        ## White
         self.conv1 = nn.Conv3d(2, 16, 3, bias = BIAS_CONV, stride=1, padding=1)
         self.conv2 = nn.Conv3d(16, 64, 3, bias = BIAS_CONV, stride=1, padding=1)
         self.conv3 = nn.Conv3d(64, 256, 3, bias = BIAS_CONV, stride=1, padding=1)
         self.pool = nn.MaxPool3d(2, stride=2)
-        
-        # Bottleneck
-        self.bn1= torch.nn.Linear(256 * 3 * 2, 500, bias = BIAS_DECONV)
-        self.bn2 = torch.nn.Linear(500, 100, bias = BIAS_DECONV)
-        self.bn3 = torch.nn.Linear(100, 10, bias = BIAS_DECONV)
-        
-        self.out1 = torch.nn.Linear(10, 500, bias = BIAS_DECONV)
-        self.predict = torch.nn.Linear(500, N_azimuth * N_eccentricity, bias = BIAS_DECONV)
+        self.conv_hidden1 = nn.Conv2d(256, 20, 1, bias = BIAS, stride=1, padding=0)
+        self.conv_hidden2 = nn.Conv2d(20, 2, 1, bias = BIAS, stride=1, padding=0)
+        self.deconv_hidden2 = nn.Conv2d(2, 20, 1, bias = BIAS, stride=1, padding=0)
+        self.deconv_hidden1 = nn.Conv2d(20, 256, 1, bias = BIAS, stride=1, padding=0)
+        # taille 256 *  3 (az) * 2 (ecc) * 1 (thet)
+        self.deconv3 = nn.ConvTranspose2d(256, 64, 2, bias = BIAS_DECONV, stride=2, padding=0)
+        self.deconv2 = nn.ConvTranspose2d(64, 16, 2, bias = BIAS_DECONV, stride=2, padding=0) # dummy
+        self.deconv1 = nn.ConvTranspose2d(16, 1, 2, bias = BIAS_DECONV, stride=2, padding=0)
         
         #self.dropout = nn.Dropout(p = 0.5) 
         
     def forward(self, image):
         
-        # Convolution
-        h_conv1 = F.relu(self.pool(self.conv1(image)))
-        h_conv2 = F.relu(self.pool(self.conv2(h_conv1)))
-        h_conv3 = F.relu(self.pool(self.conv3(h_conv2)))
-        h_conv3_flat = h_conv3.view(-1, 256 * 3 * 2)
-        h_bn1 = F.relu(self.bn1(h_conv3_flat))       
-        h_bn1_drop = F.dropout(h_bn1, p = .5) #self.dropout)
+        # in
+        data = F.relu(self.pool(self.conv1(image)))
+        data = F.relu(self.pool(self.conv2(data)))
+        data = F.relu(self.pool(self.conv3(data)))
+        data = data.view(-1, 256, 3, 2)
         
-        # Bottleneck
-        h_bn2 = F.relu(self.bn2(h_bn1_drop)) #+self.hidden2(data) #+ 
-        h_bn2_drop = F.dropout(h_bn2, p = .5) #self.dropout)
-        z = self.bn3(h_bn2_drop)
+        # hidden (optional)
+        if True:
+            data = F.relu(self.conv_hidden1(data)) 
+            data = F.dropout(data, p = .5) 
+            data = self.conv_hidden2(data)
+            data = F.relu(self.deconv_hidden2(data))
+            data = F.relu(self.deconv_hidden1(data))
         
-        # Out
-        h_out1 = F.relu(self.out1(z))
-        resp =  self.predict(h_out1)
-        return resp
+        # out
+        data = F.relu(self.deconv3(data))
+        data = F.relu(self.deconv2(data))
+        data = self.deconv1(data)
+        data = data.view(-1, N_azimuth*N_eccentricity) 
+        return data
+    
+    '''def num_flat_features(self, x):
+        size = x.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features'''
+
 
 net = Net()
 net.to(device)
@@ -572,6 +574,7 @@ def train(net, minibatch_size,           optimizer=optimizer,           vsize = 
     for batch_idx, batch in enumerate(train_loader):
         optimizer.zero_grad()
        
+        log_image_batch = batch['image'].float().to(device)
         log_image_batch_white = batch['image_white'].float().to(device)
         log_fixmap_batch = batch['fixation'].float().to(device)
         

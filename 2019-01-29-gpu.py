@@ -446,7 +446,7 @@ minibatch_size = 25  # quantity of examples that'll be processed
 lr = 1e-4 #0.05
 
 
-FIC_NAME = '2019-01-29-multi-1-withbias'
+FIC_NAME = '2019-01-29-multi-1-withbias-regul'
 EPOCHS = 1500
 
 verbose = 1
@@ -495,7 +495,7 @@ train_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = tr
 train_loader = data.DataLoader(train_dataset, batch_size=minibatch_size, shuffle=True, num_workers=NUM_WORKERS)
 
 test_dataset = ImageDataset(image_dir, image_dir_white, fix_dir, transform = transform_test, index = index_test)
-test_loader = data.DataLoader(test_dataset, batch_size = len(test_dataset), shuffle=True, num_workers=NUM_WORKERS)
+test_loader = data.DataLoader(test_dataset, batch_size = 100, shuffle=True, num_workers=NUM_WORKERS)
 
 # #### Network
 
@@ -521,9 +521,9 @@ class Net(torch.nn.Module):
         # Bottleneck
         self.bn1= torch.nn.Linear(256 * 3 * 2, 500, bias = BIAS_DECONV)
         self.bn2 = torch.nn.Linear(500, 100, bias = BIAS_DECONV)
-        self.bn3 = torch.nn.Linear(100, 10, bias = BIAS_DECONV)
+        self.bn3 = torch.nn.Linear(100, 8, bias = BIAS_DECONV)
         
-        self.out1 = torch.nn.Linear(10, 500, bias = BIAS_DECONV)
+        self.out1 = torch.nn.Linear(8, 500, bias = BIAS_DECONV)
         self.out2 = torch.nn.Linear(500, 500, bias = BIAS_DECONV)
         self.predict = torch.nn.Linear(500, N_azimuth * N_eccentricity, bias = BIAS_DECONV)
         
@@ -537,9 +537,10 @@ class Net(torch.nn.Module):
         h_conv3 = F.relu(self.pool(self.conv3(h_conv2)))
         h_conv3_flat = h_conv3.view(-1, 256 * 3 * 2)
         h_bn1 = F.relu(self.bn1(h_conv3_flat))       
+        h_bn1_drop = F.dropout(h_bn1, p = .5) #self.dropout)
         
         # Bottleneck
-        h_bn2 = F.relu(self.bn2(h_bn1)) #+self.hidden2(data) #+ 
+        h_bn2 = F.relu(self.bn2(h_bn1_drop)) #+self.hidden2(data) #+ 
         h_bn2_drop = F.dropout(h_bn2, p = .5) #self.dropout)
         z = self.bn3(h_bn2_drop)
         
