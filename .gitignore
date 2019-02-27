@@ -1,3 +1,6 @@
+paper/paper.aux
+paper/paper.pdf
+paper/paper.synctex.gz
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

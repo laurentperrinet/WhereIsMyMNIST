@@ -1,5 +1,4 @@
-\documentclass[]{article}
-
+\documentclass[a4]{article}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -9,21 +8,24 @@
 \usepackage{a4}
 
 %opening
-\title{Where is My MNIST?}
+\title{
+%%Tentative titles :
+%Looking where it is worth looking
+%Learning where to see
+Learning where to look for a target before seeing it
+%Where is My MNIST?
+}
 \author{}
 
 \begin{document}
 
 \maketitle
 
-Tentative titles :
-\begin{itemize}
-	\item Looking where it is worth looking
-	\item Learning where to see
-\end{itemize}
-
 \begin{abstract}
-
+A realistic system for object categorization should be able to find the target in possibly large images, independently of its position in visual space. Current solutions leverage this solution by processing the different hypothesis (classes) at all possible spatial configuration. However, this can be costly in terms of computing time especially without dedicated parallel hardware. %
+We explore here a solution inspired by the anatomy of the human visual system, that is, the combination of a foveated sensor with the capacity of rapidly moving the center of fixation using saccades. Indeed, the position and category of objects in images are a priori independent and we hypothesize that the retinotopic map overlays a central area dedicated to object categorization and a peripheral area dedicated to
+Using this hypothesis, we formalize this problem in a probabilistic setting which allows us to build two parallel but interactively connected system: a classical image classification algorithm assuming that gaze is centered on the object on one side and a system learning to infer the position of the target on the other. Until the classification is confident, the system performs a saccade to the most likely position in the image. Overall, the computational cost of this strategy is less than that in holistic methods. %
+We tested this framework on a simple task of finding digits in a large, cluttered image. Results demonstrate that it is possible to correctly learn the position of a target from a given class, and this before actually seeing a foveated image of the target. We compare the results of this model with classical psychophysical results in visual search. This provides evidence of the importance of such strategies in computer vision and we highlight some predictions of our model.
 \end{abstract}
 
 \input{intro}
@@ -35,7 +37,4 @@ Tentative titles :
 \input{discussion}
 
 \input{appendix}
-
-
-
 \end{document}
