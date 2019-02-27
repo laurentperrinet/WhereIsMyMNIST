@@ -249,7 +249,7 @@ def train(net, minibatch_size, \
         if verbose and batch_idx % 10 == 0:
             print('[{}/{}] Loss: {} Time: {:.2f} mn'.format(
                 batch_idx*minibatch_size, len(train_loader.dataset),
-                loss.data.numpy(), (time.time()-t_start)/60))
+                loss.data.cpu().numpy(), (time.time()-t_start)/60))
                                                         
     return net
 
