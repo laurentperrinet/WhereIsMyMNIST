@@ -40,6 +40,8 @@ Visual search
 
 -     Treisman, A., & Gelade, G. (1980). A feature-integration theory of attention. Cognitive Psychology, 12, 97-136. doi:10.1016/0010-0285(80)90005-5.  https://www.sciencedirect.com/science/article/pii/0010028580900055
 
+- https://en.wikipedia.org/wiki/Visual_search
+
 
 
 Saliency map models
