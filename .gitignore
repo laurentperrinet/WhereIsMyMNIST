@@ -1,4 +1,9 @@
 paper/paper.aux
+paper/paper-blx.bib
+paper/paper.bbl
+paper/paper.blg
+paper/paper.run.xml
+
 paper/paper.pdf
 paper/paper.synctex.gz
 # Byte-compiled / optimized / DLL files
