@@ -1,20 +1,22 @@
+% !TEX root = paper.tex
+% !TEX encoding = UTF-8 Unicode
+% -*- coding: UTF-8; -*-
+% vim: set fenc=utf-8
+% !TEX spellcheck = en-US
 \section{Introduction}
 
 \subsection{Problem statement}
 
-The prominence of automatic methods to identify objects in natural images is ever increasing. The performance of such systems recently reached the same performance as human observers [ref needed]. Moreover, these systems which were trained on energy greedy, high performance computers are now designed to work on more common hardware such as desktop computers with a decent GPU. However, such methods are not yet available for mobile devices, as will be necessary for instance for the fast detection of visual objects in autonomous driving, as when one has to identify a pedestrian from a sign pole. More importantly, the robustness of such methods is still lower than that of humans. Indeed, it is still difficult for such a system to learn to categorize a particular object class given all the possible spatial configurations and the respective geometrical visual transformations. This explosion of combinations is currently handled by increasing accordingly the number of parameters, hence the energy consumption of such methods- As a consequence, state-of-the art classification architectures contain many millions parameters while still handling relatively small images.
+The prominence of automatic methods to identify objects in natural images is ever increasing. The performance of such systems recently reached the same performance as human observers~\citep{He15}. Moreover, these systems which were trained on energy greedy, high performance computers are now designed to work on more common hardware such as desktop computers with a decent GPU. However, such methods are not yet available for mobile devices, as will be necessary for instance for the fast detection of visual objects in autonomous driving, as when one has to identify a pedestrian from a sign pole. More importantly, the robustness of such methods is still lower than that of humans. Indeed, it is still difficult for such a system to learn to categorize a particular object class given all the possible spatial configurations and the respective geometrical visual transformations. This explosion of combinations is currently handled by increasing accordingly the number of parameters, hence the energy consumption of such methods. As a consequence, state-of-the art classification architectures contain many millions parameters while still handling relatively small images.
 
-On the contrary, the human visual system is able to perform such a feat very rapidly (less than 100 ms) [Kirchner,..] and at a low energy cost (< 5W). On top of that, the system is mostly autonomous, robust to visual transform or lighting conditions and can learn with a few examples. If many different anatomical features may explain such efficiency, a main difference of the human visual system with classical computer vision approaches in the fact that its sensor (the retina) combines a non homogeneous sampling of the world with the capacity to rapidly change its center of fixation. Indeed, on the one hand, the retina is composed of two separate systems: a central, high definition fovea and a large, peripheral area. On the other hand, the retina is attached on the back of the eye which is capable of low latency, high speed (> 500 degrees per second) eye movements. In particular, saccades allow for efficient changes of the position of the center of gaze. The interplay of those two properties allow to engage observers in an action / perception-cycle which sequentially scans the different parts of the image. This behavior is prevalent during our lifetime (2/3 saccades per second = Zillions per life). This behaviour is one type of active inference [Friston2012] and we will envision herein how to incorporate it to classical computer vision schemes.
+On the contrary, the human visual system is able to perform such a feat very rapidly (less than 100 ms~\citep{Kirchner06}) and at a low energy cost (< 5W). On top of that, the system is mostly autonomous, robust to visual transform or lighting conditions and can learn with a few examples. If many different anatomical features may explain such efficiency, a main difference of the human visual system with classical computer vision approaches in the fact that its sensor (the retina) combines a non homogeneous sampling of the world with the capacity to rapidly change its center of fixation. Indeed, on the one hand, the retina is composed of two separate systems: a central, high definition fovea and a large, peripheral area. On the other hand, the retina is attached on the back of the eye which is capable of low latency, high speed (> 500 degrees per second) eye movements. In particular, saccades allow for efficient changes of the position of the center of gaze. The interplay of those two properties allow to engage observers in an action / perception-cycle which sequentially scans the different parts of the image. This behavior is prevalent during our lifetime (2/3 saccades per second = Zillions per life). This behavior is one type of active inference~\citep{Friston12} and we will envision herein how to incorporate it to classical computer vision schemes.
 
-To explain and take advantage of this visual behaviour, it is of particular importance to understand its computational and biological (neurophysiological) principles. One main hypothesis regarding this active vision is that visual scenes most often consist of a single visual object of interest. Take for instance the case of a conversation with a friend air a noisy cafe. To ease the understanding of his voice and emotion you will track his face despite all the remaining visual clutter. Such a visual experience-can be simplified in a manner reminiscent to psychophysical experiments. An observer is asked to classify digits (for instance as taken from the MNist database) as they are shown on a computer display. However, these digits can be placed at a random positions on the display , and visual clutter is added as a background to the image (see Figure~\ref{fig:intro}-A). This defines more precisely our problem: how do we identify a small object in a large image while not knowing its position?
- 
-This joint problem of localization and identification found many solutions in computer vision. Notably, recent advances in deep-learning have provided with efficient solution such as faster-RCN N [Ren 2015] or Yolo [Redmon 2015]. This last implementation is particularly interesting as it predicts in the image the probability of proposed bounding boxes around the visual object. While rapid, the amount of such boxes greatly increases with image size and necessitates a dedicated hardware. When limiting our problem to few objects of interest in the image, this strategy amounts to a classical problem in neuroscience, that is, the transformation of a luminous image into a saliency map [Itti 2001]. Such a computation is essential to understand and predict saccades but also as models of attention. Recently, deep learning methods have extended this  model by learning the computation of saliency maps over large databases of natural images [Kammerer 2014]. While these methods are efficient at predicting the probability of fixation, they miss an essential point in the action perception cycle: They operate on the full image while the
-retina operates on the non-uniform, foveated sampling of visual space ( see Figure~\ref{fig:intro}-B). As such, we believe that this is an essential step to reproduce and understand this active vision process.
- 
-An interesting perspective is given with previous modeling of forested sensors. Indeed the non-uniform sampling of visual space is often modeled as a log-polar conformal mapping [JavierTraver 2010] which has a long history in computer vision and Robotics. A first property of this mapping is the séparation between the foveal and the peripheral areas as we defined above. this transformation has also other notable properties, such as the correspondance (by way of translations) in the radial and angular directions to rotations and scalings (respectively) in the visual domain. However, this sensor is most often not coupled to an action ( but see [ref needed)). This paper aims at addressing the fragmentation of these studies respective to their fields (Machine learning, neuroscience, robotics) te propose a novel computational model of this active vision behaviour.
- 
- 
- %------------------------------%
+To explain and take advantage of this visual behavior, it is of particular importance to understand its computational and biological (neurophysiological) principles. One main hypothesis regarding this active vision is that visual scenes most often consist of a single visual object of interest. Take for instance the case of a conversation with a friend air a noisy cafe. To ease the understanding of his voice and emotion you will track his face despite all the remaining visual clutter. Such a visual experience-can be simplified in a manner reminiscent to psychophysical experiments. An observer is asked to classify digits (for instance as taken from the MNist database) as they are shown on a computer display. However, these digits can be placed at a random positions on the display, and visual clutter is added as a background to the image (see Figure~\ref{fig:intro}-A). This defines more precisely our problem: how do we identify a small object in a large image while not knowing its position?
+
+This joint problem of localization and identification is the classical problem of visual search in neuroscience. Such problem is very general and can address complex questions such as "find the green bottle on the table". Here, we will restrict ourselves to a simple "feature search"~\citep{Treisman80}. Such a problem found many solutions in computer vision. Notably, recent advances in deep-learning have provided with efficient models such as faster-RCNN~\citep{Ren17} or Yolo~\citep{Redmon15}. This last implementation is particularly interesting as it predicts in the image the probability of proposed bounding boxes around the visual object. While rapid, the amount of such boxes greatly increases with image size and necessitates a dedicated hardware. When limiting our problem to a few objects of interest in the image, this strategy amounts to a classical problem in neuroscience, that is, the transformation of a luminous image into a saliency map~\citep{Itti01}. Such a computation is essential to understand and predict saccades but also as models of attention. Recently, deep learning methods have extended this  model by learning the computation of saliency maps over large databases of natural images~\citep{Kummerer16}. While these methods are efficient at predicting the probability of fixation, they miss an essential point in the action perception cycle: They operate on the full image while the retina operates on the non-uniform, foveated sampling of visual space ( see Figure~\ref{fig:intro}-B). As such, we believe that this is an essential step to reproduce and understand this active vision process.
+
+An interesting perspective is given with previous modeling of foveated sensors. Such non-uniform sampling of visual space is often modeled as a log-polar conformal mapping~\citep{Traver10} which has a long history in computer vision and Robotics. A first property of this mapping is the separation between the foveal and the peripheral areas as we defined above. this transformation has also other notable properties, such as the correspondence (by way of translations) in the radial and angular directions to rotations and scalings (respectively) in the visual domain. However, this sensor is most often not coupled to an action (but see~\citep{ref needed)}. In this paper, we aim at addressing the fragmentation of these studies respective to their fields (Machine learning, neuroscience, robotics) to propose a novel computational model of foveated active vision.
+%------------------------------%
 %: see Figure~\ref{fig:intro}
 %: \seeFig{map}
 \begin{figure}%[!ht]%%[p!]
@@ -22,160 +24,27 @@ An interesting perspective is given with previous modeling of forested sensors. 
 %\vspace*{-.1cm}
 \caption{
 {\bf Problem setting}:
-(A)
-After a fixation period, one observer is presented with a luminous display which shows a target (here a digit) at a random position. The display is presented for a short period but enough to perform a saccade on the potential target. In particular, the configuration of the display is such that by adding clutter and reducing the sire of the digit it may become necessary to perform a saccade to be able ho see the digit. Finally, the observer identifies the digit. (B) We show a prototypical trace of a saccadic eye movement to the target position. In particular, we show the fixation window used to ensure fixation during that window (green shaded area). Overlaid is a simulation of the retinotopie map at the onset of the display and after a (successful) saccade. This demonstrates that the position of the target has to be interred from a degraded (sampled) image and that a correct identification is mediated by the action to the location of the target * before seeing it *.
-
-\label{fig:map}}%
+(A)~After a fixation period, one observer is presented with a luminous display which shows a target (here a digit) at a random position. The display is presented for a short period but enough to perform a saccade on the potential target. In particular, the configuration of the display is such that by adding clutter and reducing the sire of the digit it may become necessary to perform a saccade to be able to identify the digit. %Finally, the observer identifies the digit.
+(B)~We show a prototypical trace of a saccadic eye movement to the target position. In particular, we show the fixation window used to ensure fixation during that window (green shaded area). Overlaid is a simulation of the retinotopic map at the onset of the display and after a (successful) saccade. This demonstrates that the position of the target has to be interred from a degraded (sampled) image and that a correct identification is mediated by the action to the location of the target \emph{before seeing it}.
+\label{fig:intro}}%
 \end{figure}%
 %%------------------------------%
 
- 
- 
- 
- 
+
+
+
+
 \subsection{State of the art}
+
+Several studies are relevant to our endeavour. First, one can consider optimal strategies to solve the problem of the visual search of a target~\citep{Najemnik05}. In a setting similar to that presented in Figure~\ref{fig:intro}, where the target is an oriented edge and the background pink noise, authors show first that a Bayesian ideal observer provides with an optimal strategy and second that human observers are close to that optimal performance. Though they scan predict a sequence of saccades in this perception action loop, this model is limited by the simplicity of the display (elementary edges and a finite number of locations on a trian­gular grid) and by the abstract level of (Bayesian) modelling. Though its apparent simplicity, this important study could predict some characteristics of visual scanning such as the trade-off between memory content and rapidity.
+
+Looking more closely at neurophysiology, the study of~\citep{Samonds18} allows to go further in our understanding of the interplay between saccadic behaviour and the statistics of the input. In this study, authors were able to manipulate the size of saccades by manipulating key properties of the presented (natural) images. In particular, smaller images generate smaller saccades. Interestingly, they also explained the size of saccades for different species, including mice which lack a foreal region, by the size of receptive fields. One key prediction of this study which is relevant for our problem is the fact that saccades seem optimal to \emph{a priori} decorrelate the visual input, that is, to minimize redundancy, knowing statistics of natural inputs.
+
+A further modelling perspective is provided by~\citep{Friston12}. In this model, we first have a full description of the visual world as a generative process, here of the presentation of faces, knowing they are constituted of independent components: mouth, nose, eyes, etc... An agent is completly described by giving the generative model governing the dynamics of its internal beliefs and is interacting with this image by scanning it through a foveated sensor, just as we described in Figure~\ref{fig:intro}. Equipping the agent with the ability to actively sample the visual world enable us to explore the idea that actions (saccadic eye movements) are optimal experiments, by which the agent seeks to confirm predictive models of the (hidden) world. One key ingredient to this process is the (internal) representation of counterfactual predictions, that is, of the probable consequences of possible hypothesis as they would be realized into actions.
+
+Such a model constitutes an Active Inference scheme kite~\citep{Mirza18} and simulations of the resulting optimization scheme reproduce sequential eye movements which fit well with empirical data. Compared to~\citet{Najemnik05}, saccades are not the output of a value-based cost function but a consequence of the urgency
+for the agent to minimize the uncertainty about his beliefs, knowing his priors on the generative model of the visual world. Such an approach applies well to our setting, as described in Figure~\ref{fig:intro}. In particular, we will similarly include a generative process of the visual world as image of a handwritten random digit at a random position and embedded in a cluttered noise. Then, we will equip the agent with a foreated sensor and with the ability to actively scan the visual image. Knowing such priors, we will optimize the behaviour of this agent and explore its properties.
 
 \subsection{Outline}
 
-\subsubsection{Notations}
-\begin{itemize}
-	\item $\boldsymbol{x}$ : visual field (image)
-	\item $\boldsymbol{y}$ : target category (categorical)
-	\item $\boldsymbol{u}$ : target position (real coordinates or categorical, retinocentric referential)
-
-\end{itemize}
-
-Generative model :
-$$ \boldsymbol{x} \sim P(X|\boldsymbol{y}, \boldsymbol{u}) $$
-
-Full inference (posterior):
-$$ P(Y, U|\boldsymbol{x}) \propto  P(\boldsymbol{x}|Y, U) $$
-
-Independence assumptions :
-\begin{equation} 
-P(Y, U) = P(Y)  P(U) \text{\emph{ (toujours vrai)}}
-\label{eq:indep-1}
-\end{equation}
-
-\begin{equation}  
-P(Y, U|X) = P(Y|X)  P(U|X) \text{\emph{ (faux s'il y a plusieurs cibles)}}
-\label{eq:indep-2}
-\end{equation}
-
-Partial inference on object category:
-$$ P(Y|\boldsymbol{x}, \boldsymbol{u}) \propto  P(\boldsymbol{x}|Y, \boldsymbol{u}) $$
-
-Partial inference on object position:
-$$ P(U|\boldsymbol{x}, \boldsymbol{y}) \propto  P(\boldsymbol{x}|U, \boldsymbol{y}) $$
-
-Marginals:
-\begin{itemize}
-\item $ P(Y|\boldsymbol{x}) = \int P(Y|\boldsymbol{x}, \boldsymbol{u}) d\boldsymbol{u}$
-\item $ P(U|\boldsymbol{x}) = \int P(U|\boldsymbol{x}, \boldsymbol{y}) d\boldsymbol{y}$
-\end{itemize}
-
-\subsubsection{What we did so far...}
-
-Consider a view $\boldsymbol{x}$ that contains a single target $\boldsymbol{y}$ at unknown retinocentric position $\boldsymbol{u}$. The brain needs to guess both  $\boldsymbol{y}$ and $\boldsymbol{u}$ with limited computational resources. 
-   
-We assume here that the brain adopts independence assumption (\ref{eq:indep-2}), making a separation between the ``Where'' and the ``What'' pathways, forming separate (and cheaper) inferences :
-\begin{itemize}
-\item $p(Y|\boldsymbol{x})$
-\item $p(U|\boldsymbol{x})$
-\end{itemize}
-
-Another assumption is that the category $\boldsymbol{y}$ is \emph{translationally invariant}: given a transformation $\mathcal{T}$,
-$$\mathcal{T}(\boldsymbol{u}, \boldsymbol{y}) 
-= (\mathcal{T}(\boldsymbol{u}), \boldsymbol{y})$$
-
-Now, given $\boldsymbol{x}$ and the separation assumption, it is sensible to change the viewpoint to better estimate $\boldsymbol{y}$, because  $\boldsymbol{y}$ is invariant to the viewpoint transformation.
-
-This is where \emph{active inference} comes into the play:
-\begin{itemize}
-\item Consider that the true target is $\hat{\boldsymbol{y}}$
-\item Consider that the target current retinocentric position is $\boldsymbol{u}$
-\item Then, for any translation $\delta \boldsymbol{u}$, the future posterior on the true target is estimated by:
-$\mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$
-\item And the optimal translation is:  $\underset{\delta\boldsymbol{u}}{\text{ argmax }}  \mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$
-\end{itemize}
-
-If now $\boldsymbol{u}$ is unknown and needs to be guessed from $\boldsymbol{x}$, the optimal translation is:
-$$\underset{\delta\boldsymbol{u}}{\text{ argmax }} \mathbb{E}_{\boldsymbol{u}\sim p(U|\boldsymbol{x})} \mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$$
-with :
-\begin{itemize}
-\item $p(U|\boldsymbol{x})$ the inferred target position
-\item and $\mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$ the expected inference on the actual target.
-\end{itemize}
-
-\subsubsection{Accuracy maps}
- 
-In practice, it is computationally impossible to make exact guesses about the future observation $\boldsymbol{x}'$. Our second assumption is that instead of predicting future inferences on true target, the brain trains a \emph{parametric accuracy map} by experience (trial and error).
-
-
-In a model-based approach, the \emph{accuracy maps} can be calculated using a parametric classifier : 
- \begin{itemize}
- \item Given a training set $\{(x_1, u_1, y_1), ..., (x_n, u_n, y_n)\}$:
- \begin{itemize}
- \item Train a classifier $p_\theta$ that estimates $p(Y|\boldsymbol{x})$. 
- \end{itemize}
- \item Then, for each class $\hat{\boldsymbol{y}}$, taking $\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x})$,\emph{ the classification rate $r_\theta(\boldsymbol{u})$ is an estimator of the posterior expectation :}
- \begin{align*}
- r_\theta(\boldsymbol{u}) 
- &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})}
- \mathbb{E}_{\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x})} \delta_{\hat{\boldsymbol{y}}=\tilde{\boldsymbol{y}}}\\
- &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p_\theta(\hat{\boldsymbol{y}}|\boldsymbol{x})\\
- &\simeq \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x})
- \end{align*} 
- that forms an \emph{accuracy map} for each target position $\boldsymbol{u}$.\\
- \end{itemize}
-
-\subsubsection{Parametric transformation (Colliculus?) map}
-
-One can now select $\delta\boldsymbol{u}$ with the parametric estimator:
-\begin{align*}
-\widehat{\delta\boldsymbol{u}} &\simeq \underset{\delta\boldsymbol{u}}{\text{ argmax }} 
-\mathbb{E}_{\boldsymbol{u}\sim p(U|\boldsymbol{x})}  
-r_\theta(\boldsymbol{u}+\delta\boldsymbol{u})\\
-%&= \underset{\boldsymbol{u}' \in \mathcal{U}}{\text{ argmax }} A(\boldsymbol{u}'|\boldsymbol{x}, \boldsymbol{u})
-&= \underset{\delta\boldsymbol{u}}{\text{ argmax }} Q(\delta\boldsymbol{u}|\boldsymbol{x})
-\end{align*}
-with $Q(\delta\boldsymbol{u}|\boldsymbol{x})$ the \emph{transformation} map, given the view $\boldsymbol{x}$ and the marginal posterior estimate $p(U|\boldsymbol{x})$. 
-
-It must be noticed that, given $\hat{\boldsymbol{u}} = \underset{\boldsymbol{u}}{\text{ argmax }} 
-r_\theta(\boldsymbol{u}))$,  the transformation map is maximal at $\delta\boldsymbol{u} = \hat{\boldsymbol{u}} - \boldsymbol{u}$. Each initial $\boldsymbol{u}$ provides a different transformation map, that is a shift of the original accuracy map (\emph{Ergodic assumption??}).
- 
-We assume in the following that a parametric action value map $Q_\psi$ can be trained on top of the parametric classifier $p_\theta$ and its accuracy map $r_\theta$.
-The training set is $\{(\boldsymbol{x}_1, \boldsymbol{u}_1), ..., (\boldsymbol{x}_n, \boldsymbol{u}_n)\}$ and the accuracy map classifier learns to associate each $\boldsymbol{x}$ with its full transformation map $Q(.|\boldsymbol{x})$. 
-
-
-
-\subsubsection{Algorithms}
-
-Once $p_\theta$ and $Q_\psi$ are trained, the recognition algorithm is straightforward:  
-
-\paragraph{Single saccade algorithm:}
-\begin{enumerate}
-	\item Read the view $\boldsymbol{x}$
-	\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$
-	\item Move the eye 
-	\item Update the view $\boldsymbol{x}'$
-	\item Identify the target with $\tilde{\boldsymbol{y}} \sim p_\theta(Y|\boldsymbol{x}')$
-\end{enumerate}
-
-
-\paragraph{Multi saccades algorithm:}
-\begin{enumerate}
-\item $q(Y) \leftarrow$ uniform distribution
-\item Read the view $\boldsymbol{x}$
-\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$
-\item Repeat several times up to some posterior confidence threshold:
-	\begin{enumerate}
-		\item Move the eye 		
-		\item Read $\boldsymbol{x}$
-		\item $q(Y) \leftarrow q(Y) \times p_\theta(Y|\boldsymbol{x})$
-		\item normalize $q$
-		\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$ (with some inhibition of return mechanism)
-	\end{enumerate}
-	\item Identify the target with $\tilde{\boldsymbol{y}} \sim q(Y)$
-\end{enumerate}
 

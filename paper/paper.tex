@@ -1,4 +1,35 @@
-\documentclass[a4]{article}
+%!TeX TS-program = pdflatex
+%!TeX encoding = UTF-8 Unicode
+%!TeX spellcheck = en-US
+%!BIB TS-program = bibtex
+% -*- coding: UTF-8; -*-
+% vim: set fenc=utf-8
+%: METADATA
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\AuthorPA}{Pierre Albiges}
+\newcommand{\AuthorED}{Emmanuel Daucé}%
+\newcommand{\AuthorLP}{Laurent Perrinet}%
+\newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS / Aix-Marseille Universit\'e - Marseille, France}%
+\newcommand{\WebsiteLP}{http://invibe.net/LaurentPerrinet}%
+\newcommand{\EmailLP}{Laurent.Perrinet@univ-amu.fr}%
+\newcommand{\Title}{
+%%Tentative titles :
+%Looking where it is worth looking
+%Learning where to see
+Learning where to look for a target before seeing it
+%Where is My MNIST?
+}
+\newcommand{\Acknowledgments}{ XXX FRM ... - code and material @ \url{\Website/Publications/XXX}. TODO: RIck + Karl + Laurent Madelain }
+\newcommand{\Abstract}{
+Visual processing in the brain is done through fast and specialized pathways, one of which mainly conveying information about target position and speed in the peripheral space (the "where" pathway), the other mainly conveying  information about the category of the target (the "what" pathway). The combination of the two pathways is expected to provide most of the useful knowledge about the external visual scene. Still, it is unknown why such a separation exists. 
+From a computational perspective, it is indeed possible to train a classifier that may recognize both the target's category and position in a single  pass. Current solutions leverage this problem by processing the different hypothesis (categories) at all possible spatial configuration. However, this may be costly in terms of computing time especially without dedicated parallel hardware.
+In contrast, the human visual system employs a combination of a foveated sensor with the capacity of rapidly moving the center of fixation using saccades. This indeeds provides the capacity to sequentially process visual information, by first identifying the target position in the periphery of the retina, and, after actuating a saccade, identify the target category through detailed retinocentric examination. Indeed, the position and category of objects in images are a priori independent and we hypothesize that the primary retinotopic layers overlay a central area mostly dedicated to object categorization and a peripheral area mostly dedicated to object position in space.
+We formalized this problem in a probabilistic setting, allowing to design two interacting image processing pathways: first a classical image classifier, assuming that the gaze is  on the object on the one side, combined with a second processing pathway learning to identify the position of a target (whatever it is) on the other side. Until the classifier is confident, the system should perform a saccade to the most likely target position in the image. Overall, the computational cost of this active inference strategy is less than that in a classical, holistic framework.
+We tested this framework on a simple task of finding digits in a large, cluttered image. Results demonstrate that it is possible to correctly learn the position of a putatively interesting visual target, and this before actually identifying its category through foveation (with cluttered noise ensuring the category is actually unreadable in the periphery). We compared the results of this model with classical psychophysical results in visual search. This provides evidence of the importance of identifying "putative interesting targets" first in computer vision and we highlight some predictions of our model.
+% TODO: ACTIVE INFERENCE? LOGPOLAR ENCODING? SALIENCY MAPS?
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{article}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -9,40 +40,58 @@
 
 %opening
 \title{
-%%Tentative titles :
-%Looking where it is worth looking
-%Learning where to see
-Learning where to look for a target before seeing it
-%Where is My MNIST?
+\Title
 }
 \author{}
+
+
+
+
+%============ bibliography ===================
+%\usepackage[numbers,comma,sort&compress,round]{natbib} %
+\usepackage[
+%style=alphabetic-verb,
+style=authoryear-comp,
+%style=apa,
+%maxcitenames=2,
+%maxnames = 2,
+giveninits=true,
+uniquename=init,
+sorting=none,
+url=false,
+isbn=false,
+eprint=false,
+texencoding=utf8,
+bibencoding=utf8,
+autocite=superscript,
+backend=bibtex,
+%articletitle=false
+]{biblatex}%
+%\addbibresource{Bibliography.bib}%
+\bibliography{Bibliography.bib} % the ref.bib file
+\newcommand{\citep}[1]{\parencite{#1}}
+\newcommand{\citet}[1]{\textcite{#1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-	
-Visual processing in the brain is done through fast and specialized pathways, one of which mainly conveying information about target position and speed in the peripheral space (the "where" pathway) , the other mainly conveying  information about the category of the target (the "what" pathway). The combination of the two (where and what) is expected to provide most of the useful knowledge about the external visual scene, but why such a separation?
-From a computational perspective, it is indeed possible to train a classifier that may recognize both the target's category and position in a single  pass. Current solutions leverage this problem by processing the different hypothesis (categories) at all possible spatial configuration. However, this may be costly in terms of computing time especially without dedicated parallel hardware.
-In contrast, the human visual system employs a combination of a foveated sensor with the capacity of rapidly moving the center of fixation using saccades. This indeeds provides the capacity to sequentially process visual information, by first identifying the target position in the periphery of the retina, and, after actuating a saccade, identify the target category through detailed retinocentric examination. Indeed, the position and category of objects in images are a priori independent and we hypothesize that the primary retinotopic layers overlay a central area mostly dedicated to object categorization and a peripheral area mostly dedicated to object position in space.
-ACTIVE INFERENCE?
-LOGPOLAR ENCODING?
-SALIENCY MAPS?
-This problem is formalized in a probabilistic setting, allowing to design two interacting image processing pathways: first a classical image classifier, assuming that the gaze is  on the object on the one side, combined with a second processing pathway learning to identify the position of a target (whatever it is) on the other side. Until the classifier is confident, the system should perform a saccade to the most likely target position in the image. Overall, the computational cost of this strategy is less than that of an holistic framework.
-We tested this framework on a simple task of finding digits in a large, cluttered image. Results demonstrate that it is possible to correctly learn the position of a putatively interesting visual target, and this before actually identifying its category through foveation (with cluttered noise ensuring the category is actually unreadable in the periphery). We compare the results of this model with classical psychophysical results in visual search. This provides evidence of the importance of identifying "putative interesting targets" first in computer vision and we highlight some predictions of our model. (LESQUELLES?)
+\Abstract
 \end{abstract}
 
 \newpage
 \input{intro}
-
-\newpage
-\input{methods}
-
-\input{results}
-\newpage
-
-\input{discussion}
-\newpage
-\input{appendix}
+%
+%\newpage
+%\input{methods}
+%
+%\input{results}
+%\newpage
+%
+%\input{discussion}
+%\newpage
+%\input{appendix}
 \end{document}
