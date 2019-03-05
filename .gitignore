@@ -1,6 +1,8 @@
 paper/paper.aux
 paper/paper-blx.bib
 paper/paper.bbl
+paper/paper.fls
+paper/paper.fdb*
 paper/paper.blg
 paper/paper.run.xml
 
