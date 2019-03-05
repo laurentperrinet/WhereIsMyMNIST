@@ -1,12 +1,3 @@
-# TODO: try HoG
-# https://github.com/opencv/opencv/wiki/Deep-Learning-in-OpenCV
-# hogFaceDetector = dlib.get_frontal_face_detector()
-# faceRects = hogFaceDetector(frameDlibHogSmall, 0)
-# for faceRect in faceRects:
-#     x1 = faceRect.left()
-#     y1 = faceRect.top()
-#     x2 = faceRect.right()
-#     y2 = faceRect.bottom()
 # 
 dataset_folder = 'dataset'
 dataset_faces_folder = 'dataset_faces'
