@@ -28,55 +28,65 @@ def minmax(value, border):
     value = min(value, border)
     return int(value)
 
-def mnist_fullfield(data, i_offset, j_offset, N_pic=128, CONTRAST=1., NOISE = 1., sf_0 = 0.1, B_sf = 0.1):
+
+def do_offset(data, i_offset, j_offset, N_pic, min=None):
+    # place data in a big image with some known offset
     N_stim = data.shape[0]
     center = (N_pic-N_stim)//2
-
-    data_fullfield = (data.min().numpy()) * np.ones((N_pic, N_pic))
+    if min is None:
+        min = data.min()
+        
+    data_fullfield = min * np.ones((N_pic, N_pic))
     data_fullfield[int(center+i_offset):int(center+N_stim+i_offset), int(center+j_offset):int(center+N_stim+j_offset)] = data
+    return data_fullfield
+    
+def place_object(data, i_offset, j_offset, N_pic=128, CONTRAST=1., NOISE=.5, sf_0=0.1, B_sf=0.1):
+    # place data in a big image with some known offset
+    data_fullfield = do_offset(data=data, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic)
 
-    # data normalization
-    # data_fullfield -= data_fullfield.mean()
-    # data_fullfield /= data_fullfield.std()
-    # data_fullfield *= std
-    # data_fullfield += mean
+    # normalize data
     data_fullfield = (data_fullfield - data_fullfield.min())/(data_fullfield.max() - data_fullfield.min())
     data_fullfield *= CONTRAST
     data_fullfield += 0.5
+    data_fullfield /= 2
 
+    # add noise
     if NOISE>0.:
-        im_noise, _ = MotionCloudNoise(sf_0 = sf_0, B_sf = B_sf)
+        im_noise, _ = MotionCloudNoise(sf_0=sf_0, B_sf=B_sf)
         im_noise = NOISE *  im_noise
-        data_fullfield += im_noise #randomized_perlin_noise() #
-        #indices_data = np.where(data_fullfield > data_fullfield.mean())
-        #im_noise[indices_data] = data_fullfield[indices_data]
-        #data_fullfield = im_noise
+        data_fullfield += im_noise 
+        
+    return data_fullfield
     
-    whit.set_size((N_pic,N_pic))
+def retina(data_fullfield, retina_transform):
+    N_pic = data_fullfield.shape[0]
+    whit.set_size((N_pic, N_pic))
     data_fullfield = whit.whitening(data_fullfield)
+    
+    N_theta, N_azimuth, N_eccentricity, N_phase, N_pixel = retina_transform.shape
+    retina_vector = retina_transform.reshape((N_theta*N_azimuth*N_eccentricity*N_phase, N_pixel))
 
     data_retina = retina_vector @ np.ravel(data_fullfield)
     
     tensor_retina = data_retina.reshape(N_theta, N_azimuth, N_eccentricity, N_phase)
-    slice1 = tensor_retina[N_theta - 1,:,:,:].reshape(1,N_azimuth,N_eccentricity,N_phase)
-    slice2 = tensor_retina[0,:,:,:].reshape(1,N_azimuth,N_eccentricity,N_phase)
+    slice1 = tensor_retina[N_theta-1, ...].reshape(1, N_azimuth, N_eccentricity, N_phase)
+    slice2 = tensor_retina[0, ...].reshape(1, N_azimuth, N_eccentricity, N_phase)
     tensor_retina = np.concatenate ((slice1, tensor_retina, slice2), axis = 0)
-    tensor_retina = np.transpose(tensor_retina,(3,0,1,2))
+    tensor_retina = np.transpose(tensor_retina, (3, 0, 1, 2))
 
-    return data_retina, tensor_retina, data_fullfield
+    return data_retina, tensor_retina
 
-def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic=128):
-    N_stim = accuracy_map.shape[0]
-    center = (N_pic-N_stim)//2
+def retina_inverse(retina_transform):
+    N_theta, N_azimuth, N_eccentricity, N_phase, N_pixel = retina_transform.shape
+    retina_vector = retina_transform.reshape((N_theta*N_azimuth*N_eccentricity*N_phase, N_pixel))
 
-    accuracy_fullfield = 0.1 * np.ones((N_pic, N_pic))
-    accuracy_fullfield[int(center+i_offset):int(center+N_stim+i_offset),
-                 int(center+j_offset):int(center+N_stim+j_offset)] = accuracy_map
+    return  np.linalg.pinv(retina_vector)
 
-    accuracy_colliculus = colliculus_vector @ np.ravel(accuracy_fullfield)
-    #accuracy_colliculus = test_vector @ np.ravel(accuracy_fullfield)
+def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vector):
+    accuracy_fullfield_map = do_offset(data=accuracy_map, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, min=0.1)
+    accuracy_colliculus = colliculus_vector @ accuracy_fullfield_map.ravel()
 
-    return accuracy_colliculus, accuracy_fullfield
+    return accuracy_colliculus
 
 
 
@@ -91,10 +101,12 @@ def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha = .5):
     z = z.reshape((mc.N_X, mc.N_Y))
     return z, env
 
-def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2, \
-                  N_X=128, N_Y=128, rho=1.41, ecc_max=.8, B_sf=.4, B_theta=np.pi/N_theta/2):
-    from LogGabor import LogGabor
+def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
+                  N_X=128, N_Y=128, rho=1.41, ecc_max=.8, B_sf=.4, B_theta=np.pi/12):
+    
     retina = np.zeros((N_theta, N_azimuth, N_eccentricity, N_phase, N_X*N_Y))
+    
+    from LogGabor import LogGabor
     parameterfile = 'https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py'
     lg = LogGabor(parameterfile)
     lg.set_size((N_X, N_Y))
@@ -122,6 +134,6 @@ def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2, \
                     # print(r, x, y, phase, params)
 
                     retina[i_theta, i_azimuth, i_eccentricity, i_phase, :] = lg.normalize(
-                        lg.invert(lg.loggabor(x, y, **params)*np.exp(-1j*phase))).ravel() #* ecc
+                        lg.invert(lg.loggabor(x, y, **params)*np.exp(-1j*phase))).ravel()
 
     return retina
