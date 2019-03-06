@@ -91,6 +91,7 @@ style=authoryear-comp,
 giveninits=true,
 uniquename=init,
 sorting=none,
+doi=false,
 url=false,
 isbn=false,
 eprint=false,
@@ -105,6 +106,11 @@ backend=bibtex,
 \newcommand{\citep}[1]{\parencite{#1}}
 \newcommand{\citet}[1]{\textcite{#1}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{siunitx}
+%\renewcommand{\cite}{\citep}%
+\newcommand{\ms}{\si{\milli\second}}%
+\newcommand{\m}{\si{\meter}}%
+\newcommand{\s}{\si{\second}}%
 
 
 \begin{document}
@@ -128,9 +134,16 @@ backend=bibtex,
 \input{results}
 \if 0\CNS
 \newpage
+\fi
 
 \input{discussion}
+\if 0\CNS
 \newpage
 \input{appendix}
 \fi
+
+%%%----------------------------------------------------------------- 
+%{\bf References} \\
+\printbibliography
+
 \end{document}
