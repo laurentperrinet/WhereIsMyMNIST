@@ -40,22 +40,38 @@ def do_offset(data, i_offset, j_offset, N_pic, min=None):
     data_fullfield[int(center+i_offset):int(center+N_stim+i_offset), int(center+j_offset):int(center+N_stim+j_offset)] = data
     return data_fullfield
     
-def place_object(data, i_offset, j_offset, N_pic=128, CONTRAST=1., NOISE=.5, sf_0=0.1, B_sf=0.1):
+def place_object(data, i_offset, j_offset, N_pic=128, CONTRAST=1., NOISE=.5, sf_0=0.1, B_sf=0.1, do_mask=True, do_max=False):
     # place data in a big image with some known offset
-    data_fullfield = do_offset(data=data, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic)
+    data_fullfield = do_offset(data=data, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, min=0)
 
     # normalize data
     data_fullfield = (data_fullfield - data_fullfield.min())/(data_fullfield.max() - data_fullfield.min())
+    data_fullfield = 2 * data_fullfield - 1 # [-1, 1] range
     data_fullfield *= CONTRAST
-    data_fullfield += 0.5
-    data_fullfield /= 2
+    data_fullfield = .5 * data_fullfield + .5 # back to [0, 1] range
 
     # add noise
     if NOISE>0.:
         im_noise, _ = MotionCloudNoise(sf_0=sf_0, B_sf=B_sf)
+        im_noise = 2 * im_noise - 1
         im_noise = NOISE *  im_noise
-        data_fullfield += im_noise 
+        im_noise = .5 * im_noise + .5 # back to [0, 1] range
+        if do_max:
+            data_fullfield = np.max((im_noise, data_fullfield), axis=0)
+        else:
+            data_fullfield += im_noise 
+            data_fullfield = np.clip(data_fullfield, 0, 1)
         
+        
+    # add a circular mask
+    if do_mask:
+        #mask = np.ones((N_pic, N_pic))
+        x, y = np.mgrid[-1:1:1j*N_pic, -1:1:1j*N_pic]
+        R = np.sqrt(x**2 + y**2)
+        mask = (R<1)
+        
+        data_fullfield = (data_fullfield-.5)*mask + .5
+    
     return data_fullfield
     
 def retina(data_fullfield, retina_transform):
@@ -79,8 +95,8 @@ def retina(data_fullfield, retina_transform):
 def retina_inverse(retina_transform):
     N_theta, N_azimuth, N_eccentricity, N_phase, N_pixel = retina_transform.shape
     retina_vector = retina_transform.reshape((N_theta*N_azimuth*N_eccentricity*N_phase, N_pixel))
-
-    return  np.linalg.pinv(retina_vector)
+    retina_inverse_transform = np.linalg.pinv(retina_vector)
+    return retina_inverse_transform
 
 def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vector):
     accuracy_fullfield_map = do_offset(data=accuracy_map, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, min=0.1)
@@ -90,14 +106,13 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 
 
 
-def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha = .5):
+def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.5, N_pic=128):
     import MotionClouds as mc
-    mc.N_X, mc.N_Y, mc.N_frame = 128, 128, 1
+    mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
     fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
-    name = 'static'
     env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha= alpha)
     
-    z = mc.rectif(mc.random_cloud(env))
+    z = mc.rectif(mc.random_cloud(env), contrast=1., method='Michelson')
     z = z.reshape((mc.N_X, mc.N_Y))
     return z, env
 
