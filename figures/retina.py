@@ -53,6 +53,7 @@ def place_object(data, i_offset, j_offset, N_pic=128, CONTRAST=1., NOISE=.5, sf_
     # add noise
     if NOISE>0.:
         im_noise, _ = MotionCloudNoise(sf_0=sf_0, B_sf=B_sf)
+        # print(im_noise.min(), im_noise.max())
         im_noise = 2 * im_noise - 1
         im_noise = NOISE *  im_noise
         im_noise = .5 * im_noise + .5 # back to [0, 1] range
@@ -60,6 +61,7 @@ def place_object(data, i_offset, j_offset, N_pic=128, CONTRAST=1., NOISE=.5, sf_
             data_fullfield = np.max((im_noise, data_fullfield), axis=0)
         else:
             data_fullfield += im_noise 
+            data_fullfield /= 2 
             data_fullfield = np.clip(data_fullfield, 0, 1)
         
         
@@ -97,6 +99,7 @@ def retina_inverse(retina_transform):
     retina_vector = retina_transform.reshape((N_theta*N_azimuth*N_eccentricity*N_phase, N_pixel))
     retina_inverse_transform = np.linalg.pinv(retina_vector)
     return retina_inverse_transform
+
 
 def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vector):
     accuracy_fullfield_map = do_offset(data=accuracy_map, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, min=0.1)
