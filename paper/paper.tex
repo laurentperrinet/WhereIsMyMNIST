@@ -10,6 +10,7 @@
 %
 %: METADATA
 %: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\CNS{1}%
 \newcommand{\AuthorPA}{Pierre Albiges}
 \newcommand{\AuthorED}{Emmanuel Daucé}%
 \newcommand{\AuthorLP}{Laurent Perrinet}%
@@ -33,8 +34,7 @@ We tested this framework on a simple task of finding digits in a large, cluttere
 % TODO: ACTIVE INFERENCE? LOGPOLAR ENCODING? SALIENCY MAPS?
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass{article}
-
+\documentclass[10pt,a4paper]{article}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 
@@ -42,15 +42,41 @@ We tested this framework on a simple task of finding digits in a large, cluttere
 \usepackage{amssymb}
 \usepackage{a4}
 
+\if 1\CNS
+	
+	\usepackage{times}
+	%\inner 0.5in
+	\oddsidemargin -0.5in		% margin, in addition to 1" standard
+	\textwidth 7.27in		% 8.5" - 2*(1+\oddsidemargin)
+
+	\topmargin -1in		% in addition to 1.5" standard margin
+	\textheight 10.69in 		% 11 - ( 1.5 + \topmargin + <bottom-margin> )
+
+	\columnsep 0.25in
+
+	\parindent 0pt
+	\parskip 12pt
+
+%\flushbottom \sloppy
+%\pagestyle{empty} % No page numbers
+
+%\else
+
+\fi
+\usepackage{csquotes}
+\usepackage{bm}
+
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.pdf}%,.png,.jpg}
+%\graphicspath{{.}}% 
+
+
 %opening
 \title{
 \Title
 }
-\author{}
-
-
-
-
+\author{\AuthorED \and \AuthorPA \and \AuthorLP  }
+\date{}
 %============ bibliography ===================
 %\usepackage[numbers,comma,sort&compress,round]{natbib} %
 \usepackage[
@@ -86,16 +112,23 @@ backend=bibtex,
 \Abstract
 \end{abstract}
 
+\if 0\CNS
 \newpage
+\fi
 \input{intro}
-%
-%\newpage
-%\input{methods}
-%
-%\input{results}
-%\newpage
-%
-%\input{discussion}
-%\newpage
-%\input{appendix}
+
+\if 0\CNS
+\newpage
+\newpage
+\input{methods}
+\fi
+
+\input{results}
+\if 0\CNS
+\newpage
+
+\input{discussion}
+\newpage
+\input{appendix}
+\fi
 \end{document}
