@@ -8,7 +8,14 @@
 
 \if 1\CNS
 
-Assume both the visual features and the expected target position be expressed in log-polar coordinates. On the visual side, primary visual features (first and second order orientation filters) are radially organized around the center of fixation, with small and tightened receptive fields at the center and more large and scarce filters at the periphery. The issued observation vector $\boldsymbol{x}$ compresses the original image by about 90\%, with high spatial frequencies preserved at the center and only low spatial frequencies preserved at the periphery. The target accuracy map is also organized radially in a log-polar fashion, making the target position estimate more precise at the center and fuzzier at the periphery. This modeling choice is reminiscent of the approximate log-polar organization of the superior colliculus (SC) motor command map.    
+We assume both the visual features and the expected target position to be expressed in log-polar coordinates. On the primary visual side, local visual features (first and second order orientation filters) are radially organized around the center of fixation, with small and tightened receptive fields at the center and more large and scarce receptive fields at the periphery. The issued observation vector $\boldsymbol{x}$ compresses the original image by about 90\%, with high spatial frequencies preserved at the center and only low spatial frequencies preserved at the periphery. 
+%The target accuracy map is also organized radially in a log-polar fashion, making the target position estimate more precise at the center and fuzzier at the periphery. This modeling choice is reminiscent of the approximate log-polar organization of the superior colliculus (SC) motor map {\bf[TODO:REF]}. 
+%This retinotopic organization is preserved along the visuo-motor pathway as expected from observations {\bf[TODO:REF]}.
+
+The visual categorical pathway (the ``What'' pathway) is supposed to be realized by a classifier, that mostly processes the central pixels to identify the target category. This central classifier, that is not implemented here, should display a high accuracy at the center, and a shortly decreasing accuracy with target eccentricity, as shown in figure \ref{fig:results}{\bf e}.
+In contrast, the visual orientation pathway (the ``Where'' pathway) takes the full visual field into account in order to tell whether a target is present at the different peripheral locations. In detail, the visual information is  transformed so as to predict how accurate the categorical classifier will be \emph{after the saccade is carried out}. The set of all possible saccade predictions forms an \emph{accuracy map}. It is organized radially, preserving the initial retinotopic organization, with high predicted accuracies reflecting a high probability of target presence at given locations. A \emph{predicted accuracy map} is finally assumed to be the core of saccade-based vision, that can be learned through trials and errors by actuating saccades and take the final classification success or failure as a teaching signal.
+
+In our shortcut implementation, ...
 
 \fi
 
