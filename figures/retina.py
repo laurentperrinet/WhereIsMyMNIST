@@ -7,18 +7,18 @@ verbose = 1
 import SLIP
 whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
 
-
-def get_data_loader(batch_size=100, train=True):
+def get_data_loader(batch_size=100, train=True, cmin = 0.1307, cmax= 0.3081):
     import torch
     from torchvision import datasets, transforms
 
     data_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('/tmp/data',
+        datasets.MNIST('../data',
                        train=train,     # def the dataset as training data
                        download=True,  # download if dataset not present on disk
                        transform=transforms.Compose([
                            transforms.ToTensor(),
-                           transforms.Normalize(mean=(0,), std=(1,))])),
+                           transforms.Normalize((cmin,), (cmax,))
+                       ])),
                        batch_size=batch_size,
                        shuffle=True)
     return data_loader
