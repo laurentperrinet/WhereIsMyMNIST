@@ -14,14 +14,16 @@
 \centering{(A) \hspace{2.2cm} (B) \hspace{2cm} (C) \hspace{4.6cm} (D)\hspace{1.1cm}}
 \centering{\includegraphics[width=\linewidth]{fig_result}}
 \caption{
-{\bf Results}: Results from simulations of the active vision agent.
-(A)~The input image ('DIS', see  Figure~\ref{fig:results}-C)  is transformed into a retinotopic representation which is used as the input to the 'Where' pathway of the agent. This pathway is a function that transforms this retinal image into a map predicting (B)~the accuracy of a classification in the 'What' pathway. The network fitting for this function is trained in a supervised using a ground truth ('True') and we show here a prototypical example of the 'Predicted' map. This allows to (C)~generate a saccade to the most likely position in visual space to achieve a successful classification. (D)~Testing over a range of $XXX$ different trials (different positions and digits), we show here the final average classification accuracy as a function of eccentricity. This shows first the results of the 'What' pathway ('No saccade') which quickly drops to baseline level after 3 scales. Second, we show the accuracy results obtained after one saccade which now drops to 'baseline' after 7 scales. This shows that by performing only one saccade, the image is now partly covered.
+{\bf Simulated active vision agent results}: 
+(A)~The visual display ('DIS', see  Figure~\ref{fig:results}-C)  is transformed into a retinotopic representation which is used as the input to a multi-layer neural network, that transforms the retinal image into an accuracy map. A typical network output after training ('predicted') is compared in (B) with the ground truth ('True'). The network output allows to (C)~generate a saccade to the most likely position in visual space, allowing to estimate a final classification rate. (D)~Testing over a range of 10,000 different trials (different positions and digits), the final average classification accuracy is shown as a function of the eccentricity.
 \label{fig:results}}%
 \end{figure}%
 %%------------------------------%
 %result
 
- In particular, this shows that
+To test the efficiency of our action selection setup, we estimate the final accuracy as a function of the target eccentricity.
+
+This shows first the results of the 'What' pathway ('No saccade') which quickly drops to baseline level after 3 scales. Second, we show the accuracy results obtained after one saccade which now drops to 'baseline' after 7 scales. This shows that by performing only one saccade, the image is now partly covered.
 
 % energy consumption
 
