@@ -79,10 +79,6 @@ def main():
     
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
-    args = parser.parse_args()
-    run(args)
-
-def run(args):
     
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -115,6 +111,6 @@ def run(args):
 
     if (args.save_model):
         torch.save(model.state_dict(), "../data/mnist_cnn.pt")
-        
+
 if __name__ == '__main__':
     main()
