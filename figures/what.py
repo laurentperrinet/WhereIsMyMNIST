@@ -56,6 +56,7 @@ def test(args, model, device, test_loader):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+    return correct / len(test_loader.dataset)
 
 def main():
     # Training settings
@@ -79,7 +80,7 @@ def main():
     
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
-    
+    args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
     torch.manual_seed(args.seed)
@@ -111,6 +112,7 @@ def main():
 
     if (args.save_model):
         torch.save(model.state_dict(), "../data/mnist_cnn.pt")
+        
 
 if __name__ == '__main__':
     main()
