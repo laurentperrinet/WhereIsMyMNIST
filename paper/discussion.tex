@@ -13,5 +13,8 @@
 \subsection{Perspectives}
 \else
 
-As a conclusion
+The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning. However, it also owns a probabilistic interpretation that may be combined with other accuracy predictions (such as the one done through the ``what'' pathway), and potentially explain more elaborate decision making, such as the inhibition of return. The approach is also energy-efficient as it includes the strong compression rate performed by retina and V1 encoding, which is preserved up to the action selection level. When the energy and computing power is at stake, as it is the case in bio-inspired robotics, it may thus be relevant to envision our implementation. By preserving a probabilistic interpretation in bio-realistic action selection, we also allow for a principled use of human visual scan path over images, generally modelled as low-level feature-based saliency maps \cite{Itti01}. It may indeed be possible to consider the actual action selection as implementing focal accuracy-seeking policy across the image, and learn the actual saccade path as the response of a pre-trained accuracy prediction. Identified regions of interest may then be compared with the baseline bottom-up approaches
+
+Our model still relies on very strong assumptions, like the existence of a probabilistic representation of action achievement over large action spaces, that is not proven to be true. Similarly, how the brain may combine and integrate various probabilities is still an open question, that resorts to the old binding problem that is how to meaningfully combine independently extracted features. At last, the presence of many targets in a scene should also be addressed by the model, which resorts to sequentially select targets, in combination with a concrete implementation of an inhibition of return mechanism.   
+
 \fi
