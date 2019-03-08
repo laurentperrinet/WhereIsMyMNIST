@@ -22,13 +22,13 @@
 %Looking where it is worth looking
 %Learning where to see
 %Learning where to look for a target before seeing it
-Learning where to look: a foveated visuomotor control model
-% Learning where it is worth looking at
+Learning where where to look for before actually see
 %Where is My MNIST?
 }
 \newcommand{\Acknowledgments}{ XXX FRM ... - code and material @ \url{\Website/Publications/XXX}. TODO: RIck + Karl + Laurent Madelain }
 \newcommand{\Abstract}{
 \input{abstract}
+% TODO: ACTIVE INFERENCE? LOGPOLAR ENCODING? SALIENCY MAPS?
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[10pt,a4paper]{article}
@@ -81,10 +81,11 @@ Learning where to look: a foveated visuomotor control model
 %\usepackage[numbers,comma,sort&compress,round]{natbib} %
 \usepackage[
 %style=alphabetic-verb,
-style=authoryear-comp,
+%style=authoryear-comp,
 %style=apa,
+style = nature,
 %maxcitenames=2,
-%maxnames = 2,
+maxnames = 1,
 giveninits=true,
 uniquename=init,
 sorting=none,
@@ -112,40 +113,14 @@ backend=bibtex,
 
 \begin{document}
 
-\if 0\CNS
 \maketitle
 
 \begin{abstract}
 \Abstract
 \end{abstract}
-\fi
-
-\if 0\CNS
-\newpage
-\fi
-\input{intro}
-
-\if 0\CNS
-\newpage
-\fi
-\input{methods}
-
-\input{results}
-\if 0\CNS
-\newpage
-\fi
-
-\input{discussion}
-\if 0\CNS
-\newpage
-\input{appendix}
-\fi
 
 %%%----------------------------------------------------------------- 
 %{\bf References} \\
-
-\printbibliography[heading=subbibliography]
-
-
+\printbibliography
 
 \end{document}
