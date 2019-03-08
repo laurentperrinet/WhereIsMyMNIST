@@ -12,11 +12,11 @@
 %------------------------------%
 %: see Figure~\ref{fig:results}
 \begin{figure}%[!ht]%%[p!]
-\centering{(A) \hspace{2.2cm} (B) \hspace{2cm} (C) \hspace{4.6cm} (D)\hspace{1.1cm}}
+%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
 \centering{\includegraphics[width=\linewidth]{fig_result}}
 \caption{
 {\bf Simulated active vision agent}: 
-(A)~The visual display ('DIS', see  Figure~\ref{fig:results}-C)  is transformed into a retinotopic representation which is used as the input of a multi-layer neural network, that transforms the retinal image into an accuracy map. (B)~After training, a typical network output  ('Predicted') is compared  with the ground truth ('True'). (C)~The network output allows to generate a saccade to the most likely target position in visual space, making possible to estimate a final classification rate. (D)~ Blue bars: Final classification rate after one saccade, in function of the target eccentricity, using the log-polar encoding scale (2, 3, 4.5, 6.5, 9, 13, 18, 26 and 36.5 pixels away from the center), averaged over 1,000 trials per eccentricity scale. Orange bars: accuracy of a central classifier, in function of the target eccentricity ('No saccade').
+(A)~The visual display ('DIS', see  Figure~\ref{fig:results}-C)  is transformed into a retinotopic representation which is used as the input of a multi-layer neural network, that transforms the retinal image into an accuracy map. (B)~After training, a typical network output  ('Predicted') is compared  with the ground truth ('True'). (C)~The network output allows to generate a saccade to the most likely target position in visual space, making possible to estimate a final classification rate. (D)~Orange bars: accuracy of a central classifier ('No saccade') with respect to  function of the target eccentricity averaged over 1,000 trials per eccentricity scale. Blue bars: Final classification rate after one saccade predicted by the ``Where'' pathway.
 \label{fig:results}}%
 \end{figure}%
 %%------------------------------%
