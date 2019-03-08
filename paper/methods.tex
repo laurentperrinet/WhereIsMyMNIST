@@ -5,6 +5,28 @@
 % !TEX spellcheck = en-US
 \section{Methods}
 
+A current hypothesis regarding active vision is that visual scenes most often consist of a single visual object of interest. Take for instance the case of a conversation with a friend at a noisy cafe. To ease the understanding of his voice and emotion you will track his face despite all the remaining sensory clutter by scanning relevant parts of his face with your gaze. Such a visual experience can be simplified in a manner reminiscent to psychophysical experiments: An observer is asked to classify digits (for instance as taken from the MNIST database) as they are shown on a computer display. However, these digits can be placed at a random positions on the display, and visual clutter is added as a background to the image (see Figure~\ref{fig:intro}-A) opening the possibility that the position of this object could be detected in the clutter without being able to identify it before making a saccade to it. This defines more precisely our problem: how do we identify a small object in a large image while not knowing \emph{a priori} its position?
+
+\if 0\CNS
+This joint problem of localization and identification is the classical problem of visual search in neuroscience. Such problem is very general and can address complex questions such as "find the green bottle on the table". Here, we will restrict ourselves to a simple "feature search"~\citep{Treisman80}. Such a problem found many solutions in computer vision. Notably, recent advances in deep-learning have provided with efficient models such as faster-RCNN~\citep{Ren17} or YOLO~\citep{Redmon15}. This last implementation is particularly interesting as it predicts in the image the probability of proposed bounding boxes around the visual object. While rapid, the amount of such boxes greatly increases with image size and necessitates a dedicated hardware. When limiting our problem to a few objects of interest in the image, this strategy amounts to a classical problem in neuroscience, that is, the transformation of a luminous image into a saliency map~\citep{Itti01}. Such a computation is essential to understand and predict saccades but also as models of attention. Recently, deep learning methods have extended this type of model by learning to extimate saliency maps over large databases of natural images~\citep{Kummerer16}. While these methods are efficient at predicting the probability of fixation, they miss an essential point in the action perception loop: They operate on the full image while the retina operates on the non-uniform, foveated sampling of visual space (see Figure~\ref{fig:intro}-B). Herein, we believe that this fact is an essential factor to reproduce and understand this active vision process.
+
+An interesting perspective is given with previous modeling of such foveated sensors. The non-uniform sampling of visual space is usually modeled as a log-polar conformal mapping~\citep{Traver10} which has a long history in computer vision and robotics. A first property of this mapping is the separation between the foveal and the peripheral areas as we defined above. This transformation has also other notable properties, such as the correspondence by way of translations in the radial and angular directions to respectively rotations and scalings in the visual domain. However, this sensor is most often not coupled to an action (but see~\citep{ref needed)}. In this paper, we aim at addressing the fragmentation of these different approaches respective to their fields (Machine learning, neuroscience, robotics) to propose an integrated computational model of foveated active vision.
+\fi
+%------------------------------%
+%: see Figure~\ref{fig:intro}
+\begin{figure}%[!ht]%%[p!]
+	%\centering{
+	\includegraphics[width=\linewidth]{fig_intro}
+	%}
+	\caption{
+		{\bf Problem setting}: In ecological settings, the visual system faces a tricky problem when searching for \emph{any} target in a cluttered environment. It is synthesized in the following experiment:
+		(A)~After a fixation period ('FIX') of $200\ms$, an observer is presented with a luminous display ('DIS') showing a single target from a known class (here digits) and at a random position. The display is presented for a short period, that is enough to perform one saccade on the potential target ('SAC'). \if 0\CNS In particular, the configuration of the display is such that by adding clutter and reducing the size of the digit it may become necessary to perform a saccade to be able to identify the digit. Finally, the observer identifies the digit ('ANS'). \fi %
+		(B)~Prototypical trace of a saccadic eye movement to the target position.\if 0\CNS In particular, we show the fixation window used to ensure fixation during that window (green shaded area). \fi (C)~Simulated reconstruction of the visual information from the retinotopic map at respectively ('DIS') the onset of the display and ('SAC') after a (successful) saccade. \if 0\CNS This demonstrates that the position of the target has to be inferred from a degraded (sampled) image ('DIS') and that a correct identification is mediated by the action to the location of the target \emph{before seeing it}, that is before being able to actually be able to identify the target.\fi
+		\label{fig:intro}}%
+\end{figure}%
+%%------------------------------%
+
+
 
 \if 0\CNS
 
