@@ -1,12 +1,29 @@
 %% This BibTeX bibliography file was created using BibDesk.
 %% http://bibdesk.sourceforge.net/
 
-%% Created for Laurent Perrinet at 2019-03-08 14:03:30 +0100 
+%% Created for Laurent Perrinet at 2019-03-08 16:14:54 +0100 
 
 
 %% Saved with string encoding Unicode (UTF-8) 
 
 
+
+@article{Dauce18,
+	Abstract = {What motivates the action in the absence of a definite reward? Taking the case of visuomotor control, we consider a minimal control problem that is how select the next saccade, in a sequence of discrete eye movements, when the final objective is to better interpret the current visual scene. The visual scene is modeled here as a partially-observed environment, with a generative model explaining how the visual data is shaped by action. This allows to interpret different action selection metrics proposed in the literature, including the Salience, the Infomax and the Variational Free Energy, under a single information theoretic construct, namely the view-based Information Gain. Pursuing this analytic track, two original action selection metrics named the Information Gain Lower Bound (IGLB) and the Information Gain Upper Bound (IGUB) are then proposed. Showing either a conservative or an optimistic bias regarding the Information Gain, they strongly simplify its calculation. An original fovea-based visual scene decoding setup is then proposed, with numerical experiments highlighting different facets of artificial fovea-based vision. A first and principal result is that state-of-the-art recognition rates are obtained with fovea-based saccadic exploration, using less than 10\% of the original image's data. Those satisfactory results illustrate the advantage of mixing predictive control with accurate state-of-the-art predictors, namely a deep neural network. A second result is the sub-optimality of some classical action-selection metrics widely used in literature, that is not manifest with finely-tuned inference models, but becomes patent when coarse or faulty models are used. Last, a computationally-effective predictive model is developed using the IGLB objective, with pre-processed visual scan-path read-out from memory, bypassing computationally-demanding predictive calculations. This last simplified setting is shown effective in our case, showing both a competing accuracy and a good robustness to model flaws.},
+	Author = {Dauc\'e, Emmanuel},
+	Date-Added = {2019-03-08 16:12:29 +0100},
+	Date-Modified = {2019-03-08 16:12:29 +0100},
+	Doi = {10/gfrhgj},
+	File = {/Users/laurentperrinet/Zotero/storage/QUYVDZTT/Dauc{\'e} - 2018 - Active Fovea-Based Vision Through Computationally-.pdf;/Users/laurentperrinet/Zotero/storage/VS9U4UNG/Dauc{\'e} - 2018 - Active Fovea-Based Vision Through Computationally-.pdf},
+	Issn = {1662-5218},
+	Journal = {Frontiers in Neurorobotics},
+	Keywords = {active inference,active vision,Convolutional Neural Networks (CNN),End-effector control,Foveated vision,information gain,intrinsic motivation,Saccadic eye movements,visual scene interpretation},
+	Language = {English},
+	Note = {00000},
+	Title = {Active {{Fovea}}-{{Based Vision Through Computationally}}-{{Effective Model}}-{{Based Prediction}}},
+	Volume = {12},
+	Year = {2018},
+	Bdsk-Url-1 = {https://doi.org/10/gfrhgj}}
 
 @article{Sandler18,
 	Abstract = {In this paper we describe a new mobile architecture, MobileNetV2, that improves the state of the art performance of mobile models on multiple tasks and benchmarks as well as across a spectrum of different model sizes. We also describe efficient ways of applying these mobile models to object detection in a novel framework we call SSDLite. Additionally, we demonstrate how to build mobile semantic segmentation models through a reduced form of DeepLabv3 which we call Mobile DeepLabv3. The MobileNetV2 architecture is based on an inverted residual structure where the input and output of the residual block are thin bottleneck layers opposite to traditional residual models which use expanded representations in the input an MobileNetV2 uses lightweight depthwise convolutions to filter features in the intermediate expansion layer. Additionally, we find that it is important to remove non-linearities in the narrow layers in order to maintain representational power. We demonstrate that this improves performance and provide an intuition that led to this design. Finally, our approach allows decoupling of the input/output domains from the expressiveness of the transformation, which provides a convenient framework for further analysis. We measure our performance on Imagenet classification, COCO object detection, VOC image segmentation. We evaluate the trade-offs between accuracy, and number of operations measured by multiply-adds (MAdd), as well as the number of parameters},
