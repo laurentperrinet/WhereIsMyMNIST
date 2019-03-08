@@ -27,7 +27,6 @@ Learning where to look for a target before seeing it
 }
 \newcommand{\Acknowledgments}{ XXX FRM ... - code and material @ \url{\Website/Publications/XXX}. TODO: RIck + Karl + Laurent Madelain }
 \newcommand{\Abstract}{
-<<<<<<< HEAD
 We emulate a model of active vision which aims at finding a visual target whose position and identity are unknown.
 This generic visual search problem is of broad general interest in machine learning, computer vision and robotics, but also to neuroscience, as it speaks to the mechanisms underlying foveation and more generally to low-level attention mechanisms. From a computer vision perspective, the problem is generally addressed by processing the different hypothesis (categories) at all possible spatial configuration through dedicated parallel hardware. The human visual system, however, seems to emply a different strategy, through a combination of a foveated sensor with the capacity of rapidly moving the center of fixation using saccades. 
 Visual processing is done through fast and specialized pathways, one of which mainly conveying information about target position and speed in the peripheral space (the "where" pathway), the other mainly conveying  information about the category of the target (the "what" pathway). The combination of the two pathways is expected to provide most of the useful knowledge about the external visual scene. Still, it is unknown why such a separation exists.
@@ -46,13 +45,6 @@ We formalized this problem in a probabilistic setting, allowing to design two in
 We tested this framework on a simple task of finding digits in a large, cluttered image. Results demonstrate that it is possible to correctly learn the position of a putatively interesting visual target, and this before actually identifying its category through foveation (with cluttered noise ensuring the category is actually unreadable in the periphery). We compared the results of this model with classical psychophysical results in visual search {\bf (???)}. This provides evidence of the importance of identifying "putative interesting targets" first in computer vision and we highlight some predictions of our model.
 \fi
 % TODO: ACTIVE INFERENCE? LOGPOLAR ENCODING? SALIENCY MAPS?
-=======
-Visual processing in the brain is done through two independent pathways, one conveying information about target position and speed in the peripheral space (the ``where'' pathway), the other conveying  information about the category of the target (the ``what'' pathway). The combination of the two pathways is expected to provide most of the useful knowledge about the external visual scene. Still, it is unknown why such a separation exists.
-From a computational perspective, it is possible to train a classifier that may recognize both the target's category and position in a single pass and most current deep-learning solutions process the different hypothesis (categories) at all possible spatial configuration. However, such brute force approach may be costly in terms of computing time especially without dedicated parallel hardware.
-In contrast, the human visual system employs a combination of a foveated sensor with the capacity of rapidly moving the center of fixation using saccades. This provides with the capacity to sequentially process visual information, by first identifying the target position in the periphery of the retina, and, after actuating a saccade, identifying the target category through detailed retinocentric examination. However, a potential problem of using the foveated image is that subjects need to locate where the target is without necessarily being able to identify what it is. 
-We formalized this problem in a probabilistic setting, allowing to design two interacting image processing pathways. Indeed, the position and category of objects in images are a priori independent and we hypothesize that the primary retinotopic layers overlay a central area mostly dedicated to object categorization and a peripheral area mostly dedicated to object position in space, whatever it is. Until the classifier is confident, the system should perform a saccade to the most likely target position in the image. 
-We tested this framework on a simple task of finding digits in a large, cluttered image. Results demonstrate that it is possible to correctly learn the position of a putatively interesting visual target, and this before actually identifying its category through foveation (with cluttered noise ensuring the category is actually unreadable in the periphery). \if 0\CNS We compared the results of this model with classical psychophysical results in visual search {\bf (???)}.\fi Overall, the computational cost of this active inference strategy is less than that in a brute force framework. This provides evidence of the importance of identifying ``putative interesting targets'' first in computer vision and we highlight some predictions of our model.
->>>>>>> 56b2dfa8107095223eeffe0a8daba8b3d7fa4cf7
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[10pt,a4paper]{article}
@@ -80,12 +72,6 @@ We tested this framework on a simple task of finding digits in a large, cluttere
 
 	\parindent 0pt
 	\parskip 12pt
-
-	\usepackage{titlesec}
-
-	\titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
-	%\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
-	%\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
 
 %\flushbottom \sloppy
 %\pagestyle{empty} % No page numbers
@@ -144,14 +130,9 @@ backend=bibtex,
 
 \maketitle
 
-\if 0\CNS
 \begin{abstract}
 \Abstract
 \end{abstract}
-\else
-\vspace*{-.5cm}
-
-\fi
 
 \if 0\CNS
 \newpage
