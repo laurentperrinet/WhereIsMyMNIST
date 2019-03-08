@@ -60,6 +60,12 @@ We tested this framework on a simple task of finding digits in a large, cluttere
 	\parindent 0pt
 	\parskip 12pt
 
+	\usepackage{titlesec}
+
+	\titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+	%\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+	%\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
 %\flushbottom \sloppy
 %\pagestyle{empty} % No page numbers
 
@@ -117,9 +123,14 @@ backend=bibtex,
 
 \maketitle
 
+\if 0\CNS
 \begin{abstract}
 \Abstract
 \end{abstract}
+\else
+\vspace*{-.5cm}
+
+\fi
 
 \if 0\CNS
 \newpage
