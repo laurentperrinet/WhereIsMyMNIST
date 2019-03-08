@@ -18,8 +18,7 @@ The human visual system, in contrast, is able to perform such a feat very rapidl
 
 To take advantage of this visual behavior, it is of particular importance to understand both its computational and neurophysiological principles.
 Active vision methods~\citep{Najemnik05,Butko2010infomax,Friston12}, that provide the ground principles of saccadic exploration, assume the existence of a generative model from which both the target position and identity can be inferred through active sampling. Inverting a generative model over a large one-step ahead hypothesis space is however computationally-greedy (think of face identity for instance as a very large categorical space over a large visual transformation space) with no obvious neurophysiological counterpart.
-The goal of this work is to emulate a model of active vision which is able to find a visual target from a known target class, while the position and identity is unknown. This comes with the constraint that the visual sensor is foveated. We will use this constraint as an asset to minimize the overall computational cost of finding a target. This generic visual search problem is of broad general interest in machine learning, computer vision and robotics, but also to neuroscience, as it speaks to the mechanisms underlying foveation and more generally to low-level attention mechanisms. 
-
+The goal of this work is to emulate a model of active vision which is able to find a visual target from a known target class, while the position and identity are unknown. This comes with the constraint that the visual sensor is foveated. We will use this constraint as an asset to minimize the overall computational cost of finding a target. This generic visual search problem is of broad general interest in machine learning, computer vision and robotics, but also to neuroscience, as it speaks to the mechanisms underlying foveation and more generally to low-level attention mechanisms. 
 \if 0\CNS
 
 \subsection{State of the art}
@@ -35,7 +34,7 @@ Such a model constitutes an Active Inference scheme~\citep{Mirza18} and simulati
 
 
 
-\fi Stemming from the active vision general principles, our aim is to produce a realistic model that may both explain the essential features of human vision and provide ways for efficient computer implementations. 
+\fi Stemming from the active vision general principles, our aim is to produce a realistic model that may both explain the essential features of human vision and provide ways toward efficient computer implementations. 
 
 \if 0\CNS
 This paper is organized as follows. After this introduction, we will define the notations, variables and equations for the generative process governing the experiment and the generative model for the active vision agent. In particular, we will derive our method to simplify the learning of an optimal agent given these definitions. In section~\ref{sec:results}, we will then show results of numerical simulations of this agent. We will first demonstrate some applications of this framework to different levels of complexity of the problem. This will allow us to derive some limits of this agent and, as in~\citep{Najemnik05}, we will draw some analogies with biologically observed eye movements. Finally, in section~\ref{sec:discussion}, we will summarize these results in comparison with other similar schemes. We will conclude by showing the relative advantages of using this active inference approach.
