@@ -102,10 +102,12 @@ def retina_inverse(retina_transform):
 
 
 def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vector):
+    
     accuracy_fullfield_map = do_offset(data=accuracy_map, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, min=0.1)
+    
     accuracy_colliculus = colliculus_vector @ accuracy_fullfield_map.ravel()
 
-    return accuracy_colliculus
+    return accuracy_colliculus, accuracy_fullfield_map
 
 
 
