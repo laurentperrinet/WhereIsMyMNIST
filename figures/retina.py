@@ -31,6 +31,14 @@ class Retina:
         self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
         self.whit.set_size((args.N_pic, args.N_pic))
         
+        self.colliculus = (self.retina_transform**2).sum(axis=(0, 3))
+        #colliculus = colliculus**.5
+        self.colliculus /= self.colliculus.sum(axis=-1)[:, :, None]
+        
+        self.colliculus_vector = self.colliculus.reshape((self.args.N_azimuth*self.args.N_eccentricity, self.args.N_pic**2))
+        self.colliculus_inverse = np.linalg.pinv(self.colliculus_vector)
+
+        
     def retina(self, data_fullfield):
         data_fullfield = self.whit.whitening(data_fullfield)
         data_retina = self.retina_transform_vector @ np.ravel(data_fullfield)
