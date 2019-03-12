@@ -7,7 +7,7 @@ verbose = 1
 import SLIP
 whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
 
-def get_data_loader(batch_size=100, train=True, cmin = 0.1307, cmax= 0.3081, seed=42):
+def get_data_loader(batch_size=100, train=True, cmin = 0.1307, cmax= 0.3081, seed=2019):
     import torch
     torch.manual_seed(seed=seed)
     from torchvision import datasets, transforms
