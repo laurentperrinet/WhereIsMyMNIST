@@ -11,6 +11,9 @@ verbose = 1
 class Retina:
     def __init__(self, args):
         self.args = args
+        delta = 1./args.N_azimuth
+        self.log_r, self.theta = np.meshgrid(np.linspace(0, 1, args.N_eccentricity + 1), np.linspace(-np.pi*(.5 + delta), np.pi*(1.5 - delta), args.N_azimuth + 1))
+
         try:
             self.retina_transform = np.load(args.filename+'retina_transform.npy')
         except:
@@ -49,6 +52,16 @@ class Retina:
         im = im.reshape((self.args.N_pic, self.args.N_pic))
         if do_dewhitening: im = self.whit.dewhitening(im)
         return im
+    
+    def accuracy_fullfield(self, accuracy_map, i_offset, j_offset):
+        accuracy_colliculus, accuracy_fullfield_map = accuracy_fullfield(accuracy_map, i_offset, j_offset, self.args.N_pic, self.colliculus_vector)
+        return accuracy_colliculus, accuracy_fullfield_map
+    
+    def accuracy_invert(self, accuracy_colliculus):
+        im = self.colliculus_inverse @ accuracy_colliculus
+
+        return im.reshape(self.args.N_pic, self.args.N_pic)
+    
     
     def show(self, ax, im, rmin=None, rmax=None, ms=26, markeredgewidth=1, alpha=.6, lw=.75):
         if rmin is None: rmin = im.min()
@@ -153,7 +166,7 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 class Display:
     def __init__(self, args):
         self.args = args
-        self.loader_train = get_data_loader(batch_size=args.batch_size, train=True, cmin=args.cmin, cmax=args.cmax, seed=args.seed)
+        self.loader_train = get_data_loader(batch_size=args.minibatch_size, train=True, cmin=args.cmin, cmax=args.cmax, seed=args.seed)
         self.loader_test = get_data_loader(batch_size=args.test_batch_size, train=False, cmin=args.cmin, cmax=args.cmax, seed=args.seed)
         np.random.seed(seed=args.seed+1)
     
