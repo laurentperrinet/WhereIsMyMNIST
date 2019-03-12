@@ -17,7 +17,7 @@ After training the network, we evaluated simulations of the final accuracy at th
 %\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
 \centering{\includegraphics[width=\linewidth]{fig_result}}
 \caption{
-{\bf Simulated active vision agent}: 
+{\bf Simulated active vision agent}:
 (A)~The visual display ('DIS', see  Figure~\ref{fig:results}-C)  is transformed into a retinotopic representation which is used as the input of a multi-layer neural network implementing the ``where'' pathway, that transforms the retinal image into an accuracy map. (B)~We show after training, a typical network output  ('Predicted') as compared  with the ground truth ('True'). (C)~The network output allows to generate a saccade to the most likely target position in visual space and to recenter the retinotopic map ('SAC'), making possible to estimate a final classification rate. (D)~The active vision agent is tested at different eccentricities (in pixels). Orange bars: accuracy of a central classifier ('No saccade') with respect to  function of the target eccentricity averaged over 1,000 trials per eccentricity scale. Blue bars: Final classification rate after one saccade predicted by the ``Where'' pathway.
 \label{fig:results}}%
 \end{figure}%
@@ -26,14 +26,14 @@ After training the network, we evaluated simulations of the final accuracy at th
 % energy consumption
 
 % inhibition of return
-As our saccade selection algorithm may implement the essential operations done in the ``Where'' pathway, the central classifier may also reflect the response of the ``What'' pathway,  
+As our saccade selection algorithm may implement the essential operations done in the ``Where'' pathway, the central classifier may also reflect the response of the ``What'' pathway,
 %A particular property of our agent is that at the time when the initial input is presented, two independent inferences are implemented. First, a
-%The classification performed by the ``What'' pathway 
-giving the potential identity of the digit. %Second, an accuracy map is predicted by the 'Where' pathway. 
-It is therefore possible to compare the two accuracy estimates to chose the most appropriate action: it may be that the  accuracy is best in the ``What'' pathway and in that case no saccade is produced. 
+%The classification performed by the ``What'' pathway
+giving the potential category of the digit. %Second, an accuracy map is predicted by the 'Where' pathway.
+It is therefore possible to compare the two accuracy estimates to chose the most appropriate action: it may be that the  accuracy is best in the ``What'' pathway and in that case no saccade is produced.
 The decision frontier lies between the first and the second spatial scale, allowing to pursue micro-saccades in the close vicinity of the target (2-3 pixels), in order to achieve a perfect centering.
-In the other decision case, the ''What'' accuracy can still be considered to update the ``Where'' accuracy. 
-%Indeed, one knows in particular the accuracy of the 'what' pathway when imposing small shifts to the input. 
+In the other decision case, the ''What'' accuracy can still be considered to update the ``Where'' accuracy.
+%Indeed, one knows in particular the accuracy of the 'what' pathway when imposing small shifts to the input.
 This allows in particular to ``explain away" the current position of the fixation and the neighboring ones.
-%(see line 'No saccade' in figure~\ref{fig:results}). 
+%(see line 'No saccade' in figure~\ref{fig:results}).
 Such heuristic gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\citep{Itti01}. In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits.
