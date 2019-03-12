@@ -7,11 +7,13 @@ verbose = 1
 import SLIP
 whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
 
-def get_data_loader(batch_size=100, train=True, cmin = 0.1307, cmax= 0.3081):
+def get_data_loader(batch_size=100, train=True, cmin = 0.1307, cmax= 0.3081, seed=42):
     import torch
+    torch.manual_seed(seed=seed)
     from torchvision import datasets, transforms
-
+    # https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader
     data_loader = torch.utils.data.DataLoader(
+        # https://pytorch.org/docs/stable/torchvision/datasets.html#torchvision.datasets.MNIST
         datasets.MNIST('../data',
                        train=train,     # def the dataset as training data
                        download=True,  # download if dataset not present on disk
@@ -157,3 +159,8 @@ def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
                         lg.invert(lg.loggabor(x, y, **params)*np.exp(-1j*phase))).ravel()
 
     return retina
+
+
+class Display:
+    def __init__(self):
+        pass
