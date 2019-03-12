@@ -25,7 +25,7 @@ In general, the visual Information Gain between two visual fields $\boldsymbol{x
 \paragraph{Information Gain Lower Bound}
 Consider now that given  $\boldsymbol{x}$ and $\boldsymbol{u}$, the target category  $\boldsymbol{y}$ can be \emph{inferred} using Bayes rule, i.e.:
 $$ P(Y|\boldsymbol{x}, \boldsymbol{u}) \propto  P(\boldsymbol{x}|Y, \boldsymbol{u}) $$
-Then, it can be shown (see \cite{dauce2018}) that :
+Then, it can be shown (see \cite{Dauce18}) that :
 $$\text{IG}(\boldsymbol{x}|\boldsymbol{u}; \boldsymbol{x}'| \boldsymbol{u}') \geq \mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})} \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}') - \log(\pi(\boldsymbol{y})) \right]$$
 with  $\pi(\boldsymbol{y})$ the prior over the $\boldsymbol{y}$'s .
 When the prior is uniform, the information gain lower bound (IGLB) simplifies to $\mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})} \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right] + c$, with $c$ a constant.
