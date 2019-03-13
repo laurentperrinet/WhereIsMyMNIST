@@ -1,8 +1,11 @@
+import os
 import numpy as np
+import time
 import torch
 torch.set_default_tensor_type('torch.FloatTensor')
 from torchvision import datasets, transforms
 from torchvision.datasets import ImageFolder
+from torch.autograd import Variable
 import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
@@ -13,7 +16,7 @@ class Net(torch.nn.Module):
         super(Net, self).__init__()
         self.args = args       
         #self.bn1= torch.nn.Linear(N_theta*N_azimuth*N_eccentricity*N_phase, 200, bias = BIAS_DECONV)
-        self.bn1= torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
+        self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
         #self.bn2 = torch.nn.Linear(200, 80, bias = BIAS_DECONV)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
         #self.conv2_bn = nn.BatchNorm2d(args.conv2_dim, momentum=1-args.conv2_bn_momentum)
@@ -58,38 +61,95 @@ class Where():
         else:
             self.optimizer = optim.SGD(self.model.parameters(),
                                     lr=self.args.lr, momentum=self.args.momentum)
-    # def forward(self, img):
-    #     # normalize img
-    #     return (img - self.mean) / self.std
 
+        path = "../data/MNIST_accuracy.npy"
+        if os.path.isfile(path):
+            self.accuracy_map =  np.load(path)
+            if args.verbose:
+                print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
+        else:
+            print('No accuracy data found.')
+
+        from what import Net as What
+        model_path = "../data/MNIST_cnn.pt"
+        #model = torch.load(model_path)
+        self.What_model = What()
+        self.What_model.load_state_dict(torch.load(model_path))        
+        self.What_model.eval()
+
+    def minibatch(self, data):
+        batch_size = data.shape[0]
+        retina_data = np.zeros((batch_size, self.retina.vsize))
+        accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
+        full =[]
+
+        for i in range(batch_size):
+            #print(i, data[i, 0, :, :].numpy().shape)
+            data_fullfield, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
+            full.append(dict(data_fullfield=data_fullfield, i_offset=i_offset, j_offset=j_offset))
+            # TODO use one shot matrix multiplication
+            retina_data[i, :]  =  self.retina.retina(data_fullfield)
+            accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
+
+        retina_data = Variable(torch.FloatTensor(retina_data))
+        accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
+        retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)
+                              
+        return full, retina_data, accuracy_colliculus
+
+    def extract(self, data_fullfield, i_offset, j_offset):
+        mid = self.args.N_pic//2
+        rad = self.args.w//2
+
+        im = data_fullfield[(mid+i_offset-rad):(mid+i_offset+rad),
+                            (mid+j_offset-rad):(mid+j_offset+rad)]
+
+        im = np.clip(im, 0.5, 1)
+        im = (im-.5)*2
+        return im
+    
+    def classify_what(self, im):
+        im = (im-self.args.mean)/self.args.std
+        if im.ndim ==2:
+            im = Variable(torch.FloatTensor(im[None, None, ::]))
+        else:
+            im = Variable(torch.FloatTensor(im[:, None, ::]))
+        with torch.no_grad():
+            output = self.What_model(im)
+            
+        return np.exp(output)
+        
+    def extract(self, data_fullfield, i_offset, j_offset):
+        mid = self.args.N_pic//2
+        rad = self.args.w//2
+
+        im = data_fullfield[(mid+i_offset-rad):(mid+i_offset+rad),
+                            (mid+j_offset-rad):(mid+j_offset+rad)]
+
+        im = np.clip(im, 0.5, 1)
+        im = (im-.5)*2
+        return im
+        
     def train(self, path=None, seed=None):
         if not path is None:
             # using a data_cache
             if os.path.isfile(path):
-                self.model.load_state_dict(torch.load(path))
+                #self.model.load_state_dict(torch.load(path))
+                self.model = torch.load(path)
                 print('Loading file', path)
             else:
-                print('Training model...')
+                #print('Training model...')
                 self.train(path=None, seed=seed)
-                torch.save(self.model.state_dict(), path) #save the neural network state
+                torch.save(self.model, path)
+                #torch.save(self.model.state_dict(), path) #save the neural network state
                 print('Model saved at', path)
         else:
-            # cosmetics
-            try:
-                from tqdm import tqdm
-                #from tqdm import tqdm_notebook as tqdm
-                verbose = 1
-            except ImportError:
-                verbose = 0
-            if self.args.verbose == 0 or verbose == 0:
-                def tqdm(x, desc=None):
-                    if desc is not None: print(desc)
-                    return x
-
+            from tqdm import tqdm
             # setting up training
             if seed is None:
                 seed = self.args.seed
-            self.model.train()
+                
+            self.model.train() # set training mode
             for epoch in tqdm(range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
                 loss = self.train_epoch(epoch, seed, rank=0)
                 # report classification results
@@ -97,7 +157,7 @@ class Where():
                     if epoch % self.args.log_interval == 0:
                         status_str = '\tTrain Epoch: {} \t Loss: {:.6f}'.format(epoch, loss)
                         try:
-                            from tqdm import tqdm
+                            #from tqdm import tqdm
                             tqdm.write(status_str)
                         except Exception as e:
                             print(e)
@@ -106,52 +166,53 @@ class Where():
 
     def train_epoch(self, epoch, seed, rank=0):
         torch.manual_seed(seed + epoch + rank*self.args.epochs)
-        for batch_idx, (data, target) in enumerate(self.dataset.train_loader):
-            data, target = data.to(self.device), target.to(self.device)
+        for batch_idx, (data, label) in enumerate(self.display.loader_train):
             # Clear all accumulated gradients
             self.optimizer.zero_grad()
+            
+            # get a minibatch of the same digit at different positions and noises
+            full, retina_data, accuracy_colliculus = self.minibatch(data)
+            
             # Predict classes using images from the train set
-            output = self.model(data)
+            prediction = self.model(retina_data)
             # Compute the loss based on the predictions and actual labels
-            loss = self.args.loss_func(output, target)
+            loss = self.args.loss_func(prediction, accuracy_colliculus)
             # Backpropagate the loss
             loss.backward()
             # Adjust parameters according to the computed gradients
             self.optimizer.step()
+            
+            # stops prematurely (for testing purposes)
+            if batch_idx > self.args.train_batch_size : break
+            
         return loss.item()
-
-    def classify(self, image, t):
-        from PIL import Image
-        image = Image.fromarray(image)#.astype('uint8'), 'RGB')
-        data = t(image).unsqueeze(0)
-        # data.requires_grad = False
-        self.model.eval()
-        output = self.model(data)
-        return np.exp(output.data.numpy()[0, :].astype(np.float))
 
     def test(self, dataloader=None):
         if dataloader is None:
-            dataloader = self.dataset.test_loader
+            dataloader = self.display.loader_test
         self.model.eval()
         test_loss = 0
         correct = 0
         for data, target in dataloader:
-            data, target = data.to(self.device), target.to(self.device)
-            output = self.model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
+            # get a minibatch of the same digit at different positions and noises
+            full, retina_data, accuracy_colliculus = self.minibatch(data)
+            
+            # Predict classes using images from the train set
+            prediction = self.model(retina_data)
+
             pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
             correct += pred.eq(target.data.view_as(pred)).long().cpu().sum()
 
-        test_loss /= len(self.dataset.test_loader.dataset)
+        test_loss /= len(self.dataloader.dataset)
 
         if self.args.log_interval>0:
             print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-            test_loss, correct, len(self.dataset.test_loader.dataset),
-            100. * correct / len(self.dataset.test_loader.dataset)))
-        return correct.numpy() / len(self.dataset.test_loader.dataset)
+            test_loss, correct, len(self.dataloader.dataset),
+            100. * correct / len(self.dataloader.dataset)))
+        return correct.numpy() / len(self.dataloader.dataset)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
-        for idx, (data, target) in enumerate(self.dataset.test_loader):
+        for idx, (data, target) in enumerate(self.display.loader_test):
             #data, target = next(iter(self.dataset.test_loader))
             data, target = data.to(self.device), target.to(self.device)
             output = self.model(data)

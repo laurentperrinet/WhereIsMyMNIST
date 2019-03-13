@@ -51,7 +51,7 @@ class Retina:
         data_retina = self.retina_transform_vector @ np.ravel(data_fullfield)
         return data_retina #retina(data_fullfield, self.retina_transform)     
     
-    def retina_invert(self, data_retina, do_dewhitening=True):
+    def retina_invert(self, data_retina, do_dewhitening=False):
         im = self.retina_inverse_transform @ data_retina
         im = im.reshape((self.args.N_pic, self.args.N_pic))
         if do_dewhitening: im = self.whit.dewhitening(im)
@@ -73,7 +73,7 @@ class Retina:
         ax.imshow(im, cmap=plt.viridis(), vmin=rmin, vmax=rmax)
         
         mid = self.args.N_pic//2
-        w = 28
+        w = self.args.w
         ax.plot([mid], [mid], '+g', ms=ms, markeredgewidth=markeredgewidth, alpha=alpha)
         
         ax.plot([mid-w/2, mid+w/2, mid+w/2, mid-w/2, mid-w/2], 
@@ -158,7 +158,7 @@ def retina_inverse(retina_transform):
 
 def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vector):
     
-    accuracy_fullfield_map = do_offset(data=accuracy_map, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, min=0.1)
+    accuracy_fullfield_map = do_offset(data=accuracy_map, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, data_min=0.1)
     
     accuracy_colliculus = colliculus_vector @ accuracy_fullfield_map.ravel()
 
@@ -170,8 +170,10 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 class Display:
     def __init__(self, args):
         self.args = args
-        self.loader_train = get_data_loader(batch_size=args.minibatch_size, train=True, cmin=args.cmin, cmax=args.cmax, seed=args.seed)
-        self.loader_test = get_data_loader(batch_size=args.test_batch_size, train=False, cmin=args.cmin, cmax=args.cmax, seed=args.seed)
+        self.loader_train = get_data_loader(batch_size=args.minibatch_size, train=True, mean=args.mean, std=args.std, seed=args.seed)
+        self.loader_test = get_data_loader(batch_size=args.test_batch_size, train=False, mean=args.mean, std=args.std, seed=args.seed)
+        self.N_classes = len(self.loader_test.dataset.classes)
+        
         np.random.seed(seed=args.seed+1)
     
     def place_object(self, data, i_offset, j_offset):
@@ -182,6 +184,7 @@ class Display:
         i_offset = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
         j_offset = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
+
 
     def show(self, ax, data_fullfield, ms=26, markeredgewidth=6):
         ax.imshow(data_fullfield, cmap=plt.gray(), vmin=0, vmax=1)
@@ -195,7 +198,7 @@ class Display:
 
 whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
 
-def get_data_loader(batch_size=100, train=True, cmin=0.1307, cmax=0.3081, seed=2019):
+def get_data_loader(batch_size=100, train=True, mean=0.1307, std=0.3081, seed=2019):
     import torch
     torch.manual_seed(seed=seed)
     from torchvision import datasets, transforms
@@ -207,7 +210,7 @@ def get_data_loader(batch_size=100, train=True, cmin=0.1307, cmax=0.3081, seed=2
                        download=True,  # download if dataset not present on disk
                        transform=transforms.Compose([
                            transforms.ToTensor(),
-                           transforms.Normalize((cmin,), (cmax,))
+                           transforms.Normalize((mean,), (std,))
                        ])),
                        batch_size=batch_size,
                        shuffle=True)
@@ -219,51 +222,58 @@ def minmax(value, border):
     return int(value)
 
 
-def do_offset(data, i_offset, j_offset, N_pic, min=None):
+def do_offset(data, i_offset, j_offset, N_pic, data_min=None):
     # place data in a big image with some known offset
     N_stim = data.shape[0]
     center = (N_pic-N_stim)//2
-    if min is None:
-        min = data.min()
+    if data_min is None:
+        data_min = data.min()
         
-    data_fullfield = min * np.ones((N_pic, N_pic))
+    data_fullfield = data_min * np.ones((N_pic, N_pic))
     data_fullfield[int(center+i_offset):int(center+N_stim+i_offset), int(center+j_offset):int(center+N_stim+j_offset)] = data
     return data_fullfield
     
 def place_object(data, i_offset, j_offset, N_pic=128, contrast=1., noise=.5, sf_0=0.1, B_sf=0.1, do_mask=True, do_max=False):
+    #print(data.min(), data.max())
+    data = (data - data.min())/(data.max() - data.min())
+    
     # place data in a big image with some known offset
-    data_fullfield = do_offset(data=data, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, min=0)
+    data_fullfield = do_offset(data=data, i_offset=i_offset, j_offset=j_offset, N_pic=N_pic, data_min=0.)
 
-    # normalize data
+    # normalize data in [0, 1]
     data_fullfield = (data_fullfield - data_fullfield.min())/(data_fullfield.max() - data_fullfield.min())
-    data_fullfield = 2 * data_fullfield - 1 # [-1, 1] range
+    #data_fullfield = 2 * data_fullfield - 1 # [-1, 1] range
+    #data_fullfield /= 2 # back to [0, 1] range
     data_fullfield *= contrast
-    data_fullfield = .5 * data_fullfield + .5 # back to [0, 1] range
-
+    #data_fullfield += .5 # back to [0, 1] range
+    
     # add noise
     if noise>0.:
         im_noise, _ = MotionCloudNoise(sf_0=sf_0, B_sf=B_sf)
         # print(im_noise.min(), im_noise.max())
-        im_noise = 2 * im_noise - 1
+        #im_noise = 2 * im_noise - 1
         im_noise = noise *  im_noise
-        im_noise = .5 * im_noise + .5 # back to [0, 1] range
+        #im_noise = .5 * im_noise + .5 # back to [0, 1] range
+        #print(im_noise.min(), im_noise.max())
         if do_max:
             data_fullfield = np.max((im_noise, data_fullfield), axis=0)
         else:
-            data_fullfield += im_noise 
-            data_fullfield /= 2 
-            data_fullfield = np.clip(data_fullfield, 0, 1)
+            data_fullfield = np.mean((im_noise, data_fullfield), axis=0)
+    #print(data_fullfield.min(), data_fullfield.max())
         
         
     # add a circular mask
     if do_mask:
-        #mask = np.ones((N_pic, N_pic))
         x, y = np.mgrid[-1:1:1j*N_pic, -1:1:1j*N_pic]
         R = np.sqrt(x**2 + y**2)
-        mask = (R<1)
-        
-        data_fullfield = (data_fullfield-.5)*mask + .5
+        mask = 1. * (R<1)
+        #print('mask', mask.min(), mask.max(), mask[0, 0])
+        data_fullfield = data_fullfield*mask
     
+    # normalize data in [0, 1]
+    data_fullfield /= 2 # back to [0, 1] range
+    data_fullfield += .5 # back to a .5 baseline
+    data_fullfield = np.clip(data_fullfield, 0, 1)
     return data_fullfield
 
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.5, N_pic=128):
