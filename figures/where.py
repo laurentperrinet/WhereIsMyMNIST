@@ -16,7 +16,7 @@ class Net(torch.nn.Module):
         super(Net, self).__init__()
         self.args = args       
         #self.bn1= torch.nn.Linear(N_theta*N_azimuth*N_eccentricity*N_phase, 200, bias = BIAS_DECONV)
-        self.bn1= torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
+        self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
         #self.bn2 = torch.nn.Linear(200, 80, bias = BIAS_DECONV)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
         #self.conv2_bn = nn.BatchNorm2d(args.conv2_dim, momentum=1-args.conv2_bn_momentum)
@@ -75,6 +75,7 @@ class Where():
         #model = torch.load(model_path)
         self.What_model = What()
         self.What_model.load_state_dict(torch.load(model_path))        
+        self.What_model.eval()
 
     def minibatch(self, data):
         batch_size = data.shape[0]
@@ -170,7 +171,7 @@ class Where():
             self.optimizer.zero_grad()
             
             # get a minibatch of the same digit at different positions and noises
-            retina_data, accuracy_colliculus = self.minibatch(data)
+            full, retina_data, accuracy_colliculus = self.minibatch(data)
             
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
@@ -186,15 +187,6 @@ class Where():
             
         return loss.item()
 
-    def classify(self, image, t):
-        from PIL import Image
-        image = Image.fromarray(image)#.astype('uint8'), 'RGB')
-        data = t(image).unsqueeze(0)
-        # data.requires_grad = False
-        self.model.eval()
-        output = self.model(data)
-        return np.exp(output.data.numpy()[0, :].astype(np.float))
-
     def test(self, dataloader=None):
         if dataloader is None:
             dataloader = self.display.loader_test
@@ -202,9 +194,12 @@ class Where():
         test_loss = 0
         correct = 0
         for data, target in dataloader:
-            data, target = data.to(self.device), target.to(self.device)
-            output = self.model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
+            # get a minibatch of the same digit at different positions and noises
+            full, retina_data, accuracy_colliculus = self.minibatch(data)
+            
+            # Predict classes using images from the train set
+            prediction = self.model(retina_data)
+
             pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
             correct += pred.eq(target.data.view_as(pred)).long().cpu().sum()
 
