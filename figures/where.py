@@ -1,210 +1,40 @@
-# 
-dataset_folder = 'dataset'
-dataset_faces_folder = 'dataset_faces'
-batch_size = 16
-no_cuda = False
-test_batch_size = 1
-size_test_set = .2
-do_adam = False
-epochs = 40
-lr = 0.01
-momentum = 0.05
-num_processes = 1
-seed = 42
-log_interval = 0 # period with which we report results for the loss
-fullsize = 75 # size at the input of the transforms pipeline
-crop = 75 # int(.9*fullsize)
-size = 40 # size at the output of the transforms pipeline
-mean = .4
-std = .3
-conv1_dim = 9
-conv1_kernel_size = 8
-conv1_bn_momentum = .5
-conv2_kernel_size = 12
-conv2_dim = 36
-conv2_bn_momentum = .5
-dense_bn_momentum = .5
-dimension = 30
-verbose = False
-stride1 = 2
-stride2 = 4
-N_cv = 20
-# DEBUG
-# epochs = 2
-# N_cv = 2
-#https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
-
-import easydict
-def init(dataset_folder=dataset_folder, dataset_faces_folder=dataset_faces_folder, batch_size=batch_size, test_batch_size=test_batch_size, size_test_set=size_test_set, epochs=epochs,
-            do_adam=do_adam, lr=lr, momentum=momentum, no_cuda=no_cuda, num_processes=num_processes, seed=seed,
-            log_interval=log_interval, fullsize=fullsize, crop=crop, size=size, mean=mean, std=std,
-            conv1_dim=conv1_dim, conv1_kernel_size=conv1_kernel_size,
-            conv2_dim=conv2_dim, conv2_kernel_size=conv2_kernel_size,
-            conv1_bn_momentum=conv1_bn_momentum, conv2_bn_momentum=conv2_bn_momentum, dense_bn_momentum=dense_bn_momentum,
-            stride1=stride1, stride2=stride2, N_cv=N_cv,
-            dimension=dimension, verbose=verbose):
-    # Training settings
-    kwargs = {}
-    kwargs.update(dataset_folder=dataset_folder, dataset_faces_folder=dataset_faces_folder, batch_size=batch_size, test_batch_size=test_batch_size, size_test_set=size_test_set, epochs=epochs,
-                do_adam=do_adam, lr=lr, momentum=momentum, no_cuda=no_cuda, num_processes=num_processes, seed=seed,
-                log_interval=log_interval, fullsize=fullsize, crop=crop, size=size, mean=mean, std=std,
-                conv1_dim=conv1_dim, conv1_kernel_size=conv1_kernel_size,
-                conv2_dim=conv2_dim, conv2_kernel_size=conv2_kernel_size,
-                conv1_bn_momentum=conv1_bn_momentum, conv2_bn_momentum=conv2_bn_momentum, dense_bn_momentum=dense_bn_momentum,
-                stride1=stride1, stride2=stride2, N_cv=N_cv,
-                dimension=dimension, verbose=verbose
-                )
-    # print(kwargs, locals())
-    return easydict.EasyDict(kwargs)
-
 import numpy as np
 import torch
 torch.set_default_tensor_type('torch.FloatTensor')
-import torch.nn as nn
 from torchvision import datasets, transforms
 from torchvision.datasets import ImageFolder
 import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
-#ACTIVATION = F.relu
-ACTIVATION = torch.tanh
-#ACTIVATION = F.softmax
-
-class Data:
-    def __init__(self, args):
-        self.args = args
-
-        # making sure that all folders exist
-        try:
-            os.mkdir(self.args.dataset_faces_folder)
-        except:
-            pass
-        self.classes = ['blink', 'center', 'left', 'right'] # TODO : get from the full dataset
-        for label in self.classes:
-            try:
-                os.mkdir(os.path.join(self.args.dataset_faces_folder, label))
-                print('Creating folder ', os.path.join(self.args.dataset_faces_folder, label))
-            except:
-                pass
-
-        # GPU boilerplate
-        if self.args.verbose:
-            if not self.args.no_cuda and not torch.cuda.is_available():
-                print('Trying to load cuda, but it is not available')
-        self.args.no_cuda = self.args.no_cuda or not torch.cuda.is_available()
-        #if self.args.verbose:
-        #    print('no cuda?', self.args.no_cuda)
-        kwargs = {'num_workers': 1, 'pin_memory': True} if not args.no_cuda else {'num_workers': 1}
-        # https://pytorch.org/docs/master/torchvision/transforms.html#torchvision.transforms.Resize
-        # Resize the input PIL Image to the given size.
-        tr = transforms.Resize((args.fullsize, 4*args.fullsize))
-        tcc = transforms.CenterCrop((args.crop, 4*args.crop))
-        tr2 = transforms.Resize((args.size, 4*args.size))
-        ttt= transforms.ToTensor()
-        tn = transforms.Normalize(mean=[args.mean]*3, std=[args.std]*3)
-
-        self.train_transform = transforms.Compose([
-            tr,
-            # https://pytorch.org/docs/master/torchvision/transforms.html#torchvision.transforms.RandomAffine
-            #transforms.RandomAffine(degrees=5, scale=(.9, 1.1), shear=3, resample=False, fillcolor=0),
-            #transforms.RandomAffine(degrees=2.5, shear=1., resample=False, fillcolor=0),
-            tcc, tr2, ttt, tn,
-            ])
-
-        self.test_transform = transforms.Compose([
-            tr,
-            tcc, tr2, ttt, tn,
-            ])
-        try:
-            self.dataset = ImageFolder(self.args.dataset_faces_folder, self.train_transform)
-            #self.train_loader = torch.utils.data.DataLoader(self.dataset, batch_size=args.batch_size, shuffle=True, num_workers=1)
-            #self.test_loader = torch.utils.data.DataLoader(self.dataset, batch_size=args.test_batch_size, shuffle=True, num_workers=1)
-
-            # https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb
-            num_train = len(self.dataset)
-            # indices = list(range(num_train))
-            split = int(np.floor(self.args.size_test_set * num_train))
-            if self.args.verbose:
-                print('Found', num_train, 'sample images; ', num_train-split, ' to train', split, 'to test')
-
-            # N-batch_size, C-num_channels , H-height, W-width
-            from torch.utils.data import random_split
-            train_dataset, test_dataset = random_split(self.dataset, [num_train-split, split])
-
-            self.train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, **kwargs)
-            self.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=self.args.test_batch_size, **kwargs)
-            self.classes = self.dataset.classes #'blink', 'left ', 'right', ' fix '
-        except Exception as e:
-            print('Could not load dataset', e)
-
-    def show(self, noise_level=.4, nrow=8, transpose=True):
-
-        images, foo = next(iter(self.train_loader))
-        # https://pytorch.org/docs/stable/torchvision/utils.html#torchvision.utils.make_grid
-        from torchvision.utils import make_grid
-        npimg = make_grid(images, normalize=True, nrow=nrow).numpy()
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=((8, 5)))
-        import numpy as np
-        if transpose:
-            ax.imshow(np.transpose(npimg, (1, 2, 0)))
-        else:
-            ax.imshow(npimg)
-        plt.setp(ax, xticks=[], yticks=[])
-
-        return fig, ax
 
 
-class Net(nn.Module):
+class Net(torch.nn.Module):
     def __init__(self, args):
         super(Net, self).__init__()
-        self.args = args
-        # data is in the format (N, C, H, W)
-        self.conv1 = nn.Conv2d(3, args.conv1_dim, kernel_size=args.conv1_kernel_size)
-        self.conv1_bn = nn.BatchNorm2d(args.conv1_dim, momentum=1-args.conv1_bn_momentum)
-        padding1 = args.conv1_kernel_size - 1 # total padding in layer 1 (before max pooling)
-        # https://pytorch.org/docs/stable/nn.html#torch.nn.MaxPool2d
-        out_height_1 = (args.size - padding1 - args.stride1) // args.stride1 + 1
-        out_width_1 = (4*args.size - padding1 - args.stride1) // args.stride1 + 1
-        # TODO : self.bn1 = nn.BatchNorm2d(32)
-        self.conv2 = nn.Conv2d(args.conv1_dim, args.conv2_dim, kernel_size=args.conv2_kernel_size)
-        self.conv2_bn = nn.BatchNorm2d(args.conv2_dim, momentum=1-args.conv2_bn_momentum)
-        padding2 = args.conv2_kernel_size - 1 # total padding in layer 2
-        out_height_2 = (out_height_1 - padding2 - args.stride2) // args.stride2 + 1
-        out_width_2 = (out_width_1 - padding2 - args.stride2) // args.stride2 + 1
-        fc1_dim = (out_width_2*out_height_2) * args.conv2_dim
-        self.dense_1 = nn.Linear(fc1_dim, args.dimension)
-        #This momentum argument is different from one used in optimizer classes and the conventional notion of momentum. Mathematically, the update rule for running statistics here is x̂ new=(1−momentum)×x̂ +momemtum×xt, where x̂  is the estimated statistic and xt is the new observed value.
-        self.dense_bn = nn.BatchNorm1d(args.dimension, momentum=1-args.dense_bn_momentum)
-        self.dense_2 = nn.Linear(args.dimension, len(self.args.classes))
-        self.dense_input_size = None
-
-    def forward(self, x):
-        x = self.conv1(x)
-        if self.args.conv1_bn_momentum>0: x = self.conv1_bn(x)
-        x = ACTIVATION(F.max_pool2d(x, kernel_size=[self.args.stride1, self.args.stride1]))#, stride=[self.args.stride1, self.args.stride1]))
-        # x = ACTIVATION(F.max_pool2d(self.conv2_drop(self.conv2(x)), kernel_size=[self.args.stride2, self.args.stride2]))#, stride=[self.args.stride2, self.args.stride2]))
-        x = self.conv2(x)
-        if self.args.conv2_bn_momentum>0:x = self.conv2_bn(x)
-        x = ACTIVATION(F.max_pool2d(x, kernel_size=[self.args.stride2, self.args.stride2]))#, stride=[self.args.stride2, self.args.stride2]))
-        if self.dense_input_size is None: self.dense_input_size= self.num_flat_features(x)
-        x = x.view(-1, self.dense_input_size)
-        x = self.dense_1(x)
-        if self.args.dense_bn_momentum>0: x = self.dense_bn(x)
-        x = ACTIVATION(x)
-        x = self.dense_2(x)
-        return F.log_softmax(x, dim=1)
-
-    def num_flat_features(self, x):
-        size = x.size()[1:]  # all dimensions except the batch dimension
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
+        self.args = args       
+        #self.bn1= torch.nn.Linear(N_theta*N_azimuth*N_eccentricity*N_phase, 200, bias = BIAS_DECONV)
+        self.bn1= torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
+        #self.bn2 = torch.nn.Linear(200, 80, bias = BIAS_DECONV)
+        #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
+        #self.conv2_bn = nn.BatchNorm2d(args.conv2_dim, momentum=1-args.conv2_bn_momentum)
+        self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
+        #self.dense_bn = nn.BatchNorm1d(args.dimension, momentum=1-args.dense_bn_momentum)
+        #self.bn3 = torch.nn.Linear(80, N_azimuth*N_eccentricity, bias = BIAS_DECONV)
+        self.bn3 = torch.nn.Linear(args.dim2, args.N_azimuth*args.N_eccentricity, bias=args.bias_deconv)
+                
+    def forward(self, image):  
+        h_bn1 = F.relu(self.bn1(image))  
+        # if self.args.conv1_bn_momentum>0: x = self.conv1_bn(x)
+        h_bn2 = F.relu(self.bn2(h_bn1))
+        h_bn2_drop = F.dropout(h_bn2, p = .5) 
+        #if self.args.conv2_bn_momentum>0:x = self.conv2_bn(x)
+        u = self.bn3(h_bn2_drop)
+        
+        return u
 
 
-class ML():
-    def __init__(self, args):
+class Where():
+    def __init__(self, args, display, retina):
         self.args = args
         # GPU boilerplate
         self.args.no_cuda = self.args.no_cuda or not torch.cuda.is_available()
@@ -212,8 +42,8 @@ class ML():
         self.device = torch.device("cpu" if self.args.no_cuda else "cuda")
         torch.manual_seed(self.args.seed)
         # DATA
-        self.dataset = Data(self.args)
-        self.args.classes = self.dataset.classes
+        self.display = display
+        self.retina = retina
         # MODEL
         self.model = Net(self.args).to(self.device)
         if not self.args.no_cuda:
@@ -283,7 +113,7 @@ class ML():
             # Predict classes using images from the train set
             output = self.model(data)
             # Compute the loss based on the predictions and actual labels
-            loss = F.nll_loss(output, target, reduction='sum')
+            loss = self.args.loss_func(output, target)
             # Backpropagate the loss
             loss.backward()
             # Adjust parameters according to the computed gradients
