@@ -264,12 +264,10 @@ def place_object(data, i_offset, j_offset, N_pic=128, contrast=1., noise=.5, sf_
         
     # add a circular mask
     if do_mask:
-        #mask = np.ones((N_pic, N_pic))
         x, y = np.mgrid[-1:1:1j*N_pic, -1:1:1j*N_pic]
         R = np.sqrt(x**2 + y**2)
         mask = 1. * (R<1)
-        print('mask', mask.min(), mask.max(), mask[0, 0])
-        
+        #print('mask', mask.min(), mask.max(), mask[0, 0])
         data_fullfield = data_fullfield*mask
     
     # normalize data in [0, 1]

@@ -69,7 +69,12 @@ class Where():
                 print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
         else:
             print('No accuracy data found.')
-        
+
+        from what import Net as What
+        model_path = "../data/MNIST_cnn.pt"
+        #model = torch.load(model_path)
+        self.What_model = What()
+        self.What_model.load_state_dict(torch.load(model_path))        
 
     def minibatch(self, data):
         batch_size = data.shape[0]
@@ -90,8 +95,40 @@ class Where():
         retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)
                               
         return full, retina_data, accuracy_colliculus
+
+    def extract(self, data_fullfield, i_offset, j_offset):
+        mid = self.args.N_pic//2
+        rad = self.args.w//2
+
+        im = data_fullfield[(mid+i_offset-rad):(mid+i_offset+rad),
+                            (mid+j_offset-rad):(mid+j_offset+rad)]
+
+        im = np.clip(im, 0.5, 1)
+        im = (im-.5)*2
+        return im
     
-    
+    def classify_what(self, im):
+        im = (im-self.args.mean)/self.args.std
+        if im.ndim ==2:
+            im = Variable(torch.FloatTensor(im[None, None, ::]))
+        else:
+            im = Variable(torch.FloatTensor(im[:, None, ::]))
+        with torch.no_grad():
+            output = self.What_model(im)
+            
+        return np.exp(output)
+        
+    def extract(self, data_fullfield, i_offset, j_offset):
+        mid = self.args.N_pic//2
+        rad = self.args.w//2
+
+        im = data_fullfield[(mid+i_offset-rad):(mid+i_offset+rad),
+                            (mid+j_offset-rad):(mid+j_offset+rad)]
+
+        im = np.clip(im, 0.5, 1)
+        im = (im-.5)*2
+        return im
+        
     def train(self, path=None, seed=None):
         if not path is None:
             # using a data_cache
