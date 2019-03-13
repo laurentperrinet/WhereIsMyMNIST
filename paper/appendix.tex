@@ -1,6 +1,6 @@
 \section*{General case: Visual information gain maximization}\label{sec:case1}
 
-Consider a view $\boldsymbol{x}$ generated from a target $\boldsymbol{y}$ viewed at retinocentric position $\boldsymbol{u}$. 
+Consider a view $\boldsymbol{x}$ generated from a target $\boldsymbol{y}$ viewed at retinocentric position $\boldsymbol{u}$.
 
 Consider first that :
 \begin{itemize}
@@ -8,7 +8,7 @@ Consider first that :
 	\item The retinocentric position  $\boldsymbol{u}$ is known.
 	\item The view $\boldsymbol{x}$ is known.
 	\item The target category  $\boldsymbol{y}$ is unknown.
-\end{itemize} 
+\end{itemize}
 
 
 
@@ -17,15 +17,15 @@ The question comes how to choose the new retinocentric position $\boldsymbol{u}'
 In general, the visual Information Gain between two visual fields $\boldsymbol{x}|\boldsymbol{u}$  and $\boldsymbol{x}'|\boldsymbol{u}'$ is:
 
 \begin{align*}
-\text{IG}(\boldsymbol{x}|\boldsymbol{u}; \boldsymbol{x}'| \boldsymbol{u}') 
-&= -\log p(\boldsymbol{x}|\boldsymbol{u}) 
+\text{IG}(\boldsymbol{x}|\boldsymbol{u}; \boldsymbol{x}'| \boldsymbol{u}')
+&= -\log p(\boldsymbol{x}|\boldsymbol{u})
 + \log p(\boldsymbol{x}|\boldsymbol{u}, \boldsymbol{x}', \boldsymbol{u}')
 \end{align*}
 
 \paragraph{Information Gain Lower Bound}
 Consider now that given  $\boldsymbol{x}$ and $\boldsymbol{u}$, the target category  $\boldsymbol{y}$ can be \emph{inferred} using Bayes rule, i.e.:
 $$ P(Y|\boldsymbol{x}, \boldsymbol{u}) \propto  P(\boldsymbol{x}|Y, \boldsymbol{u}) $$
-Then, it can be shown (see \cite{dauce2018}) that :
+Then, it can be shown (see \cite{Dauce18}) that :
 $$\text{IG}(\boldsymbol{x}|\boldsymbol{u}; \boldsymbol{x}'| \boldsymbol{u}') \geq \mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})} \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}') - \log(\pi(\boldsymbol{y})) \right]$$
 with  $\pi(\boldsymbol{y})$ the prior over the $\boldsymbol{y}$'s .
 When the prior is uniform, the information gain lower bound (IGLB) simplifies to $\mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})} \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right] + c$, with $c$ a constant.
@@ -46,24 +46,24 @@ The predictive approach needs three predictive steps:
 
 Then the optimal new retinocentric position is:
 \begin{align*}
-\hat{\boldsymbol{u}}' &= \underset{\boldsymbol{u}' }{\text{ argmax }} 
- \mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})}  
+\hat{\boldsymbol{u}}' &= \underset{\boldsymbol{u}' }{\text{ argmax }}
+ \mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})}
  \left[\mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}')}
  \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right]\right]\\
   %&= \underset{\boldsymbol{u}' \in \mathcal{U}}{\text{ argmax }} A(\boldsymbol{u}'|\boldsymbol{x}, \boldsymbol{u})
 \end{align*}
 
-Taking $\delta \boldsymbol{e} = \boldsymbol{u} - \boldsymbol{u}'$, the optimal eye displacement is: 
+Taking $\delta \boldsymbol{e} = \boldsymbol{u} - \boldsymbol{u}'$, the optimal eye displacement is:
 \begin{align*}
-\widehat{\delta\boldsymbol{e}} &= \underset{\delta\boldsymbol{e} }{\text{ argmax }} 
-\mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})}  
+\widehat{\delta\boldsymbol{e}} &= \underset{\delta\boldsymbol{e} }{\text{ argmax }}
+\mathbb{E}_{\boldsymbol{y}\sim p(Y|\boldsymbol{x}, \boldsymbol{u})}
 \left[\mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}- \delta \boldsymbol{e})}
 \left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}-\delta\boldsymbol{e})\right]\right]\\
 %&= \underset{\delta\boldsymbol{e}}{\text{ argmax }} A(\delta\boldsymbol{e}|\boldsymbol{x}, \boldsymbol{u})
 \end{align*}
 
-%For each possible target identity $\boldsymbol{y}$, $A_{\boldsymbol{y}}(\boldsymbol{u}') = \mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}')}
-%\left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right]$ is the \emph{class-specific log posterior} map and 
+%For each possible target category $\boldsymbol{y}$, $A_{\boldsymbol{y}}(\boldsymbol{u}') = \mathbb{E}_{ \boldsymbol{x}' \sim p(X|\boldsymbol{y}, \boldsymbol{u}')}
+%\left[\log p(\boldsymbol{y}|\boldsymbol{x}', \boldsymbol{u}')\right]$ is the \emph{class-specific log posterior} map and
 
 
 

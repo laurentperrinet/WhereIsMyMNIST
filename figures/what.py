@@ -111,7 +111,7 @@ def main():
         test(args, model, device, test_loader)
 
     if (args.save_model):
-        torch.save(model.state_dict(), "../data/mnist_cnn.pt")
+        torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
         
 
 if __name__ == '__main__':
