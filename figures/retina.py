@@ -39,7 +39,8 @@ class Retina:
             
         self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
         self.whit.set_size((args.N_pic, args.N_pic))
-        self.K_whitening = SLIP.whitening_filt()
+        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
+        self.K_whitening = self.whit.whitening_filt()
         
         self.colliculus = (self.retina_transform**2).sum(axis=(0, 3))
         #colliculus = colliculus**.5
@@ -50,7 +51,9 @@ class Retina:
 
 
     def retina(self, data_fullfield):
+        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L674
         # data_fullfield = self.whit.whitening(data_fullfield)
+        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L518
         data_fullfield = self.whit.FTfilter(data_fullfield, self.K_whitening)
         data_retina = self.retina_transform_vector @ np.ravel(data_fullfield)
         return data_retina #retina(data_fullfield, self.retina_transform)     
