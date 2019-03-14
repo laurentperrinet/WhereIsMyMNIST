@@ -40,6 +40,15 @@ class WhereNet(torch.nn.Module):
 class Where():
     def __init__(self, args, display, retina):
         self.args = args
+        from what import WhatNet
+        model_path = "../data/MNIST_cnn.pt"
+        self.What_model = torch.load(model_path)
+        #model = torch.load(model_path)
+        #self.What_model = WhatNet()
+        # torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
+        #self.What_model.load_state_dict(torch.load(model_path))        
+        #self.What_model.eval()
+
         # GPU boilerplate
         self.args.no_cuda = self.args.no_cuda or not torch.cuda.is_available()
         # if self.args.verbose: print('cuda?', not self.args.no_cuda)
@@ -71,16 +80,9 @@ class Where():
         else:
             print('No accuracy data found.')
 
-        from what import WhatNet
-        model_path = "../data/MNIST_cnn.pt"
-        #model = torch.load(model_path)
-        #self.What_model = WhatNet()
-        # torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
-        # self.What_model.load_state_dict(torch.load(model_path))        
-        self.What_model = torch.load(model_path)
-        #self.What_model.eval()
 
     def minibatch(self, data):
+        # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         batch_size = data.shape[0]
         retina_data = np.zeros((batch_size, self.retina.vsize))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
