@@ -74,17 +74,18 @@ class Retina:
         return im.reshape(self.args.N_pic, self.args.N_pic)
     
     
-    def show(self, ax, im, rmin=None, rmax=None, ms=26, markeredgewidth=1, alpha=.6, lw=.75):
+    def show(self, ax, im, rmin=None, rmax=None, ms=26, markeredgewidth=1, alpha=.6, lw=.75, do_cross=True):
         if rmin is None: rmin = im.min()
         if rmax is None: rmax = im.max()
         ax.imshow(im, cmap=plt.viridis(), vmin=rmin, vmax=rmax)
-        
-        mid = self.args.N_pic//2
-        w = self.args.w
-        ax.plot([mid], [mid], '+g', ms=ms, markeredgewidth=markeredgewidth, alpha=alpha)
-        
-        ax.plot([mid-w/2, mid+w/2, mid+w/2, mid-w/2, mid-w/2], 
-                [mid-w/2, mid-w/2, mid+w/2, mid+w/2, mid-w/2], '--', color='r', lw=lw, markeredgewidth=1)
+        if do_cross:
+            mid = self.args.N_pic//2
+            w = self.args.w
+
+            ax.plot([mid], [mid], '+g', ms=ms, markeredgewidth=markeredgewidth, alpha=alpha)
+
+            ax.plot([mid-w/2, mid+w/2, mid+w/2, mid-w/2, mid-w/2], 
+                    [mid-w/2, mid-w/2, mid+w/2, mid+w/2, mid-w/2], '--', color='r', lw=lw, markeredgewidth=1)
         
         ax.set_xticks([])
         ax.set_yticks([])
@@ -210,9 +211,9 @@ class Display:
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
 
 
-    def show(self, ax, data_fullfield, ms=26, markeredgewidth=6):
+    def show(self, ax, data_fullfield, ms=26, markeredgewidth=6, do_cross=True):
         ax.imshow(data_fullfield, cmap=plt.gray(), vmin=0, vmax=1)
-        ax.plot([self.args.N_pic//2], [self.args.N_pic//2], '+', ms=ms, markeredgewidth=markeredgewidth)
+        if do_cross: ax.plot([self.args.N_pic//2], [self.args.N_pic//2], '+', ms=ms, markeredgewidth=markeredgewidth)
         ax.set_xticks([])
         ax.set_yticks([])
         return ax
