@@ -35,7 +35,7 @@ Take for instance the case of a conversation with a friend at a noisy café. To 
 
 \paragraph{State of the art}
 
-The goal of this work is thus to emulate a model of active vision which is able to infer the position of a visual target independently from its category.
+
 To take advantage of this visual behavior, it is of particular importance to understand both its computational and neurophysiological principles.
 Active vision methods~\citep{Najemnik05,Butko2010infomax,Friston12}, that provide the ground principles of saccadic exploration, assume the existence of a generative model from which both the target position and category can be inferred through active sampling. This comes from the constraint that the visual sensor is foveated but can generate a saccade. 
 Several studies are relevant to our endeavor. First, one can consider optimal strategies to solve the problem of the visual search of a target~\citep{Najemnik05}. In a setting similar to that presented in Figure~\ref{fig:intro}-A, where the target is an oriented edge and the background is defined as pink noise, authors show first that a Bayesian ideal observer provides with an optimal strategy, and second that human observers are close to that optimal performance. Though they can predict a sequence of saccades in this perception action loop, this model is limited by the simplicity of the display (elementary edges added on stationary noise and a finite number of locations on a discrete grid) and by the abstract level of modeling. Despite these (inevitable) simplifications, this study could successfully predict some key characteristics of visual scanning such as the trade-off between memory content and rapidity.
@@ -49,7 +49,7 @@ Such a model constitutes an Active Inference scheme~\citep{Mirza18} and simulati
 
 
 \paragraph{Outline}
-
+The goal of this work is thus to emulate a model of active vision which is able to infer the position of a visual target independently from its category.
 Stemming from the active vision general principles, our aim is to produce a realistic model that may both explain the essential features of human vision and provide ways toward efficient computer implementations.
 However, inverting a generative model over a large (one-step ahead) hypothesis space of all possible saccades is computationally-intensive. % (think for instance of face category as a very large categorical space over a large visual transformation space) with no obvious neurophysiological counterpart.  (see Figure~\ref{fig:intro}-C)
 Although we similarly include a generative process of the visual world, complex inferences are replaced by separate and cheaper pathways, i.e. the spatial (``where'') and categorical (``what'') pathways, whose knowledge is combined to infer optimal eye displacement and subsequent identification.    
