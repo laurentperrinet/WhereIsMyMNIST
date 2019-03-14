@@ -12,9 +12,9 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 
-class Net(torch.nn.Module):
+class WhereNet(torch.nn.Module):
     def __init__(self, args):
-        super(Net, self).__init__()
+        super(WhereNet, self).__init__()
         self.args = args       
         #self.bn1= torch.nn.Linear(N_theta*N_azimuth*N_eccentricity*N_phase, 200, bias = BIAS_DECONV)
         self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
@@ -49,7 +49,7 @@ class Where():
         self.display = display
         self.retina = retina
         # MODEL
-        self.model = Net(self.args).to(self.device)
+        self.model = WhereNet(self.args).to(self.device)
         if not self.args.no_cuda:
             # print('doing cuda')
             torch.cuda.manual_seed(self.args.seed)
@@ -71,21 +71,14 @@ class Where():
         else:
             print('No accuracy data found.')
 
-        from what import Net as What
+        from what import WhatNet
         model_path = "../data/MNIST_cnn.pt"
         #model = torch.load(model_path)
-        self.What_model = What()
-        self.What_model.load_state_dict(torch.load(model_path))        
-        self.What_model.eval()
-        
-        # TODO cache noise
-        #path = "../data/MotionClouds.npy"
-        #if os.path.isfile(path):
-        #    self.noise =  np.load(path)
-        #else:
-        #    self.noise = np.zeros((args.noise_batch_size, args.N_pic, args.N_pic))
-        #    for i_noise in range(args.noise_batch_size):
-            
+        #self.What_model = WhatNet()
+        # torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
+        # self.What_model.load_state_dict(torch.load(model_path))        
+        self.What_model = torch.load(model_path)
+        #self.What_model.eval()
 
     def minibatch(self, data):
         batch_size = data.shape[0]
