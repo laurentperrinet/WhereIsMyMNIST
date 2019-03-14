@@ -74,7 +74,7 @@ class Where():
         from what import WhatNet
         model_path = "../data/MNIST_cnn.pt"
         #model = torch.load(model_path)
-        self.What_model = WhatNet()
+        #self.What_model = WhatNet()
         # torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
         # self.What_model.load_state_dict(torch.load(model_path))        
         self.What_model = torch.load(model_path)
