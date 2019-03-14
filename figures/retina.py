@@ -205,9 +205,11 @@ class Display:
                                     contrast=self.args.contrast, noise=self.args.noise,
                                     sf_0=self.args.sf_0, B_sf=self.args.B_sf)
     def draw(self, data):
-        # TODO : radial draw
-        i_offset = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
-        j_offset = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
+        # radial draw
+        radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
+        theta = np.random.rand() * np.pi
+        i_offset = int(radius * np.cos(theta))
+        j_offset = int(radius * np.sin(theta))
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
 
 
