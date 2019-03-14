@@ -9,6 +9,7 @@ from torch.autograd import Variable
 import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
+import torch.nn as nn
 
 
 class Net(torch.nn.Module):
@@ -17,23 +18,23 @@ class Net(torch.nn.Module):
         self.args = args       
         #self.bn1= torch.nn.Linear(N_theta*N_azimuth*N_eccentricity*N_phase, 200, bias = BIAS_DECONV)
         self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
+        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
         #self.bn2 = torch.nn.Linear(200, 80, bias = BIAS_DECONV)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
         #self.conv2_bn = nn.BatchNorm2d(args.conv2_dim, momentum=1-args.conv2_bn_momentum)
         self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
-        #self.dense_bn = nn.BatchNorm1d(args.dimension, momentum=1-args.dense_bn_momentum)
+        self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
         #self.bn3 = torch.nn.Linear(80, N_azimuth*N_eccentricity, bias = BIAS_DECONV)
         self.bn3 = torch.nn.Linear(args.dim2, args.N_azimuth*args.N_eccentricity, bias=args.bias_deconv)
                 
     def forward(self, image):  
-        h_bn1 = F.relu(self.bn1(image))  
-        # if self.args.conv1_bn_momentum>0: x = self.conv1_bn(x)
-        h_bn2 = F.relu(self.bn2(h_bn1))
-        h_bn2_drop = F.dropout(h_bn2, p = .5) 
-        #if self.args.conv2_bn_momentum>0:x = self.conv2_bn(x)
-        u = self.bn3(h_bn2_drop)
-        
-        return u
+        x = F.relu(self.bn1(image))  
+        if self.args.bn1_bn_momentum>0: x = self.bn1_bn(x)
+        x = F.relu(self.bn2(x))
+        x = F.dropout(x, p=self.args.p_dropout) 
+        if self.args.bn2_bn_momentum>0: x = self.bn2_bn(x)
+        x = self.bn3(x)
+        return x
 
 
 class Where():
@@ -76,6 +77,15 @@ class Where():
         self.What_model = What()
         self.What_model.load_state_dict(torch.load(model_path))        
         self.What_model.eval()
+        
+        # TODO cache noise
+        #path = "../data/MotionClouds.npy"
+        #if os.path.isfile(path):
+        #    self.noise =  np.load(path)
+        #else:
+        #    self.noise = np.zeros((args.noise_batch_size, args.N_pic, args.N_pic))
+        #    for i_noise in range(args.noise_batch_size):
+            
 
     def minibatch(self, data):
         batch_size = data.shape[0]
