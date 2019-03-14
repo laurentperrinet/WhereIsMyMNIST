@@ -1,0 +1,126 @@
+%!TeX TS-program = pdflatex
+%!TeX encoding = UTF-8 Unicode
+%!TeX spellcheck = en-US
+%!BIB TS-program = bibtex
+% -*- coding: UTF-8; -*-
+% vim: set fenc=utf-8
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%: notes
+%  journals = https://en.wikipedia.org/wiki/List_of_academic_journals_by_preprint_policy
+%
+%: METADATA
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\CNS{1}%
+\newcommand{\AuthorPA}{Pierre Albiges}
+\newcommand{\AuthorED}{Emmanuel Dauc\'e}%
+\newcommand{\AuthorLP}{Laurent Perrinet}%
+\newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS / Aix-Marseille Universit\'e - Marseille, France}%
+\newcommand{\WebsiteLP}{http://invibe.net/LaurentPerrinet}%
+\newcommand{\EmailLP}{Laurent.Perrinet@univ-amu.fr}%
+\newcommand{\Title}{
+%%Tentative titles :
+%Looking where it is worth looking
+%Learning where to see
+%Learning where to look for a target before seeing it
+Learning where to look: a foveated visuomotor control model
+%Where is My MNIST?
+}
+\newcommand{\Acknowledgments}{ XXX FRM ... - code and material @ \url{\Website/Publications/XXX}. TODO: RIck + Karl + Laurent Madelain }
+\newcommand{\Abstract}{
+\input{abstract}
+% TODO: ACTIVE INFERENCE? LOGPOLAR ENCODING? SALIENCY MAPS?
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{geometry}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{a4}
+
+\if 1\CNS
+	
+	\usepackage{times}
+	%\inner 0.5in
+	\oddsidemargin -0.5in		% margin, in addition to 1" standard
+	\textwidth 7.27in		% 8.5" - 2*(1+\oddsidemargin)
+
+	\topmargin -1in		% in addition to 1.5" standard margin
+	\textheight 10.69in 		% 11 - ( 1.5 + \topmargin + <bottom-margin> )
+
+	\columnsep 0.25in
+
+	\parindent 0pt
+	\parskip 12pt
+
+%\flushbottom \sloppy
+%\pagestyle{empty} % No page numbers
+
+%\else
+
+\fi
+\usepackage{csquotes}
+\usepackage{bm}
+
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.pdf}%,.png,.jpg}
+%\graphicspath{{.}}% 
+
+
+%opening
+\title{
+\Title
+}
+\author{\AuthorED \and \AuthorPA \and \AuthorLP  }
+\date{}
+%============ bibliography ===================
+%\usepackage[numbers,comma,sort&compress,round]{natbib} %
+\usepackage[
+%style=alphabetic-verb,
+%style=authoryear-comp,
+%style=apa,
+style = nature,
+%maxcitenames=2,
+maxnames = 1,
+giveninits=true,
+uniquename=init,
+sorting=none,
+doi=false,
+url=false,
+isbn=false,
+eprint=false,
+texencoding=utf8,
+bibencoding=utf8,
+autocite=superscript,
+backend=bibtex,
+%articletitle=false
+]{biblatex}%
+%\addbibresource{Bibliography.bib}%
+\bibliography{Bibliography.bib} % the ref.bib file
+\newcommand{\citep}[1]{\parencite{#1}}
+\newcommand{\citet}[1]{\textcite{#1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{siunitx}
+%\renewcommand{\cite}{\citep}%
+\newcommand{\ms}{\si{\milli\second}}%
+\newcommand{\m}{\si{\meter}}%
+\newcommand{\s}{\si{\second}}%
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\Abstract
+\end{abstract}
+
+%%%----------------------------------------------------------------- 
+%{\bf References} \\
+\printbibliography
+
+\end{document}
