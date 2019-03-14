@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,6 +14,7 @@ class Retina:
         self.args = args
         delta = 1./args.N_azimuth
         self.log_r, self.theta = np.meshgrid(np.linspace(0, 1, args.N_eccentricity + 1), np.linspace(-np.pi*(.5 + delta), np.pi*(1.5 - delta), args.N_azimuth + 1))
+        
 
         try:
             self.retina_transform = np.load(args.filename+'_retina_transform.npy')
@@ -37,6 +39,7 @@ class Retina:
             
         self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
         self.whit.set_size((args.N_pic, args.N_pic))
+        self.K_whitening = SLIP.whitening_filt()
         
         self.colliculus = (self.retina_transform**2).sum(axis=(0, 3))
         #colliculus = colliculus**.5
@@ -45,9 +48,10 @@ class Retina:
         self.colliculus_vector = self.colliculus.reshape((self.args.N_azimuth*self.args.N_eccentricity, self.args.N_pic**2))
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_vector)
 
-        
+
     def retina(self, data_fullfield):
-        data_fullfield = self.whit.whitening(data_fullfield)
+        # data_fullfield = self.whit.whitening(data_fullfield)
+        data_fullfield = self.whit.FTfilter(data_fullfield, self.K_whitening)
         data_retina = self.retina_transform_vector @ np.ravel(data_fullfield)
         return data_retina #retina(data_fullfield, self.retina_transform)     
     
@@ -175,12 +179,29 @@ class Display:
         self.N_classes = len(self.loader_test.dataset.classes)
         
         np.random.seed(seed=args.seed+1)
-    
+        # cache noise
+        path = f"../data/MotionClouds_{self.args.sf_0}_{self.args.B_sf}.npy"
+        # print(path)
+        if os.path.isfile(path):
+            self.noise =  np.load(path)
+        else:
+            self.noise = np.zeros((args.noise_batch_size, args.N_pic, args.N_pic))
+            for i_noise in range(args.noise_batch_size):
+                self.noise[i_noise, :, :], _ = MotionCloudNoise(sf_0=args.sf_0, B_sf=args.B_sf, seed=self.args.seed+i_noise)
+            np.save(path, self.noise)
+            
     def place_object(self, data, i_offset, j_offset):
-        return place_object(data, i_offset, j_offset,  N_pic=self.args.N_pic,
+        if True:
+            im_noise = self.noise[np.random.randint(self.args.noise_batch_size), :, :]
+            im_noise = np.roll(im_noise, np.random.randint(self.args.N_pic), 0)
+            im_noise = np.roll(im_noise, np.random.randint(self.args.N_pic), 1)            
+        else:
+            im_noise = None
+        return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
                                     contrast=self.args.contrast, noise=self.args.noise,
                                     sf_0=self.args.sf_0, B_sf=self.args.B_sf)
     def draw(self, data):
+        # TODO : radial draw
         i_offset = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
         j_offset = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
@@ -233,7 +254,7 @@ def do_offset(data, i_offset, j_offset, N_pic, data_min=None):
     data_fullfield[int(center+i_offset):int(center+N_stim+i_offset), int(center+j_offset):int(center+N_stim+j_offset)] = data
     return data_fullfield
     
-def place_object(data, i_offset, j_offset, N_pic=128, contrast=1., noise=.5, sf_0=0.1, B_sf=0.1, do_mask=True, do_max=False):
+def place_object(data, i_offset, j_offset, im_noise=None, N_pic=128, contrast=1., noise=.5, sf_0=0.1, B_sf=0.1, do_mask=True, do_max=False):
     #print(data.min(), data.max())
     data = (data - data.min())/(data.max() - data.min())
     
@@ -249,7 +270,8 @@ def place_object(data, i_offset, j_offset, N_pic=128, contrast=1., noise=.5, sf_
     
     # add noise
     if noise>0.:
-        im_noise, _ = MotionCloudNoise(sf_0=sf_0, B_sf=B_sf)
+        if im_noise is None:
+            im_noise, _ = MotionCloudNoise(sf_0=sf_0, B_sf=B_sf)
         # print(im_noise.min(), im_noise.max())
         #im_noise = 2 * im_noise - 1
         im_noise = noise *  im_noise
@@ -276,13 +298,13 @@ def place_object(data, i_offset, j_offset, N_pic=128, contrast=1., noise=.5, sf_
     data_fullfield = np.clip(data_fullfield, 0, 1)
     return data_fullfield
 
-def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.5, N_pic=128):
+def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=128, seed=42):
     import MotionClouds as mc
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
     fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
-    env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha= alpha)
+    env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha=alpha)
     
-    z = mc.rectif(mc.random_cloud(env), contrast=1., method='Michelson')
+    z = mc.rectif(mc.random_cloud(env, seed=seed), contrast=1., method='Michelson')
     z = z.reshape((mc.N_X, mc.N_Y))
     return z, env
 

@@ -7,9 +7,9 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 
 
-class Net(nn.Module):
+class WhatNet(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(WhatNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 20, 5, 1)
         self.conv2 = nn.Conv2d(20, 50, 5, 1)
         self.fc1 = nn.Linear(4*4*50, 500)
@@ -103,7 +103,7 @@ def main():
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
 
-    model = Net().to(device)
+    model = WhatNet().to(device)
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
     for epoch in range(1, args.epochs + 1):
@@ -111,7 +111,10 @@ def main():
         test(args, model, device, test_loader)
 
     if (args.save_model):
-        torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
+        path = "../data/MNIST_cnn.pt"
+        #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
+        torch.save(model, path)
+
         
 
 if __name__ == '__main__':
