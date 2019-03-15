@@ -36,6 +36,8 @@ class WhereNet(torch.nn.Module):
 class Where():
     def __init__(self, args, display, retina):
         self.args = args
+        # https://pytorch.org/docs/stable/nn.html#torch.nn.BCEWithLogitsLoss
+        self.loss_func = torch.nn.BCEWithLogitsLoss()
         from what import WhatNet
         model_path = "../data/MNIST_cnn.pt"
         self.What_model = torch.load(model_path)
@@ -203,7 +205,7 @@ class Where():
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
             # Compute the loss based on the predictions and actual labels
-            loss = self.args.loss_func(prediction, accuracy_colliculus)
+            loss = self.loss_func(prediction, accuracy_colliculus)
             # Backpropagate the loss
             loss.backward()
             # Adjust parameters according to the computed gradients
@@ -267,93 +269,9 @@ class Where():
         Accuracy = self.test()
         return Accuracy
 
-
-import time
-class MetaML:
-    def __init__(self, args, base = 2, N_scan = 9, tag='', verbose=0, log_interval=0):
-        self.args = args
-        self.seed = args.seed
-
-        self.base = base
-        self.N_scan = N_scan
-        self.tag = tag
-        self.default = dict(verbose=verbose, log_interval=log_interval)
-
-    def test(self, args, seed):
-        # makes a loop for the cross-validation of results
-        Accuracy = []
-        for i_cv in range(self.args.N_cv):
-            ml = ML(args)
-            ml.train(seed=seed + i_cv)
-            Accuracy.append(ml.test())
-        return np.array(Accuracy)
-
-    def protocol(self, args, seed):
-        t0 = time.time()
-        Accuracy = self.test(args, seed)
-        t1 = time.time() - t0
-        Accuracy = np.hstack((Accuracy, [t1]))
-        return Accuracy
-
-    def scan(self, parameter, values):
-        import os
-        try:
-            os.mkdir('_tmp_scanning')
-        except:
-            pass
-        print('scanning over', parameter, '=', values)
-        seed = self.seed
-        Accuracy = {}
-        for value in values:
-            if isinstance(value, int):
-                value_str = str(value)
-            else:
-                value_str = '%.3f' % value
-            path = '_tmp_scanning/' + parameter + '_' + self.tag + '_' + value_str.replace('.', '_') + '.npy'
-            print ('For parameter', parameter, '=', value_str, ', ', end=" ")
-            if not(os.path.isfile(path + '_lock')):
-                if not(os.path.isfile(path)):
-                    open(path + '_lock', 'w').close()
-                    try:
-                        args = easydict.EasyDict(self.args.copy())
-                        args[parameter] = value
-                        Accuracy[value] = self.protocol(args, seed)
-                        np.save(path, Accuracy[value])
-                        os.remove(path + '_lock')
-                    except Exception as e:
-                        print('Failed with error', e)
-                else:
-                    Accuracy[value] = np.load(path)
-
-                try:
-                    print('Accuracy={:.1f}% +/- {:.1f}%'.format(Accuracy[value][:-1].mean()*100, Accuracy[value][:-1].std()*100),
-                  ' in {:.1f} seconds'.format(Accuracy[value][-1]))
-                except Exception as e:
-                    print('Failed with error', e)
-
-            else:
-                print(' currently locked with ', path + '_lock')
-            seed += 1
-        return Accuracy
-
-    def parameter_scan(self, parameter, display=False):
-        if parameter in ['momentum', 'conv1_bn_momentum', 'conv2_bn_momentum', 'dense_bn_momentum']:
-            values = np.linspace(0, 1, self.N_scan, endpoint=True)
-        else:
-            values = self.args[parameter] * np.logspace(-1, 1, self.N_scan, base=self.base)
-        if isinstance(self.args[parameter], int):
-            # print('integer detected') # DEBUG
-            values =  [int(k) for k in values]
-        Accuracy = self.scan(parameter, values)
-        if display:
-            fig, ax = plt.subplots(figsize=(8, 5))
-
-
-
-        return Accuracy
-
-
 if __name__ == '__main__':
+
+    from main import init, MetaML
     import os
     filename = 'figures/accuracy.pdf'
     if not os.path.exists(filename) :
@@ -375,68 +293,3 @@ if __name__ == '__main__':
         plt.show()
         plt.savefig(filename)
         plt.savefig(filename.replace('.pdf', '.png'))
-
-    print(50*'-')
-    print(' parameter scan')
-    print(50*'-')
-
-    if False :
-        print(50*'-')
-        print('Default parameters')
-        print(50*'-')
-        args = init(verbose=0, log_interval=0)
-        ml = ML(args)
-        ml.main()
-    if False :
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args)
-        if torch.cuda.is_available():
-            mml.scan('no_cuda', [True, False])
-        else:
-            mml.scan('no_cuda', [True])
-
-    # for base in [2]:#, 8]:
-    for base in [2, 8]:
-        print(50*'-')
-        print(' base=', base)
-        print(50*'-')
-
-        print(50*'-')
-        print(' parameter scan : data')
-        print(50*'-')
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args, base=base)
-        for parameter in ['size', 'fullsize', 'crop', 'mean', 'std']:
-            mml.parameter_scan(parameter)
-
-        print(50*'-')
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args)
-        print(' parameter scan : network')
-        print(50*'-')
-        for parameter in ['conv1_kernel_size',
-                          'conv1_dim',
-                          'conv1_bn_momentum',
-                          'conv2_kernel_size',
-                          'conv2_dim',
-                          'conv2_bn_momentum',
-                          'stride1', 'stride2',
-                          'dense_bn_momentum',
-                          'dimension']:
-            mml.parameter_scan(parameter)
-
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args, base=base)
-        print(' parameter scan : learning ')
-        print(50*'-')
-        print('Using SGD')
-        print(50*'-')
-        for parameter in ['lr', 'momentum', 'batch_size', 'epochs']:
-            mml.parameter_scan(parameter)
-        print(50*'-')
-        print('Using ADAM')
-        print(50*'-')
-        args = init(verbose=0, log_interval=0, do_adam=True)
-        mml = MetaML(args, tag='adam')
-        for parameter in ['lr', 'momentum', 'batch_size', 'epochs']:
-            mml.parameter_scan(parameter)
