@@ -41,9 +41,10 @@ class Retina:
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
         
+        # TODO : make a different transformation for the clliculus (more eccentricties?)
         self.colliculus = (self.retina_transform**2).sum(axis=(0, 3))
-        #colliculus = colliculus**.5
-        self.colliculus /= self.colliculus.sum(axis=-1)[:, :, None]
+        #colliculus = colliculus**.5 
+        self.colliculus /= self.colliculus.sum(axis=-1)[:, :, None] # normalization as a probability
         
         self.colliculus_vector = self.colliculus.reshape((self.args.N_azimuth*self.args.N_eccentricity, self.args.N_pic**2))
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_vector)
@@ -177,6 +178,7 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 class Display:
     def __init__(self, args):
         self.args = args
+        # TODO: split dataloaders and give them the same minibatch size
         self.loader_train = get_data_loader(batch_size=args.minibatch_size, train=True, mean=args.mean, std=args.std, seed=args.seed)
         self.loader_test = get_data_loader(batch_size=args.test_batch_size, train=False, mean=args.mean, std=args.std, seed=args.seed)
         self.N_classes = len(self.loader_test.dataset.classes)

@@ -16,22 +16,18 @@ class WhereNet(torch.nn.Module):
     def __init__(self, args):
         super(WhereNet, self).__init__()
         self.args = args       
-        #self.bn1= torch.nn.Linear(N_theta*N_azimuth*N_eccentricity*N_phase, 200, bias = BIAS_DECONV)
         self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
-        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
-        #self.bn2 = torch.nn.Linear(200, 80, bias = BIAS_DECONV)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
-        #self.conv2_bn = nn.BatchNorm2d(args.conv2_dim, momentum=1-args.conv2_bn_momentum)
+        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
         self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
         self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
-        #self.bn3 = torch.nn.Linear(80, N_azimuth*N_eccentricity, bias = BIAS_DECONV)
         self.bn3 = torch.nn.Linear(args.dim2, args.N_azimuth*args.N_eccentricity, bias=args.bias_deconv)
                 
     def forward(self, image):  
         x = F.relu(self.bn1(image))  
         if self.args.bn1_bn_momentum>0: x = self.bn1_bn(x)
         x = F.relu(self.bn2(x))
-        x = F.dropout(x, p=self.args.p_dropout) 
+        if self.args.p_dropout>0: x = F.dropout(x, p=self.args.p_dropout) 
         if self.args.bn2_bn_momentum>0: x = self.bn2_bn(x)
         x = self.bn3(x)
         return x
@@ -124,6 +120,7 @@ class Where():
             
         return np.exp(output)
         
+        
     def extract(self, data_fullfield, i_offset, j_offset):
         mid = self.args.N_pic//2
         rad = self.args.w//2
@@ -134,6 +131,26 @@ class Where():
         im = np.clip(im, 0.5, 1)
         im = (im-.5)*2
         return im
+        
+    def index_prediction(self, pred_accuracy_colliculus):
+        im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)    
+        # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html
+        i, j = np.unravel_index(np.argmax(im_colliculus.ravel()), im_colliculus.shape)
+        i_pred = i - self.args.N_pic//2
+        j_pred = j - self.args.N_pic//2
+        return i_pred, j_pred
+        
+    def test_what(self, full, pred_accuracy_colliculus, label):
+        # extract foveal images
+        im = np.zeros((self.args.test_batch_size, self.args.w, self.args.w))
+        for idx in range(self.args.test_batch_size):
+            i_pred, j_pred = self.index_prediction(pred_accuracy_colliculus[idx, :])
+            im[idx, :, :] = self.extract(full[idx]['data_fullfield'], i_pred, j_pred)
+        # classify those images
+        proba = self.classify_what(im).numpy()
+        pred = proba.argmax(axis=1) # get the index of the max log-probability
+        return (pred==label.numpy()).mean()
+        
         
     def train(self, path=None, seed=None):
         if not path is None:
@@ -196,25 +213,21 @@ class Where():
         if dataloader is None:
             dataloader = self.display.loader_test
         self.model.eval()
-        test_loss = 0
+        accuracy = []
         correct = 0
-        for data, target in dataloader:
+        for data, label in dataloader:
             # get a minibatch of the same digit at different positions and noises
             full, retina_data, accuracy_colliculus = self.minibatch(data)
             
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
+            
+            # transform in a probability in collicular coordinates
+            pred_accuracy_colliculus = F.sigmoid(prediction).detach().numpy()
+            
+            accuracy.append(self.test_what(full, pred_accuracy_colliculus, label).mean())
 
-            pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-            correct += pred.eq(target.data.view_as(pred)).long().cpu().sum()
-
-        test_loss /= len(self.dataloader.dataset)
-
-        if self.args.log_interval>0:
-            print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-            test_loss, correct, len(self.dataloader.dataset),
-            100. * correct / len(self.dataloader.dataset)))
-        return correct.numpy() / len(self.dataloader.dataset)
+        return np.mean(accuracy)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
         for idx, (data, target) in enumerate(self.display.loader_test):
