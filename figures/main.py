@@ -1,6 +1,10 @@
 import os
 import numpy as np
 import time
+import easydict
+
+from what import WhatNet
+from where import Where as ML
 
 def init(filename=None, verbose=1, log_interval=100):
     if filename is None:
@@ -8,12 +12,12 @@ def init(filename=None, verbose=1, log_interval=100):
         filename = '../data/' + datetime.datetime.now().date().isoformat()
         print('Using filename=', filename)
 
-    import easydict
+    
     args = easydict.EasyDict(
                             # MNIST
                             w=28,
                             minibatch_size = 100,  # quantity of examples that'll be processed
-                            train_batch_size=60000, # train
+                            train_batch_size=600, # train
                             test_batch_size=1000, 
                             noise_batch_size=1000, 
                             mean=0.1307, 
@@ -40,11 +44,10 @@ def init(filename=None, verbose=1, log_interval=100):
                             # training
                             lr = 1e-4, #1e-3  #0.05
                             do_adam=True,
-                            epochs=40,
                             bn1_bn_momentum=0.,
                             bn2_bn_momentum=0.,
                             momentum=0.1,    
-                            n_epochs=10,
+                            epochs=10,
                             # simulation
                             num_processes=1,
                             no_cuda=True,
@@ -56,7 +59,7 @@ def init(filename=None, verbose=1, log_interval=100):
                                 )
     if filename == 'debug':
         args.filename = '../data/debug'
-        args.train_batch_size = 100
+        args.train_batch_size = 10
         args.lr = 1e-2
         #args.noise = .5
         #args.contrast = .9
@@ -65,6 +68,7 @@ def init(filename=None, verbose=1, log_interval=100):
         args.test_batch_size = 20
         args.minibatch_size = 22
         #args.offset_std = 8
+        args.N_cv = 2
 
     return args
 
@@ -77,6 +81,8 @@ class MetaML:
         self.N_scan = N_scan
         self.tag = tag
         self.default = dict(verbose=verbose, log_interval=log_interval)
+        self.scan_folder = '../data/_tmp_scanning'
+        os.makedirs(self.scan_folder, exist_ok=True)
 
     def test(self, args, seed):
         # makes a loop for the cross-validation of results
@@ -96,10 +102,6 @@ class MetaML:
 
     def scan(self, parameter, values):
         import os
-        try:
-            os.mkdir('_tmp_scanning')
-        except:
-            pass
         print('scanning over', parameter, '=', values)
         seed = self.seed
         Accuracy = {}
@@ -108,7 +110,8 @@ class MetaML:
                 value_str = str(value)
             else:
                 value_str = '%.3f' % value
-            path = '../data/_tmp_scanning/' + parameter + '_' + self.tag + '_' + value_str.replace('.', '_') + '.npy'
+            filename = parameter + '_' + self.tag + '_' + value_str.replace('.', '_') + '.npy'
+            path = os.path.join(self.scan_folder, filename)
             print ('For parameter', parameter, '=', value_str, ', ', end=" ")
             if not(os.path.isfile(path + '_lock')):
                 if not(os.path.isfile(path)):
@@ -136,7 +139,7 @@ class MetaML:
         return Accuracy
 
     def parameter_scan(self, parameter, display=False):
-        if parameter in ['momentum', 'conv1_bn_momentum', 'conv2_bn_momentum', 'dense_bn_momentum']:
+        if parameter in ['momentum', 'bn1_bn_momentum', 'bn2_bn_momentum', 'p_dropout']:
             values = np.linspace(0, 1, self.N_scan, endpoint=True)
         else:
             values = self.args[parameter] * np.logspace(-1, 1, self.N_scan, base=self.base)

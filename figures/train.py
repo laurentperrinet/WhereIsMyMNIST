@@ -2,7 +2,7 @@ import torch
 import easydict
 
 from main import init
-args = init('debug')
+args = init()#'debug')
 
 from retina import Display, Retina
 from where import Where, WhereNet
