@@ -10,13 +10,6 @@ A current hypothesis regarding active vision is that visual scenes most often co
 
 
 
-This joint problem of localization and identification is the classical problem of visual search in neuroscience. Such problem is very general and can address complex questions such as "find the green bottle on the table". Here, we will restrict ourselves to a simple "feature search"~\citep{Treisman80}. Such a problem found many solutions in computer vision. Notably, recent advances in deep-learning have provided with efficient models such as faster-RCNN~\citep{Ren17} or YOLO~\citep{Redmon15}. This last implementation is particularly interesting as it predicts in the image the probability of proposed bounding boxes around the visual object. While rapid, the amount of such boxes greatly increases with image size and necessitates a dedicated hardware. When limiting our problem to a few objects of interest in the image, this strategy amounts to a classical problem in neuroscience, that is, the transformation of a luminous image into a saliency map~\citep{Itti01}. Such a computation is essential to understand and predict saccades but also as models of attention. Recently, deep learning methods have extended this type of model by learning to extimate saliency maps over large databases of natural images~\citep{Kummerer16}. While these methods are efficient at predicting the probability of fixation, they miss an essential point in the action perception loop: They operate on the full image while the retina operates on the non-uniform, foveated sampling of visual space (see Figure~\ref{fig:intro}-B). Herein, we believe that this fact is an essential factor to reproduce and understand this active vision process.
-
-An interesting perspective is given with previous modeling of such foveated sensors. The non-uniform sampling of visual space is usually modeled as a log-polar conformal mapping~\citep{Traver10} which has a long history in computer vision and robotics. A first property of this mapping is the separation between the foveal and the peripheral areas as we defined above. This transformation has also other notable properties, such as the correspondence by way of translations in the radial and angular directions to respectively rotations and scalings in the visual domain. However, this sensor is most often not coupled to an action (but see~\citep{ref_needed)}. In this paper, we aim at addressing the fragmentation of these different approaches respective to their fields (Machine learning, neuroscience, robotics) to propose an integrated computational model of foveated active vision.
-
-
-
-
 
 The visual scene is here made of a foreground (the target) and a noisy background. An agent controls a focal visual sensor that can move over the visual scene through saccades.
 % both the visual features and the expected target position to be expressed in log-polar coordinates.
@@ -45,6 +38,17 @@ It should be mostly organized radially, preserving the initial retinotopic organ
 Such  a \emph{predictive accuracy map} is assumed to be the core of a realistic saccade-based vision system, with action selection (motor map) overlaying the accuracy map through a winner-takes-all mechanism (as thought to be done in the superior colliculus). Of course, each different initial visual field comes with a different accuracy map (essentially conveying information about the target retinotopic position).
 Our main argument is that such an accuracy map is trainable in a rather straightforward way, through trials and errors, by actuating saccades after processing the visual input, and taking the final classification success or failure as a teaching signal.
 
+
+\paragraph{Active inference in brief}
+
+Active inference assumes a hidden emitter $e$, which is known indirectly through its effects on the sensor, that obey to a generative process : $x\sim p(X|e)$. The real emitter state $e$ being hidden, a parametric model $\theta$ is assumed to allow estimate the cause of the current visual field through model inversion thanks to Bayes formula, in short:
+$$p(E|x) \propto p(x|E;\theta)$$
+with $x$ the visual field in our case. Assume now that the cause $e$ of the visual field splits in two (independent) components, namely $e = (u,y)$ with $u$ the body posture (in our case the gaze orientation) and $y$ the object shape. Assume also that a set of motor commands $A = \{..., a, ...\}$ may control the body posture, but not the object's shape, so that $y$ is invariant to $a$. Active inference assumes that one can both estimate $u$ and $y$ through predicting the effect of every $a$ in $A$ and choosing the action that optimizes future inferences through a certain metric (future accuracy, future posterior entropy, future variational free energy, ...), given a current inference $p(U,Y|x)$. Estimating the effect of every action over the range of every possible object shapes and body postures is combinatorially hard, even in simple cases such as vision, and thus infeasible in practice. 
+
+There are however many shortcuts allowing to render the calculation amenable. This includes sparse encoding, approximate inference through model separation, sampling and parametric training. 
+
+
+In the general case (complex distributions of objects across the visual scene), 
 
  In a probabilistic setting, the accuracy map reflects the probability of correctly classifying a target over the full action space. Taking $\boldsymbol{u}$ a possible saccade and $\tilde{\boldsymbol{x}}$ the corresponding future visual field, the result of the categorical classifier over $\tilde{\boldsymbol{x}}$ can either be correct (1) or incorrect (0). If this experiment is repeated many times over many visual displays, the probability of correctly classifying $\tilde{\boldsymbol{x}}$ at $\boldsymbol{u}$ forms a probability, i.e. a number between 0 and 1, that reflects the proportion of correct and incorrect classifications when issuing a saccade $\boldsymbol{u}$ after seeing $\boldsymbol{x}$ (the initial visual field).
 
