@@ -16,22 +16,18 @@ class WhereNet(torch.nn.Module):
     def __init__(self, args):
         super(WhereNet, self).__init__()
         self.args = args       
-        #self.bn1= torch.nn.Linear(N_theta*N_azimuth*N_eccentricity*N_phase, 200, bias = BIAS_DECONV)
         self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
-        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
-        #self.bn2 = torch.nn.Linear(200, 80, bias = BIAS_DECONV)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
-        #self.conv2_bn = nn.BatchNorm2d(args.conv2_dim, momentum=1-args.conv2_bn_momentum)
+        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
         self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
         self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
-        #self.bn3 = torch.nn.Linear(80, N_azimuth*N_eccentricity, bias = BIAS_DECONV)
         self.bn3 = torch.nn.Linear(args.dim2, args.N_azimuth*args.N_eccentricity, bias=args.bias_deconv)
                 
     def forward(self, image):  
         x = F.relu(self.bn1(image))  
         if self.args.bn1_bn_momentum>0: x = self.bn1_bn(x)
         x = F.relu(self.bn2(x))
-        x = F.dropout(x, p=self.args.p_dropout) 
+        if self.args.p_dropout>0: x = F.dropout(x, p=self.args.p_dropout) 
         if self.args.bn2_bn_momentum>0: x = self.bn2_bn(x)
         x = self.bn3(x)
         return x
@@ -40,6 +36,8 @@ class WhereNet(torch.nn.Module):
 class Where():
     def __init__(self, args, display, retina):
         self.args = args
+        # https://pytorch.org/docs/stable/nn.html#torch.nn.BCEWithLogitsLoss
+        self.loss_func = torch.nn.BCEWithLogitsLoss()
         from what import WhatNet
         model_path = "../data/MNIST_cnn.pt"
         self.What_model = torch.load(model_path)
@@ -124,6 +122,7 @@ class Where():
             
         return np.exp(output)
         
+        
     def extract(self, data_fullfield, i_offset, j_offset):
         mid = self.args.N_pic//2
         rad = self.args.w//2
@@ -134,6 +133,31 @@ class Where():
         im = np.clip(im, 0.5, 1)
         im = (im-.5)*2
         return im
+        
+    def pred_accuracy(self, retina_data):
+        retina_data = Variable(torch.FloatTensor(retina_data))        
+        pred_accuracy_colliculus = F.sigmoid(self.model(retina_data)).detach().numpy()
+        return pred_accuracy_colliculus
+        
+    def index_prediction(self, pred_accuracy_colliculus):
+        im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)    
+        # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html
+        i, j = np.unravel_index(np.argmax(im_colliculus.ravel()), im_colliculus.shape)
+        i_pred = i - self.args.N_pic//2
+        j_pred = j - self.args.N_pic//2
+        return i_pred, j_pred
+        
+    def test_what(self, full, pred_accuracy_colliculus, label):
+        # extract foveal images
+        im = np.zeros((self.args.test_batch_size, self.args.w, self.args.w))
+        for idx in range(self.args.test_batch_size):
+            i_pred, j_pred = self.index_prediction(pred_accuracy_colliculus[idx, :])
+            im[idx, :, :] = self.extract(full[idx]['data_fullfield'], i_pred, j_pred)
+        # classify those images
+        proba = self.classify_what(im).numpy()
+        pred = proba.argmax(axis=1) # get the index of the max log-probability
+        return (pred==label.numpy())*1.
+        
         
     def train(self, path=None, seed=None):
         if not path is None:
@@ -181,7 +205,7 @@ class Where():
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
             # Compute the loss based on the predictions and actual labels
-            loss = self.args.loss_func(prediction, accuracy_colliculus)
+            loss = self.loss_func(prediction, accuracy_colliculus)
             # Backpropagate the loss
             loss.backward()
             # Adjust parameters according to the computed gradients
@@ -196,25 +220,21 @@ class Where():
         if dataloader is None:
             dataloader = self.display.loader_test
         self.model.eval()
-        test_loss = 0
+        accuracy = []
         correct = 0
-        for data, target in dataloader:
+        for data, label in dataloader:
             # get a minibatch of the same digit at different positions and noises
             full, retina_data, accuracy_colliculus = self.minibatch(data)
             
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
+            
+            # transform in a probability in collicular coordinates
+            pred_accuracy_colliculus = F.sigmoid(prediction).detach().numpy()
+            
+            accuracy.append(self.test_what(full, pred_accuracy_colliculus, label).mean())
 
-            pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-            correct += pred.eq(target.data.view_as(pred)).long().cpu().sum()
-
-        test_loss /= len(self.dataloader.dataset)
-
-        if self.args.log_interval>0:
-            print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-            test_loss, correct, len(self.dataloader.dataset),
-            100. * correct / len(self.dataloader.dataset)))
-        return correct.numpy() / len(self.dataloader.dataset)
+        return np.mean(accuracy)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
         for idx, (data, target) in enumerate(self.display.loader_test):
@@ -249,93 +269,9 @@ class Where():
         Accuracy = self.test()
         return Accuracy
 
-
-import time
-class MetaML:
-    def __init__(self, args, base = 2, N_scan = 9, tag='', verbose=0, log_interval=0):
-        self.args = args
-        self.seed = args.seed
-
-        self.base = base
-        self.N_scan = N_scan
-        self.tag = tag
-        self.default = dict(verbose=verbose, log_interval=log_interval)
-
-    def test(self, args, seed):
-        # makes a loop for the cross-validation of results
-        Accuracy = []
-        for i_cv in range(self.args.N_cv):
-            ml = ML(args)
-            ml.train(seed=seed + i_cv)
-            Accuracy.append(ml.test())
-        return np.array(Accuracy)
-
-    def protocol(self, args, seed):
-        t0 = time.time()
-        Accuracy = self.test(args, seed)
-        t1 = time.time() - t0
-        Accuracy = np.hstack((Accuracy, [t1]))
-        return Accuracy
-
-    def scan(self, parameter, values):
-        import os
-        try:
-            os.mkdir('_tmp_scanning')
-        except:
-            pass
-        print('scanning over', parameter, '=', values)
-        seed = self.seed
-        Accuracy = {}
-        for value in values:
-            if isinstance(value, int):
-                value_str = str(value)
-            else:
-                value_str = '%.3f' % value
-            path = '_tmp_scanning/' + parameter + '_' + self.tag + '_' + value_str.replace('.', '_') + '.npy'
-            print ('For parameter', parameter, '=', value_str, ', ', end=" ")
-            if not(os.path.isfile(path + '_lock')):
-                if not(os.path.isfile(path)):
-                    open(path + '_lock', 'w').close()
-                    try:
-                        args = easydict.EasyDict(self.args.copy())
-                        args[parameter] = value
-                        Accuracy[value] = self.protocol(args, seed)
-                        np.save(path, Accuracy[value])
-                        os.remove(path + '_lock')
-                    except Exception as e:
-                        print('Failed with error', e)
-                else:
-                    Accuracy[value] = np.load(path)
-
-                try:
-                    print('Accuracy={:.1f}% +/- {:.1f}%'.format(Accuracy[value][:-1].mean()*100, Accuracy[value][:-1].std()*100),
-                  ' in {:.1f} seconds'.format(Accuracy[value][-1]))
-                except Exception as e:
-                    print('Failed with error', e)
-
-            else:
-                print(' currently locked with ', path + '_lock')
-            seed += 1
-        return Accuracy
-
-    def parameter_scan(self, parameter, display=False):
-        if parameter in ['momentum', 'conv1_bn_momentum', 'conv2_bn_momentum', 'dense_bn_momentum']:
-            values = np.linspace(0, 1, self.N_scan, endpoint=True)
-        else:
-            values = self.args[parameter] * np.logspace(-1, 1, self.N_scan, base=self.base)
-        if isinstance(self.args[parameter], int):
-            # print('integer detected') # DEBUG
-            values =  [int(k) for k in values]
-        Accuracy = self.scan(parameter, values)
-        if display:
-            fig, ax = plt.subplots(figsize=(8, 5))
-
-
-
-        return Accuracy
-
-
 if __name__ == '__main__':
+
+    from main import init, MetaML
     import os
     filename = 'figures/accuracy.pdf'
     if not os.path.exists(filename) :
@@ -357,68 +293,3 @@ if __name__ == '__main__':
         plt.show()
         plt.savefig(filename)
         plt.savefig(filename.replace('.pdf', '.png'))
-
-    print(50*'-')
-    print(' parameter scan')
-    print(50*'-')
-
-    if False :
-        print(50*'-')
-        print('Default parameters')
-        print(50*'-')
-        args = init(verbose=0, log_interval=0)
-        ml = ML(args)
-        ml.main()
-    if False :
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args)
-        if torch.cuda.is_available():
-            mml.scan('no_cuda', [True, False])
-        else:
-            mml.scan('no_cuda', [True])
-
-    # for base in [2]:#, 8]:
-    for base in [2, 8]:
-        print(50*'-')
-        print(' base=', base)
-        print(50*'-')
-
-        print(50*'-')
-        print(' parameter scan : data')
-        print(50*'-')
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args, base=base)
-        for parameter in ['size', 'fullsize', 'crop', 'mean', 'std']:
-            mml.parameter_scan(parameter)
-
-        print(50*'-')
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args)
-        print(' parameter scan : network')
-        print(50*'-')
-        for parameter in ['conv1_kernel_size',
-                          'conv1_dim',
-                          'conv1_bn_momentum',
-                          'conv2_kernel_size',
-                          'conv2_dim',
-                          'conv2_bn_momentum',
-                          'stride1', 'stride2',
-                          'dense_bn_momentum',
-                          'dimension']:
-            mml.parameter_scan(parameter)
-
-        args = init(verbose=0, log_interval=0)
-        mml = MetaML(args, base=base)
-        print(' parameter scan : learning ')
-        print(50*'-')
-        print('Using SGD')
-        print(50*'-')
-        for parameter in ['lr', 'momentum', 'batch_size', 'epochs']:
-            mml.parameter_scan(parameter)
-        print(50*'-')
-        print('Using ADAM')
-        print(50*'-')
-        args = init(verbose=0, log_interval=0, do_adam=True)
-        mml = MetaML(args, tag='adam')
-        for parameter in ['lr', 'momentum', 'batch_size', 'epochs']:
-            mml.parameter_scan(parameter)

@@ -15,36 +15,36 @@ class Retina:
         delta = 1./args.N_azimuth
         self.log_r, self.theta = np.meshgrid(np.linspace(0, 1, args.N_eccentricity + 1), np.linspace(-np.pi*(.5 + delta), np.pi*(1.5 - delta), args.N_azimuth + 1))
         
-
         try:
-            self.retina_transform = np.load(args.filename+'_retina_transform.npy')
+            self.retina_transform = np.load('../data/retina_transform.npy')
         except:
             self.retina_transform = vectorization(self.args.N_theta, self.args.N_azimuth,
                                                   self.args.N_eccentricity, 
                                                   self.args.N_phase, 
                                                   self.args.N_pic, self.args.N_pic, 
                                                   self.args.rho)
-            np.save(args.filename+'_retina_transform.npy', self.retina_transform)
+            np.save('../data/retina_transform.npy', self.retina_transform)
             
         self.vsize =  self.args.N_theta*self.args.N_azimuth*self.args.N_eccentricity*self.args.N_phase 
         self.retina_transform_vector = self.retina_transform.reshape((self.vsize, self.args.N_pic**2))
         
         try:
-            self.retina_inverse_transform = np.load(args.filename+'_retina_inverse_transform.npy')
+            self.retina_inverse_transform = np.load('../data/retina_inverse_transform.npy')
         except:
             #self.retina_inverse_transform = retina_inverse(self.retina_transform)
             self.retina_inverse_transform = np.linalg.pinv(self.retina_transform_vector)
     
-            np.save(args.filename+'_retina_inverse_transform.npy', self.retina_inverse_transform)
+            np.save('../data/retina_inverse_transform.npy', self.retina_inverse_transform)
             
         self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
         self.whit.set_size((args.N_pic, args.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
         
+        # TODO : make a different transformation for the clliculus (more eccentricties?)
         self.colliculus = (self.retina_transform**2).sum(axis=(0, 3))
-        #colliculus = colliculus**.5
-        self.colliculus /= self.colliculus.sum(axis=-1)[:, :, None]
+        #colliculus = colliculus**.5 
+        self.colliculus /= self.colliculus.sum(axis=-1)[:, :, None] # normalization as a probability
         
         self.colliculus_vector = self.colliculus.reshape((self.args.N_azimuth*self.args.N_eccentricity, self.args.N_pic**2))
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_vector)
@@ -178,6 +178,7 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 class Display:
     def __init__(self, args):
         self.args = args
+        # TODO: split dataloaders and give them the same minibatch size
         self.loader_train = get_data_loader(batch_size=args.minibatch_size, train=True, mean=args.mean, std=args.std, seed=args.seed)
         self.loader_test = get_data_loader(batch_size=args.test_batch_size, train=False, mean=args.mean, std=args.std, seed=args.seed)
         self.N_classes = len(self.loader_test.dataset.classes)
@@ -204,12 +205,12 @@ class Display:
         return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
                                     contrast=self.args.contrast, noise=self.args.noise,
                                     sf_0=self.args.sf_0, B_sf=self.args.B_sf)
-    def draw(self, data):
+    def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
-        radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
-        theta = np.random.rand() * np.pi
-        i_offset = int(radius * np.cos(theta))
-        j_offset = int(radius * np.sin(theta))
+        if radius is None: radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
+        if theta is None: theta = np.random.rand() * np.pi
+        if i_offset is None: i_offset = int(radius * np.cos(theta))
+        if j_offset is None: j_offset = int(radius * np.sin(theta))
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
 
 
