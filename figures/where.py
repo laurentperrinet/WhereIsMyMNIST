@@ -132,6 +132,11 @@ class Where():
         im = (im-.5)*2
         return im
         
+    def pred_accuracy(self, retina_data):
+        retina_data = Variable(torch.FloatTensor(retina_data))        
+        pred_accuracy_colliculus = F.sigmoid(self.model(retina_data)).detach().numpy()
+        return pred_accuracy_colliculus
+        
     def index_prediction(self, pred_accuracy_colliculus):
         im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)    
         # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html
@@ -149,7 +154,7 @@ class Where():
         # classify those images
         proba = self.classify_what(im).numpy()
         pred = proba.argmax(axis=1) # get the index of the max log-probability
-        return (pred==label.numpy()).mean()
+        return (pred==label.numpy())*1.
         
         
     def train(self, path=None, seed=None):

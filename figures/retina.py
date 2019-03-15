@@ -205,12 +205,12 @@ class Display:
         return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
                                     contrast=self.args.contrast, noise=self.args.noise,
                                     sf_0=self.args.sf_0, B_sf=self.args.B_sf)
-    def draw(self, data):
+    def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
-        radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
-        theta = np.random.rand() * np.pi
-        i_offset = int(radius * np.cos(theta))
-        j_offset = int(radius * np.sin(theta))
+        if radius is None: radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
+        if theta is None: theta = np.random.rand() * np.pi
+        if i_offset is None: i_offset = int(radius * np.cos(theta))
+        if j_offset is None: j_offset = int(radius * np.sin(theta))
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
 
 
