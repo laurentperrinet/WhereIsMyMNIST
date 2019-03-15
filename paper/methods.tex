@@ -6,14 +6,10 @@
 \section{Methods}
 
 A current hypothesis regarding active vision is that visual scenes most often consist of a single visual object of interest.
-
-
-
-
-
 The visual scene is here made of a foreground (the target) and a noisy background. An agent controls a focal visual sensor that can move over the visual scene through saccades.
-% both the visual features and the expected target position to be expressed in log-polar coordinates.
-On the primary visual side, local visual features (first and second order orientation filters) are radially organized around the center of fixation, with small and tightened receptive fields at the center and more large and scarce receptive fields at the periphery. The issued observation vector $\boldsymbol{x}$ compresses the original image by about 90\%, with high spatial frequencies preserved at the center and only low spatial frequencies conserved at the periphery.
+
+% 
+
 %The target accuracy map is also organized radially in a log-polar fashion, making the target position estimate more precise at the center and fuzzier at the periphery. This modeling choice is reminiscent of the approximate log-polar organization of the superior colliculus (SC) motor map {\bf[TODO:REF]}.
 %This retinotopic organization is preserved along the visuo-motor pathway as expected from observations {\bf[TODO:REF]}.
 
@@ -27,8 +23,21 @@ On the primary visual side, local visual features (first and second order orient
 %\fi
 %=======
 
-In an active inference setup, it is assumed that, before taking a decision, the consequence of every saccade should be analyzed by the agent through model inversion. Each saccade is expected to provide a new visual sample from a given scene statistics, which may increase the understanding of the scene (here the target position and category). Though the effect of action is too complex to be inferred from a generative model, we assume here that it is trained by sampling, i.e. by "trial and error".
-As such, we start as in~\citep{Friston12} by a probabilistic formulation, and use the fundamental hypothesis outlined in Figure~\ref{fig:intro}: the position of an object is independent from its category. This property is strictly true in our setting and is very generic in vision for simple classes (such as digits) and simple displays (but see~\citep{Vo12} for more complex visual scene grammars) . From this independence hypothesis, we may separate the two inter-related tasks (identification vs localization) in two separate pathways with different morphologies (respectively foveal and peripheral). Note that from the retinotopic projection of the visual information, this independence is conditional on action: These pathways should update their beliefs upon decisions made in each respective pathway.
+Active inference assumes a hidden emitter $e$, which is known indirectly through its effects on the sensor, that obey to a generative process : $x\sim p(X|e)$. The real emitter state $e$ being hidden, a parametric model $\theta$ is assumed to allow estimate the cause of the current visual field through model inversion thanks to Bayes formula, in short:
+$$p(E|x) \propto p(x|E;\theta)$$
+with $x$ the visual field in our case. Assume now that the cause $e$ of the visual field splits in two (independent) components, namely $e = (u,y)$ with $u$ the body posture (in our case the gaze orientation) and $y$ the object shape. Assume also that a set of motor commands $A = \{..., a, ...\}$ may control the body posture, but not the object's shape, so that $y$ is invariant to $a$.
+Then, before taking a decision, the consequence of every saccade should be analyzed  through model inversion \emph{over the future observations}, that is predicting the effect of every $a$ in $A$ to choose the action that may optimizes future inferences. The benefit of each $a$ is quantified through a certain metric (future accuracy, future posterior entropy, future variational free energy, ...), that depend on the current inference $p(U,Y|x)$. Each saccade $a$ is thus expected to provide a new visual sample from a given scene statistics, which may increase the understanding of the scene (here the target position and category). However, estimating the effect of every action over the range of every possible object shapes and body postures is combinatorially hard, even in simple cases such as vision, and thus infeasible in practice. 
+
+
+%Though the effect of action is too complex to be inferred from a generative model, we assume here that it is trained by sampling, i.e. by "trial and error".
+
+There are however many shortcuts allowing to render the calculation amenable. This includes (i) sparse encoding, (ii) approximate inference through model separation, and (iii) sampling-based metric training. 
+
+First, both the visual features and the expected target position may to be expressed in log-polar coordinates. On the primary visual side, local visual features (first and second order orientation filters) are radially organized around the center of fixation, with small and tightened receptive fields at the center and more large and scarce receptive fields at the periphery. The issued observation vector $\boldsymbol{x}$ compresses the original image by about 90\%, with high spatial frequencies preserved at the center and only low spatial frequencies conserved at the periphery.
+
+Second, we %start as in~\citep{Friston12} by a probabilistic formulation, and 
+use the fundamental hypothesis outlined in Figure~\ref{fig:intro}: the position of an object is independent from its category.  This allows considering $u$ and $y$ being independently inferred from the current visual field, i.e $p(U,Y|x) = p(U|x) p(Y|x)$. This property is strictly true in our setting and is very generic in vision for simple classes (such as digits) and simple displays (but see~\citep{Vo12} for more complex visual scene grammars). 
+From this independence hypothesis, we may separate both inferences (identification vs localization) in two separate pathways with different morphologies (respectively foveal and peripheral). Note that from the retinotopic projection of the visual information, this independence is conditional on action: both pathways should update their beliefs upon decisions made in each respective pathway.
 %A first simplifying assumption is a separation of the position and category inferences in two separate pathways, namely the ``What'' and the ``Where'' pathways.
 The agent visual categorical pathway (the ``What'' pathway) is supposed to be realized by the known ``LeNet'' classifier~\citep{Lecun1998}, that processes the $28 \times 28$ central pixels to identify the target category (see dashed red boxes in  Figure~\ref{fig:intro}-C). This central classifier displays a high accuracy at the center, and a fast decreasing accuracy with target eccentricity, as shown in figure \ref{fig:results}-D. In contrast, the visual orientation pathway (the ``Where'' pathway) takes the full visual field into account in order to tell whether a target is present at the different peripheral locations, in order to monitor future saccades.
 
@@ -41,11 +50,11 @@ Our main argument is that such an accuracy map is trainable in a rather straight
 
 \paragraph{Active inference in brief}
 
-Active inference assumes a hidden emitter $e$, which is known indirectly through its effects on the sensor, that obey to a generative process : $x\sim p(X|e)$. The real emitter state $e$ being hidden, a parametric model $\theta$ is assumed to allow estimate the cause of the current visual field through model inversion thanks to Bayes formula, in short:
-$$p(E|x) \propto p(x|E;\theta)$$
-with $x$ the visual field in our case. Assume now that the cause $e$ of the visual field splits in two (independent) components, namely $e = (u,y)$ with $u$ the body posture (in our case the gaze orientation) and $y$ the object shape. Assume also that a set of motor commands $A = \{..., a, ...\}$ may control the body posture, but not the object's shape, so that $y$ is invariant to $a$. Active inference assumes that one can both estimate $u$ and $y$ through predicting the effect of every $a$ in $A$ and choosing the action that optimizes future inferences through a certain metric (future accuracy, future posterior entropy, future variational free energy, ...), given a current inference $p(U,Y|x)$. Estimating the effect of every action over the range of every possible object shapes and body postures is combinatorially hard, even in simple cases such as vision, and thus infeasible in practice. 
 
-There are however many shortcuts allowing to render the calculation amenable. This includes sparse encoding, approximate inference through model separation, sampling and parametric training. 
+
+
+
+
 
 
 In the general case (complex distributions of objects across the visual scene), 
