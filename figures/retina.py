@@ -15,27 +15,26 @@ class Retina:
         delta = 1./args.N_azimuth
         self.log_r, self.theta = np.meshgrid(np.linspace(0, 1, args.N_eccentricity + 1), np.linspace(-np.pi*(.5 + delta), np.pi*(1.5 - delta), args.N_azimuth + 1))
         
-
         try:
-            self.retina_transform = np.load(args.filename+'_retina_transform.npy')
+            self.retina_transform = np.load('../data/retina_transform.npy')
         except:
             self.retina_transform = vectorization(self.args.N_theta, self.args.N_azimuth,
                                                   self.args.N_eccentricity, 
                                                   self.args.N_phase, 
                                                   self.args.N_pic, self.args.N_pic, 
                                                   self.args.rho)
-            np.save(args.filename+'_retina_transform.npy', self.retina_transform)
+            np.save('../data/retina_transform.npy', self.retina_transform)
             
         self.vsize =  self.args.N_theta*self.args.N_azimuth*self.args.N_eccentricity*self.args.N_phase 
         self.retina_transform_vector = self.retina_transform.reshape((self.vsize, self.args.N_pic**2))
         
         try:
-            self.retina_inverse_transform = np.load(args.filename+'_retina_inverse_transform.npy')
+            self.retina_inverse_transform = np.load('../data/retina_inverse_transform.npy')
         except:
             #self.retina_inverse_transform = retina_inverse(self.retina_transform)
             self.retina_inverse_transform = np.linalg.pinv(self.retina_transform_vector)
     
-            np.save(args.filename+'_retina_inverse_transform.npy', self.retina_inverse_transform)
+            np.save('../data/retina_inverse_transform.npy', self.retina_inverse_transform)
             
         self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
         self.whit.set_size((args.N_pic, args.N_pic))
