@@ -11,6 +11,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
 
+from retina import Display, Retina
+
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
@@ -34,7 +36,7 @@ class WhereNet(torch.nn.Module):
 
 
 class Where():
-    def __init__(self, args, display, retina):
+    def __init__(self, args):
         self.args = args
         # https://pytorch.org/docs/stable/nn.html#torch.nn.BCEWithLogitsLoss
         self.loss_func = torch.nn.BCEWithLogitsLoss()
@@ -53,8 +55,8 @@ class Where():
         self.device = torch.device("cpu" if self.args.no_cuda else "cuda")
         torch.manual_seed(self.args.seed)
         # DATA
-        self.display = display
-        self.retina = retina
+        self.display = Display(args)
+        self.retina = Retina(args)
         # MODEL
         self.model = WhereNet(self.args).to(self.device)
         if not self.args.no_cuda:
@@ -222,7 +224,7 @@ class Where():
         self.model.eval()
         accuracy = []
         correct = 0
-        for data, label in dataloader:
+        for batch_idx, (data, label) in enumerate(dataloader):
             # get a minibatch of the same digit at different positions and noises
             full, retina_data, accuracy_colliculus = self.minibatch(data)
             
@@ -234,6 +236,9 @@ class Where():
             
             accuracy.append(self.test_what(full, pred_accuracy_colliculus, label).mean())
 
+            # stops prematurely (for testing purposes)
+            if batch_idx > self.args.test_batch_size : break
+                
         return np.mean(accuracy)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
