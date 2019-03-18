@@ -26,7 +26,7 @@ def init(filename=None, verbose=1, log_interval=100):
                             N_pic = 128,
                             offset_std = 30, #
                             offset_max = 35, #
-                            noise=1., #0 #
+                            noise=.7, #0 #
                             contrast=0.8, #1 #
                             sf_0=0.2,
                             B_sf=0.3,
@@ -55,7 +55,7 @@ def init(filename=None, verbose=1, log_interval=100):
                             verbose=verbose,
                             filename=filename,
                             seed=2019,
-                            N_cv=20,
+                            N_cv=2,
                                 )
     if filename == 'debug':
         args.filename = '../data/debug'
@@ -139,7 +139,7 @@ class MetaML:
         return Accuracy
 
     def parameter_scan(self, parameter, display=False):
-        if parameter in ['momentum', 'bn1_bn_momentum', 'bn2_bn_momentum', 'p_dropout']:
+        if parameter in ['bn1_bn_momentum', 'bn2_bn_momentum', 'p_dropout']:
             values = np.linspace(0, 1, self.N_scan, endpoint=True)
         else:
             values = self.args[parameter] * np.logspace(-1, 1, self.N_scan, base=self.base)

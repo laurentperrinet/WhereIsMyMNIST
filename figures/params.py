@@ -1,22 +1,26 @@
 import torch
 from main import init, MetaML
 
-opts = dict(filename='debug', verbose=0, log_interval=0)
+opts = dict(filename='../data/2019-03-16', verbose=0, log_interval=0)
+#opts = dict(filename='debug', verbose=0, log_interval=0)
 
 print(50*'-')
 print(' parameter scan')
 print(50*'-')
 
-if True:
+args = init(**opts)
+from where import Where as ML
+from what import WhatNet
+ml = ML(args)
+if False:
     print(50*'-')
     print('Default parameters')
     print(50*'-')
-    args = init(**opts)
-    from where import Where as ML
-    from what import WhatNet
-    ml = ML(args)
-    ml.main()
 
+    ml.train(path=args.filename)
+    # ml.main(path=args.filename)
+
+if True:
     args = init(**opts)
     mml = MetaML(args)
     if torch.cuda.is_available():
@@ -26,8 +30,8 @@ if True:
     mml = MetaML(args)
     mml.scan('bias_deconv', [True, False])
    
-# for base in [2]:#, 8]:
-for base in [2, 8]:
+
+for base in [2, 8] if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     print(' base=', base)
     print(50*'-')
@@ -43,10 +47,10 @@ for base in [2, 8]:
     # TODO:  'N_theta': 6, 'N_azimuth': 16, 'N_eccentricity': 10, 'rho': 1.41,
 
     print(50*'-')
-    args = init(**opts)
-    mml = MetaML(args)
     print(' parameter scan : network')
     print(50*'-')
+    args = init(**opts)
+    mml = MetaML(args)
     for parameter in ['dim1',
                       'bn1_bn_momentum',
                       'dim2',
@@ -54,9 +58,9 @@ for base in [2, 8]:
                       'p_dropout']:
         mml.parameter_scan(parameter)
 
+    print(' parameter scan : learning ')
     args = init(**opts)
     mml = MetaML(args, base=base)
-    print(' parameter scan : learning ')
     print(50*'-')
     print('Using SGD')
     print(50*'-')

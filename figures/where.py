@@ -125,17 +125,6 @@ class Where():
         return np.exp(output)
         
         
-    def extract(self, data_fullfield, i_offset, j_offset):
-        mid = self.args.N_pic//2
-        rad = self.args.w//2
-
-        im = data_fullfield[(mid+i_offset-rad):(mid+i_offset+rad),
-                            (mid+j_offset-rad):(mid+j_offset+rad)]
-
-        im = np.clip(im, 0.5, 1)
-        im = (im-.5)*2
-        return im
-        
     def pred_accuracy(self, retina_data):
         retina_data = Variable(torch.FloatTensor(retina_data))        
         pred_accuracy_colliculus = F.sigmoid(self.model(retina_data)).detach().numpy()

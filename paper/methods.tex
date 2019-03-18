@@ -4,6 +4,16 @@
 % vim: set fenc=utf-8
 % !TEX spellcheck = en-US
 \section{Methods}
+%------------------------------%
+%: see Figure~\ref{fig:methods}
+\begin{figure}[t!]%%[p!]
+%\centering{\includegraphics[width=\linewidth]{fig_methods}}
+\caption{
+{\bf Methods for simulating active}:
+(A)~The visual display (\DIS , see also  Figure~\ref{fig:intro}-C)  is transformed into a retinotopic representation which is used as the input of a multi-layer neural network implementing the ``where'' pathway, that transforms the retinal image into an accuracy map. (B)~We show after training a typical network output  ('Predicted') as compared  with the ground truth ('True'). (C)~The network output allows to generate a saccade to the most likely target position in visual space and to recenter the retinotopic map (\SAC ), making possible to estimate a final classification rate. (D)~The active vision agent is tested at different eccentricities (in pixels). Orange bars: accuracy of a central classifier ('No saccade') with respect to  function of the target eccentricity averaged over 1,000 trials per eccentricity scale. Blue bars: Final classification rate after one saccade predicted by the ``Where'' pathway.
+\label{fig:methods}}%
+\end{figure}%
+%%------------------------------%
 
 \subsection{Principles}
 A current hypothesis regarding active vision is that visual scenes most often consist of a single visual object of interest.
@@ -67,6 +77,8 @@ To check this hypothesis, we train a multi-layer neural network to predict accur
 \paragraph{Classifier training}
 Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces  {\bf [REF?]}. The ease of use of those tightly optimized training algorithms allow to quantify the difficulty of a task through training failure or success. Consider the visual features  $\boldsymbol{x}$ as the input and a logpolar retinotopic vector $\boldsymbol{a}$ made of $n$ Bernouilli probabilities (success probabilities) as the output. A textured background noise is used at the input so that (i) the target statistics should barely differ from that of the background and (ii) a  categorical classifier may not be trainable with the initial view as the input. A training set is made of randomly generated noisy images, with a low-contrast $28\times 28$ MNIST character   {\bf [REF?]} randomly positioned around the center of fixation (at maximum $30$ pixels from the center of fixation). The images are first whitened  {\bf [REF?]}, and then transformed through $16384$ oriented log-polar filters radially organized around the center of fixation, with tight receptive fields at the center and large receptive fields at the periphery. The filters are organized in $10$ spatial eccentricity scales (respectively placed at around $2$, $3$, $4.5$, $6.5$, $9$, $13$, $18$, $26$, $36.5$ , and $51.3$ pixels from the center), and $16$ angular directions, allowing them to cover most of the original 128 $\times$ 128 image. Each visual input is accompanied with a corresponding accuracy map also organized radially through $10$ eccentricity scales and $16$ peripheral directions. The training is done in Pytorch  {\bf [REF?]}. The parametric neural network is made of two fully connected hidden layers of size $1000$, with ReLu activation and $50 \%$ drop-out on the last layer. The network is trained over $600,000$ saccades on full-images, using the binary cross-entropy loss as the error signal, with a learning rate equal to $10^{-4}$. The training is done in about 3 hours on a laptop.
 
+
+As for the modelling of the ``what'' pathway, we used the implementation of LeNet by invited Leann 3 which is provided by the pytorch library~\citep{Paszke17}. This 3-layered Convolutional Neural Network is trained over the MNIST database after approx $20$ training epochs. It achieves an average $98.7\%$ accuracy on the test dataset. In particular, we could also evaluate after this  training phase the accuracy map of the classifier knowing a translational shift imposed to the input image. 
 
 
 
