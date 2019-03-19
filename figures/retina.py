@@ -4,7 +4,49 @@ import matplotlib.pyplot as plt
 
 #import SLIP for whitening and PIL for resizing
 import SLIP
-
+# copied from https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py
+pe = {
+    # Image
+    # 'N_image' : None, #use all images in the folder
+    'N_image' : 100, #use 100 images in the folder
+    # 'N_image' : 10, #use 4 images in the folder
+    'seed' : None, # a seed for the Random Number Generator (RNG) for picking images in databases, set to None xor set to a given number to freeze the RNG
+    'N_X' : 256, # size of images
+    'N_Y' : 256, # size of images
+    # 'N_X' : 64, # size of images
+    # 'N_Y' : 64, # size of images
+    'noise' : 0.1, # level of noise when we use some
+    'do_mask'  : True, # self.pe.do_mask
+    'mask_exponent': 3., #sharpness of the mask
+    # whitening parameters:
+    'do_whitening'  : True, # = self.pe.do_whitening
+    'white_name_database' : 'kodakdb',
+    'white_n_learning' : 0,
+    'white_N' : .07,
+    'white_N_0' : .0, # olshausen = 0.
+    'white_f_0' : .4, # olshausen = 0.2
+    'white_alpha' : 1.4,
+    'white_steepness' : 4.,
+    'white_recompute' : False,
+    # Log-Gabor
+    #'base_levels' : 2.,
+    'base_levels' : 1.618,
+    'n_theta' : 24, # number of (unoriented) angles between 0. radians (included) and np.pi radians (excluded)
+    'B_sf' : .4, # 1.5 in Geisler
+    'B_theta' : 3.14159/18.,
+    # PATHS
+    'use_cache' : True,
+    'figpath': 'results',
+    'edgefigpath': 'results/edges',
+    'matpath': 'cache_dir',
+    'edgematpath': 'cache_dir/edges',
+    'datapath': 'database',
+    'ext' : '.pdf',
+    'figsize': 14.,
+    'formats': ['pdf', 'png', 'jpg'],
+    'dpi': 450,
+    'verbose': 0,
+    }
 verbose = 1
 ##########################################################################################################@
 ##########################################################################################################@
@@ -14,29 +56,33 @@ class Retina:
         self.args = args
         delta = 1./args.N_azimuth
         self.log_r, self.theta = np.meshgrid(np.linspace(0, 1, args.N_eccentricity + 1), np.linspace(-np.pi*(.5 + delta), np.pi*(1.5 - delta), args.N_azimuth + 1))
-        
+        suffix = f'_{self.args.N_theta}_{self.args.N_azimuth}'
+        suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
+        suffix += f'_{self.args.rho}_{self.args.N_pic}'
         try:
-            self.retina_transform = np.load('../data/retina_transform.npy')
+            filename = f'/tmp/retina_{suffix}_transform.npy'
+            self.retina_transform = np.load(filename)
         except:
             self.retina_transform = vectorization(self.args.N_theta, self.args.N_azimuth,
                                                   self.args.N_eccentricity, 
                                                   self.args.N_phase, 
                                                   self.args.N_pic, self.args.N_pic, 
                                                   self.args.rho)
-            np.save('../data/retina_transform.npy', self.retina_transform)
+            np.save(filename, self.retina_transform)
             
         self.vsize =  self.args.N_theta*self.args.N_azimuth*self.args.N_eccentricity*self.args.N_phase 
         self.retina_transform_vector = self.retina_transform.reshape((self.vsize, self.args.N_pic**2))
         
         try:
-            self.retina_inverse_transform = np.load('../data/retina_inverse_transform.npy')
+            filename = f'/tmp/retina_{suffix}_inverse_transform.npy'
+            self.retina_inverse_transform = np.load(filename)
         except:
             #self.retina_inverse_transform = retina_inverse(self.retina_transform)
             self.retina_inverse_transform = np.linalg.pinv(self.retina_transform_vector)
     
-            np.save('../data/retina_inverse_transform.npy', self.retina_inverse_transform)
+            np.save(filename, self.retina_inverse_transform)
             
-        self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
+        self.whit = SLIP.Image(pe=pe)
         self.whit.set_size((args.N_pic, args.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
@@ -98,8 +144,8 @@ def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
     retina = np.zeros((N_theta, N_azimuth, N_eccentricity, N_phase, N_X*N_Y))
     
     from LogGabor import LogGabor
-    parameterfile = 'https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py'
-    lg = LogGabor(parameterfile)
+    #parameterfile = 'https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py'
+    lg = LogGabor(pe=pe)#parameterfile)
     lg.set_size((N_X, N_Y))
     # params = {'sf_0': .1, 'B_sf': lg.pe.B_sf,
     #           'theta': np.pi * 5 / 7., 'B_theta': lg.pe.B_theta}
@@ -175,6 +221,7 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 
 ##########################################################################################################@
 ##########################################################################################################@
+
 class Display:
     def __init__(self, args):
         self.args = args
@@ -185,7 +232,7 @@ class Display:
         
         np.random.seed(seed=args.seed+1)
         # cache noise
-        path = f"../data/MotionClouds_{self.args.sf_0}_{self.args.B_sf}.npy"
+        path = f"/tmp/MotionClouds_{self.args.sf_0}_{self.args.B_sf}.npy"
         # print(path)
         if os.path.isfile(path):
             self.noise =  np.load(path)
@@ -194,7 +241,8 @@ class Display:
             for i_noise in range(args.noise_batch_size):
                 self.noise[i_noise, :, :], _ = MotionCloudNoise(sf_0=args.sf_0, B_sf=args.B_sf, seed=self.args.seed+i_noise)
             np.save(path, self.noise)
-            
+    
+    
     def place_object(self, data, i_offset, j_offset):
         if True:
             im_noise = self.noise[np.random.randint(self.args.noise_batch_size), :, :]
@@ -205,6 +253,8 @@ class Display:
         return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
                                     contrast=self.args.contrast, noise=self.args.noise,
                                     sf_0=self.args.sf_0, B_sf=self.args.B_sf)
+    
+    
     def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
         if radius is None: radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
@@ -220,11 +270,12 @@ class Display:
         ax.set_xticks([])
         ax.set_yticks([])
         return ax
+    
 ##########################################################################################################@
 ##########################################################################################################@
 
 
-whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
+whit = SLIP.Image(pe=pe)
 
 def get_data_loader(batch_size=100, train=True, mean=0.1307, std=0.3081, seed=2019):
     import torch

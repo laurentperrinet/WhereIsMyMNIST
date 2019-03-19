@@ -4,14 +4,62 @@
 % vim: set fenc=utf-8
 % !TEX spellcheck = en-US
 \section{Methods}
+The visual scene is here made of an unknown target at a random position and a noisy background. An agent controls a focal visual sensor that can move over the visual scene through saccades. In the implementation of such networks, we will follow the simplifying assumption that there exists a separation of the position and category inferences in two separate pathways, namely the ``What'' and the ``Where'' pathways. To test the validity of our hypothesis, it is necessary to find at least one function implementing the ``where'' network and that would be able to find the position of an object knowing only a degraded retinal image. Here, we describe the methods that we will follow, from the generative models (first external and then internal) to the implementation  of that ``where'' pathway knowing a fixed ``what'' pathway. %
+%There are however many shortcuts allowing to render the calculation amenable. This includes (i) sparse encoding, (ii) approximate inference through model separation, and (iii) sampling-based metric training. 
+%------------------------------%
+%: see Figure~\ref{fig:methods}
+\begin{figure}[t!]%%[p!]
+\centering{\includegraphics[width=\linewidth]{fig_intro}}%{fig_methods}}
+\caption{
+{\bf Methods for simulating active vision}:
+\A We first define the model which generates images. It is composed of different random processes: one choosing a sample image from the MNIST database (of size $28\times 28$) and placing it at a random position within the circular mask on the $128\times 128$ display. Then, this image is rectified and multiplied by a contrast factor and finally embedded in a natural-like noise with characteristics its contrast, mean spatial frequency and bandwidth~\citep{Sanz12}. %
+\B The full-sized images are transformed into a retinal image which will be fed to the ``where'' pathway. This is implemented by a bank of filters whose centers are centered of a log-polar grid and whose radius increases proportionally to eccentricity. Crucially, a similar transform is used to compute the accuracy of each hypothetical saccade, as represented by the collicular map. %
+\C The ``where'' pathway is implemented by a three-layered neural network consisting of the retinal input, two hidden layers with $1000$ units each and a collicular output. Each unit is associated with a ReLU non-linearity. To learn to associate the output of the network with the ground truth, supervised training is performed using back-propagation with a binary cross entropy loss which measure the distance between both distributions. The network learns in about 20 epochs as shown by the decrease of the loss function. Overlaid is the associated accuracy of the full active agent. This is computed by classifying the foveal image using the ``what'' pathway, after centering the gaze using the result of the ``where pathway''. This shows a gradual increase in accuracy from the baseline ($10\%$) to approximately an average of $X80.0X\%$. %
+}%
+\end{figure}%
+%%------------------------------%
 
-\subsection{Principles}
-A current hypothesis regarding active vision is that visual scenes most often consist of a single visual object of interest.
-The visual scene is here made of a foreground (the target) and a noisy background. An agent controls a focal visual sensor that can move over the visual scene through saccades.
+\subsection{Exteroceptive Generative model}
+It is first necessary to quantitatively define the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and implemented in see Figure~\ref{fig:methods}-A. 
+
+\paragraph{Targets.} Following a common hypothesis regarding active vision, visual scenes will consist of a single visual object of interest. We will use the MNIST database of handwritten digits introduced by~\citep{Lecun1998} as classification solutions (``what'' pathway) abound for this class of targets and that we are here focused on the problem of localization (``where'' pathway). Samples are drawn from a database of $60000$ grayscale $28\times 28$ pixels images. 
+\paragraph{Full-scale images.} For each sample, we may now draw a random position in a full-scale image of $128\times 128$. To enforce isotropic saccades, we define a centered circular mask covering the image (of radius $64$ pixels) and the position is such that the embedded sample fits entirely into that circular mask.
+\paragraph{Background noise setting. } To provide with a realistic background noise, we generated synthetic textures~\citep{Sanz12} using a third random process. These textured images are of the same size of the full-image. These static images are designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters. One controls the median spatial frequency $sf_0$ of this noise, while the other controls the bandwidth around this central spatial frequency. Finally, these can be considered as band-pass filtered images of random white noise. Finally, these images are rectified to have a normalized contrast.
+\paragraph{Adding signal and noise. } Finally, both the noise and the target image are merged into a single image. We have used two different strategies. In a first strategy emulating a transparent association, we computed the average luminance at each pixel, while in a second strategy emulating an opaque association, we choose for each pixel the maximal value.
+The quantitative difference were tested in simulations, but proved to have a marginal importance.
+\subsection{Interoceptive generative model}
+
+
+\paragraph{Foveal vision and the ``what'' pathway}
+First, foveal vision is defined as the $28\times 28$ pixels image centered at the point of fixation (see dashed red box in Figure~\ref{fig:intro}-C). This image is then directly passed to the agent's visual categorical pathway (the ``What'' pathway). This is realized by the known ``LeNet'' classifier~\citep{Lecun1998}, that processes the $28 \times 28$ central pixels to identify the target category. Such a network is provided by the pyTorch library~\citep{Paszke17}, and consists of a 3-layered Convolutional Neural Network. It is trained over the (centered) MNIST database after approx $20$ training epochs. Input images are rectified (with a mean and standard deviation of respectively $0.1307$ and $0.3081$). The network outputs a vector representing the probability of detecting each of the $10$ digits. When taking the maximum probability, it achieves an average $98.7\%$ accuracy on a test dataset~\citep{Lecun1998}. % 
+
+\paragraph{Retinal transform: Peripheral vision and log Polar encoding}
+% >>> Laurent is here <<<
+First, both the visual features and the expected target position may to be expressed in log-polar coordinates. On the primary visual side, local visual features (first and second order orientation filters) are radially organized around the center of fixation, with small and tightened receptive fields at the center and more large and scarce receptive fields at the periphery. The issued observation vector $\boldsymbol{x}$ compresses the original image by about 90\%, with high spatial frequencies preserved at the center and only low spatial frequencies conserved at the periphery.
+
+The full-sized images are transformed into a retinal image which will be fed to the ``where'' pathway. This is implemented by a bank of filters whose centers are centered of a log-polar grid and whose radius increases proportionally to eccentricity. Crucially, a similar transform is used to compute the accuracy of each hypothetical saccade, as represented by the collicular map. %
+
+
+
+\paragraph{Collicular representation: Metric training}
+
+ In particular, we could also evaluate after this  training phase the accuracy map of the classifier knowing a translational shift imposed to the input image. 
 
 
 %The target accuracy map is also organized radially in a log-polar fashion, making the target position estimate more precise at the center and fuzzier at the periphery. This modeling choice is reminiscent of the approximate log-polar organization of the superior colliculus (SC) motor map {\bf[TODO:REF]}.
 %This retinotopic organization is preserved along the visuo-motor pathway as expected from observations {\bf[TODO:REF]}.
+
+
+%Though the effect of action is too complex to be inferred from a generative model, we assume here that it is trained by sampling, i.e. by "trial and error".
+
+%The target accuracy map is also organized radially in a log-polar fashion, making the target position estimate more precise at the center and fuzzier at the periphery. This modeling choice is reminiscent of the approximate log-polar organization of the superior colliculus (SC) motor map {\bf[TODO:REF]}.
+%This retinotopic organization is preserved along the visuo-motor pathway as expected from observations {\bf[TODO:REF]}.
+
+ This central classifier displays a high accuracy at the center, and a fast decreasing accuracy with target eccentricity, as shown in figure \ref{fig:results}-D. In contrast, the visual orientation pathway (the ``Where'' pathway) takes the full visual field into account in order to tell whether a target is present at the different peripheral locations, in order to monitor future saccades.
+
+
+
+%Though the effect of action is too complex to be inferred from a generative model, we assume here that it is trained by sampling, i.e. by "trial and error".
 
 
 %<<<<<<< HEAD
@@ -22,6 +70,7 @@ The visual scene is here made of a foreground (the target) and a noisy backgroun
 %Our main argument is that such an accuracy map is trainable in a rather straightforward way, through trials and errors, by actuating saccades after processing the visual input, and taking the final classification success or failure as a teaching signal. 
 %\fi
 %=======
+%<<<<<<< HEAD
 
 Active inference assumes a hidden emitter $e$, which is known indirectly through its effects on the sensor, that obey to a generative process : $x\sim p(X|e)$. The real emitter state $e$ being hidden, a parametric model $\theta$ is assumed to allow estimate the cause of the current visual field through model inversion thanks to Bayes formula, in short:
 $$p(E|x) \propto p(x|E;\theta)$$
@@ -44,6 +93,8 @@ From this independence hypothesis, we may separate both inferences (identificati
 The agent visual categorical pathway (the ``What'' pathway) is supposed to be realized by the known ``LeNet'' classifier~\citep{Lecun1998}, that processes the $28 \times 28$ central pixels to identify the target category (see dashed red boxes in  Figure~\ref{fig:intro}-C). This central classifier displays a high accuracy at the center, and a fast decreasing accuracy with target eccentricity, as shown in figure \ref{fig:results}-D. In contrast, the visual orientation pathway (the ``Where'' pathway) takes the full visual field into account in order to tell whether a target is present at the different peripheral locations, in order to monitor future saccades.
 
 \paragraph{Metric training}
+%=======
+%>>>>>>> 10eba6746a264a8f6141953d7948057e5093489d
 Third, the putative effect of every saccade should be condensed in a single number, the \emph{accuracy}, that is the expected benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$ 
 from the current observation. Taking $a$ a possible saccade and $\tilde{\boldsymbol{x}}$ the corresponding future visual field, the result of the categorical classifier over $\tilde{\boldsymbol{x}}$ can either be correct (1) or incorrect (0). 
 If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $\tilde{\boldsymbol{x}}$ after a saccade $a$ forms a probability, i.e. a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
@@ -57,170 +108,24 @@ It should be mostly organized radially, preserving the initial retinotopic organ
 Such  a \emph{predictive accuracy map} is assumed to be the core of a realistic saccade-based vision system, with action selection (motor map) overlaying the accuracy map through a winner-takes-all mechanism (as thought to be done in the superior colliculus). Of course, each different initial visual field comes with a different accuracy map (essentially conveying information about the target retinotopic position).
 Our main argument is that such an accuracy map is trainable in a rather straightforward way, through trials and errors, by actuating saccades after processing the visual input, and taking the final classification success or failure as a teaching signal.
 
-\subsection{Implementation}
+\subsection{Implementing the ``where'' pathway}
+
+This fundamental hypothesis was outlined in Figure~\ref{fig:intro}: the position $u$ of an object is independent from its category (identity) $y$.  This allows considering $u$ and $y$ being independently inferred from the current visual field, i.e $p(U,Y|x) = p(U|x) p(Y|x)$. This property is strictly true in our setting and is very generic in vision for simple classes (such as digits) and simple displays (but see~\citep{Vo12} for more complex visual scene grammars). 
+From this independence hypothesis, we may separate both inferences (identification vs localization) in two separate pathways with different morphologies (respectively foveal and peripheral). Note that from the retinotopic projection of the visual information, this independence is conditional on action: both pathways should update their beliefs upon decisions made in each respective pathway.
 To check this hypothesis, we train a multi-layer neural network to predict accuracy maps from a retinotopic log-polar encoding of the visual image. 
 
-\paragraph{log Polar encoding}
 
-\paragraph{Background noise setting}
+\paragraph{Approximate inference}
+Active inference assumes a hidden emitter $e$, which is known indirectly through its effects on the sensor, that obey to a generative process : $x\sim p(X|e)$. The real emitter state $e$ being hidden, a parametric model $\theta$ is assumed to allow estimate the cause of the current visual field through model inversion thanks to Bayes formula, in short:
+$$p(E|x) \propto p(x|E;\theta)$$
+with $x$ the visual field in our case. Assume now that the cause $e$ of the visual field splits in two (independent) components, namely $e = (u,y)$ with $u$ the body posture (in our case the gaze orientation) and $y$ the object shape (or object identity). Assume also that a set of motor commands $A = \{..., a, ...\}$ may control the body posture, but not the object's identity, so that $y$ is invariant to $a$.
+Then, before taking a decision, the consequence of every saccade should be analyzed  through model inversion \emph{over the future observations}, that is predicting the effect of every $a$ in $A$ to choose the action that may optimizes future inferences. The benefit of each $a$ is quantified through a certain metric (future accuracy, future posterior entropy, future variational free energy, ...), that depend on the current inference $p(U,Y|x)$. Each saccade $a$ is thus expected to provide a new visual sample from a given scene statistics, which may increase the understanding of the scene (here the target position and category). However, estimating the effect of every action over the range of every possible object shapes and body postures is combinatorially hard, even in simple cases such as vision, and thus infeasible in practice. 
+
+
+
+
 
 \paragraph{Classifier training}
 Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces  {\bf [REF?]}. The ease of use of those tightly optimized training algorithms allow to quantify the difficulty of a task through training failure or success. Consider the visual features  $\boldsymbol{x}$ as the input and a logpolar retinotopic vector $\boldsymbol{a}$ made of $n$ Bernouilli probabilities (success probabilities) as the output. A textured background noise is used at the input so that (i) the target statistics should barely differ from that of the background and (ii) a  categorical classifier may not be trainable with the initial view as the input. A training set is made of randomly generated noisy images, with a low-contrast $28\times 28$ MNIST character   {\bf [REF?]} randomly positioned around the center of fixation (at maximum $30$ pixels from the center of fixation). The images are first whitened  {\bf [REF?]}, and then transformed through $16384$ oriented log-polar filters radially organized around the center of fixation, with tight receptive fields at the center and large receptive fields at the periphery. The filters are organized in $10$ spatial eccentricity scales (respectively placed at around $2$, $3$, $4.5$, $6.5$, $9$, $13$, $18$, $26$, $36.5$ , and $51.3$ pixels from the center), and $16$ angular directions, allowing them to cover most of the original 128 $\times$ 128 image. Each visual input is accompanied with a corresponding accuracy map also organized radially through $10$ eccentricity scales and $16$ peripheral directions. The training is done in Pytorch  {\bf [REF?]}. The parametric neural network is made of two fully connected hidden layers of size $1000$, with ReLu activation and $50 \%$ drop-out on the last layer. The network is trained over $600,000$ saccades on full-images, using the binary cross-entropy loss as the error signal, with a learning rate equal to $10^{-4}$. The training is done in about 3 hours on a laptop.
 
 
-
-
-
-\if 0
-
-
-\subsection{Notations}
-\begin{itemize}
-	\item $\boldsymbol{x}$ : visual field (image)
-	\item $\boldsymbol{y}$ : target category (categorical)
-	\item $\boldsymbol{u}$ : target position (real coordinates or categorical, retinocentric referential)
-
-\end{itemize}
-
-Generative model :
-$$ \boldsymbol{x} \sim P(X|\boldsymbol{y}, \boldsymbol{u}) $$
-
-Full inference (posterior):
-$$ P(Y, U|\boldsymbol{x}) \propto  P(\boldsymbol{x}|Y, U) $$
-
-Independence assumptions :
-\begin{equation}
-P(Y, U) = P(Y)  P(U) \text{\emph{ (toujours vrai)}}
-\label{eq:indep-1}
-\end{equation}
-
-\begin{equation}
-P(Y, U|X) = P(Y|X)  P(U|X) \text{\emph{ (faux s'il y a plusieurs cibles)}}
-\label{eq:indep-2}
-\end{equation}
-
-Partial inference on object category:
-$$ P(Y|\boldsymbol{x}, \boldsymbol{u}) \propto  P(\boldsymbol{x}|Y, \boldsymbol{u}) $$
-
-Partial inference on object position:
-$$ P(U|\boldsymbol{x}, \boldsymbol{y}) \propto  P(\boldsymbol{x}|U, \boldsymbol{y}) $$
-
-Marginals:
-\begin{itemize}
-\item $ P(Y|\boldsymbol{x}) = \int P(Y|\boldsymbol{x}, \boldsymbol{u}) d\boldsymbol{u}$
-\item $ P(U|\boldsymbol{x}) = \int P(U|\boldsymbol{x}, \boldsymbol{y}) d\boldsymbol{y}$
-\end{itemize}
-
-\subsubsection{What we did so far...}
-
-Consider a view $\boldsymbol{x}$ that contains a single target $\boldsymbol{y}$ at unknown retinocentric position $\boldsymbol{u}$. The brain needs to guess both  $\boldsymbol{y}$ and $\boldsymbol{u}$ with limited computational resources.
-
-We assume here that the brain adopts independence assumption (\ref{eq:indep-2}), making a separation between the ``Where'' and the ``What'' pathways, forming separate (and cheaper) inferences :
-\begin{itemize}
-\item $p(Y|\boldsymbol{x})$
-\item $p(U|\boldsymbol{x})$
-\end{itemize}
-
-Another assumption is that the category $\boldsymbol{y}$ is \emph{translationally invariant}: given a transformation $\mathcal{T}$,
-$$\mathcal{T}(\boldsymbol{u}, \boldsymbol{y})
-= (\mathcal{T}(\boldsymbol{u}), \boldsymbol{y})$$
-
-Now, given $\boldsymbol{x}$ and the separation assumption, it is sensible to change the viewpoint to better estimate $\boldsymbol{y}$, because  $\boldsymbol{y}$ is invariant to the viewpoint transformation.
-
-This is where \emph{active inference} comes into the play:
-\begin{itemize}
-\item Consider that the true target is $\hat{\boldsymbol{y}}$
-\item Consider that the target current retinocentric position is $\boldsymbol{u}$
-\item Then, for any translation $\delta \boldsymbol{u}$, the future posterior on the true target is estimated by:
-$\mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$
-\item And the optimal translation is:  $\underset{\delta\boldsymbol{u}}{\text{ argmax }}  \mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$
-\end{itemize}
-
-If now $\boldsymbol{u}$ is unknown and needs to be guessed from $\boldsymbol{x}$, the optimal translation is:
-$$\underset{\delta\boldsymbol{u}}{\text{ argmax }} \mathbb{E}_{\boldsymbol{u}\sim p(U|\boldsymbol{x})} \mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$$
-with :
-\begin{itemize}
-\item $p(U|\boldsymbol{x})$ the inferred target position
-\item and $\mathbb{E}_{\boldsymbol{x}'\sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u}+\delta \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x}')$ the expected inference on the actual target.
-\end{itemize}
-
-\subsubsection{Accuracy maps}
-
-In practice, it is computationally impossible to make exact guesses about the future observation $\boldsymbol{x}'$. Our second assumption is that instead of predicting future inferences on true target, the brain trains a \emph{parametric accuracy map} by experience (trial and error).
-
-
-In a model-based approach, the \emph{accuracy maps} can be calculated using a parametric classifier :
- \begin{itemize}
- \item Given a training set $\{(x_1, u_1, y_1), ..., (x_n, u_n, y_n)\}$:
- \begin{itemize}
- \item Train a classifier $p_\theta$ that estimates $p(Y|\boldsymbol{x})$.
- \end{itemize}
- \item Then, for each class $\hat{\boldsymbol{y}}$, taking $\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x})$,\emph{ the classification rate $r_\theta(\boldsymbol{u})$ is an estimator of the posterior expectation :}
- \begin{align*}
- r_\theta(\boldsymbol{u})
- &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})}
- \mathbb{E}_{\tilde{\boldsymbol{y}}\sim p_\theta(Y|\boldsymbol{x})} \delta_{\hat{\boldsymbol{y}}=\tilde{\boldsymbol{y}}}\\
- &= \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p_\theta(\hat{\boldsymbol{y}}|\boldsymbol{x})\\
- &\simeq \mathbb{E}_{ \boldsymbol{x} \sim p(X|\hat{\boldsymbol{y}}, \boldsymbol{u})} p(\hat{\boldsymbol{y}}|\boldsymbol{x})
- \end{align*}
- that forms an \emph{accuracy map} for each target position $\boldsymbol{u}$.\\
- \end{itemize}
-
-\subsubsection{Parametric transformation (Colliculus?) map}
-
-One can now select $\delta\boldsymbol{u}$ with the parametric estimator:
-\begin{align*}
-\widehat{\delta\boldsymbol{u}} &\simeq \underset{\delta\boldsymbol{u}}{\text{ argmax }}
-\mathbb{E}_{\boldsymbol{u}\sim p(U|\boldsymbol{x})}
-r_\theta(\boldsymbol{u}+\delta\boldsymbol{u})\\
-%&= \underset{\boldsymbol{u}' \in \mathcal{U}}{\text{ argmax }} A(\boldsymbol{u}'|\boldsymbol{x}, \boldsymbol{u})
-&= \underset{\delta\boldsymbol{u}}{\text{ argmax }} Q(\delta\boldsymbol{u}|\boldsymbol{x})
-\end{align*}
-with $Q(\delta\boldsymbol{u}|\boldsymbol{x})$ the \emph{transformation} map, given the view $\boldsymbol{x}$ and the marginal posterior estimate $p(U|\boldsymbol{x})$.
-
-It must be noticed that, given $\hat{\boldsymbol{u}} = \underset{\boldsymbol{u}}{\text{ argmax }}
-r_\theta(\boldsymbol{u}))$,  the transformation map is maximal at $\delta\boldsymbol{u} = \hat{\boldsymbol{u}} - \boldsymbol{u}$. Each initial $\boldsymbol{u}$ provides a different transformation map, that is a shift of the original accuracy map (\emph{Ergodic assumption??}).
-
-We assume in the following that a parametric action value map $Q_\psi$ can be trained on top of the parametric classifier $p_\theta$ and its accuracy map $r_\theta$.
-The training set is $\{(\boldsymbol{x}_1, \boldsymbol{u}_1), ..., (\boldsymbol{x}_n, \boldsymbol{u}_n)\}$ and the accuracy map classifier learns to associate each $\boldsymbol{x}$ with its full transformation map $Q(.|\boldsymbol{x})$.
-
-
-
-\subsubsection{Algorithms}
-
-Once $p_\theta$ and $Q_\psi$ are trained, the recognition algorithm is straightforward:
-
-\paragraph{Single saccade algorithm:}
-\begin{enumerate}
-	\item Read the view $\boldsymbol{x}$
-	\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$
-	\item Move the eye
-	\item Update the view $\boldsymbol{x}'$
-	\item Identify the target with $\tilde{\boldsymbol{y}} \sim p_\theta(Y|\boldsymbol{x}')$
-\end{enumerate}
-
-
-\paragraph{Multi saccades algorithm:}
-\begin{enumerate}
-\item $q(Y) \leftarrow$ uniform distribution
-\item Read the view $\boldsymbol{x}$
-\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$
-\item Repeat several times up to some posterior confidence threshold:
-	\begin{enumerate}
-		\item Move the eye
-		\item Read $\boldsymbol{x}$
-		\item $q(Y) \leftarrow q(Y) \times p_\theta(Y|\boldsymbol{x})$
-		\item normalize $q$
-		\item Choose $\delta\boldsymbol{u}$ according to $Q_\psi(.|\boldsymbol{x})$ (with some inhibition of return mechanism)
-	\end{enumerate}
-	\item Identify the target with $\tilde{\boldsymbol{y}} \sim q(Y)$
-\end{enumerate}
-
-\subsection{Visual transformation}
-\subsubsection{Wavelets}
-\subsubsection{Log Gabor}
-
-\subsection{Accuracy map}
-
-\subsection{Network architecture}
-\fi

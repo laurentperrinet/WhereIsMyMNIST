@@ -16,9 +16,9 @@ def init(filename=None, verbose=1, log_interval=100):
     args = easydict.EasyDict(
                             # MNIST
                             w=28,
-                            minibatch_size = 100,  # quantity of examples that'll be processed
-                            train_batch_size=600, # train
-                            test_batch_size=1000, 
+                            minibatch_size=100, # batcch size
+                            train_batch_size=50000, # size of training set
+                            test_batch_size=5000,  # size of testing set
                             noise_batch_size=1000, 
                             mean=0.1307, 
                             std=0.3081, 
@@ -26,7 +26,7 @@ def init(filename=None, verbose=1, log_interval=100):
                             N_pic = 128,
                             offset_std = 30, #
                             offset_max = 35, #
-                            noise=1., #0 #
+                            noise=.7, #0 #
                             contrast=0.8, #1 #
                             sf_0=0.2,
                             B_sf=0.3,
@@ -47,7 +47,7 @@ def init(filename=None, verbose=1, log_interval=100):
                             bn1_bn_momentum=0.,
                             bn2_bn_momentum=0.,
                             momentum=0.1,    
-                            epochs=10,
+                            epochs=50,
                             # simulation
                             num_processes=1,
                             no_cuda=True,
@@ -55,16 +55,16 @@ def init(filename=None, verbose=1, log_interval=100):
                             verbose=verbose,
                             filename=filename,
                             seed=2019,
-                            N_cv=20,
+                            N_cv=2,
                                 )
     if filename == 'debug':
         args.filename = '../data/debug'
-        args.train_batch_size = 10
+        args.train_batch_size = 100
         args.lr = 1e-2
         #args.noise = .5
         #args.contrast = .9
         #args.p_dropout = 0.
-        args.epochs = 2
+        args.epochs = 8
         args.test_batch_size = 20
         args.minibatch_size = 22
         #args.offset_std = 8
@@ -139,7 +139,7 @@ class MetaML:
         return Accuracy
 
     def parameter_scan(self, parameter, display=False):
-        if parameter in ['momentum', 'bn1_bn_momentum', 'bn2_bn_momentum', 'p_dropout']:
+        if parameter in ['bn1_bn_momentum', 'bn2_bn_momentum', 'p_dropout']:
             values = np.linspace(0, 1, self.N_scan, endpoint=True)
         else:
             values = self.args[parameter] * np.logspace(-1, 1, self.N_scan, base=self.base)
@@ -149,8 +149,6 @@ class MetaML:
         Accuracy = self.scan(parameter, values)
         if display:
             fig, ax = plt.subplots(figsize=(8, 5))
-
-
 
         return Accuracy
 
