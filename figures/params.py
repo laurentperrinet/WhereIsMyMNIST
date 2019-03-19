@@ -43,9 +43,19 @@ for base in [2, 8] if not args.filename == '../data/debug' else [2]:
     mml = MetaML(args, base=base)
     for parameter in ['sf_0', 'B_sf', 'offset_std', 'noise', 'contrast']:
         mml.parameter_scan(parameter)
-        
-    # TODO:  'N_theta': 6, 'N_azimuth': 16, 'N_eccentricity': 10, 'rho': 1.41,
 
+
+    print(50*'-')
+    print(' parameter scan : retina')
+    print(50*'-')
+    args = init(**opts)
+    mml = MetaML(args)
+    for parameter in ['N_theta',
+                      'N_azimuth',
+                      'N_eccentricity',
+                      'rho']:
+        mml.parameter_scan(parameter)
+        
     print(50*'-')
     print(' parameter scan : network')
     print(50*'-')
