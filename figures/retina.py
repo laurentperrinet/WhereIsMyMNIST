@@ -14,27 +14,31 @@ class Retina:
         self.args = args
         delta = 1./args.N_azimuth
         self.log_r, self.theta = np.meshgrid(np.linspace(0, 1, args.N_eccentricity + 1), np.linspace(-np.pi*(.5 + delta), np.pi*(1.5 - delta), args.N_azimuth + 1))
-        
+        suffix = f'_{self.args.N_theta}_{self.args.N_azimuth}'
+        suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
+        suffix += f'_{self.args.rho}_{self.args.N_pic}'
         try:
-            self.retina_transform = np.load('../data/retina_transform.npy')
+            filename = f'/tmp/retina_{suffix}_transform.npy'
+            self.retina_transform = np.load(filename)
         except:
             self.retina_transform = vectorization(self.args.N_theta, self.args.N_azimuth,
                                                   self.args.N_eccentricity, 
                                                   self.args.N_phase, 
                                                   self.args.N_pic, self.args.N_pic, 
                                                   self.args.rho)
-            np.save('../data/retina_transform.npy', self.retina_transform)
+            np.save(filename, self.retina_transform)
             
         self.vsize =  self.args.N_theta*self.args.N_azimuth*self.args.N_eccentricity*self.args.N_phase 
         self.retina_transform_vector = self.retina_transform.reshape((self.vsize, self.args.N_pic**2))
         
         try:
-            self.retina_inverse_transform = np.load('../data/retina_inverse_transform.npy')
+            filename = f'/tmp/retina_{suffix}_inverse_transform.npy'
+            self.retina_inverse_transform = np.load(filename)
         except:
             #self.retina_inverse_transform = retina_inverse(self.retina_transform)
             self.retina_inverse_transform = np.linalg.pinv(self.retina_transform_vector)
     
-            np.save('../data/retina_inverse_transform.npy', self.retina_inverse_transform)
+            np.save(filename, self.retina_inverse_transform)
             
         self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
         self.whit.set_size((args.N_pic, args.N_pic))
@@ -175,6 +179,7 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 
 ##########################################################################################################@
 ##########################################################################################################@
+
 class Display:
     def __init__(self, args):
         self.args = args
@@ -185,7 +190,7 @@ class Display:
         
         np.random.seed(seed=args.seed+1)
         # cache noise
-        path = f"../data/MotionClouds_{self.args.sf_0}_{self.args.B_sf}.npy"
+        path = f"/tmp/MotionClouds_{self.args.sf_0}_{self.args.B_sf}.npy"
         # print(path)
         if os.path.isfile(path):
             self.noise =  np.load(path)
@@ -194,7 +199,8 @@ class Display:
             for i_noise in range(args.noise_batch_size):
                 self.noise[i_noise, :, :], _ = MotionCloudNoise(sf_0=args.sf_0, B_sf=args.B_sf, seed=self.args.seed+i_noise)
             np.save(path, self.noise)
-            
+    
+    
     def place_object(self, data, i_offset, j_offset):
         if True:
             im_noise = self.noise[np.random.randint(self.args.noise_batch_size), :, :]
@@ -205,6 +211,8 @@ class Display:
         return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
                                     contrast=self.args.contrast, noise=self.args.noise,
                                     sf_0=self.args.sf_0, B_sf=self.args.B_sf)
+    
+    
     def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
         if radius is None: radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
@@ -220,6 +228,7 @@ class Display:
         ax.set_xticks([])
         ax.set_yticks([])
         return ax
+    
 ##########################################################################################################@
 ##########################################################################################################@
 

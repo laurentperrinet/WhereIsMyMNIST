@@ -16,9 +16,9 @@ def init(filename=None, verbose=1, log_interval=100):
     args = easydict.EasyDict(
                             # MNIST
                             w=28,
-                            minibatch_size = 100,  # quantity of examples that'll be processed
-                            train_batch_size=600, # train
-                            test_batch_size=1000, 
+                            minibatch_size=100, # batcch size
+                            train_batch_size=50000, # size of training set
+                            test_batch_size=5000,  # size of testing set
                             noise_batch_size=1000, 
                             mean=0.1307, 
                             std=0.3081, 
@@ -47,7 +47,7 @@ def init(filename=None, verbose=1, log_interval=100):
                             bn1_bn_momentum=0.,
                             bn2_bn_momentum=0.,
                             momentum=0.1,    
-                            epochs=10,
+                            epochs=50,
                             # simulation
                             num_processes=1,
                             no_cuda=True,
@@ -149,8 +149,6 @@ class MetaML:
         Accuracy = self.scan(parameter, values)
         if display:
             fig, ax = plt.subplots(figsize=(8, 5))
-
-
 
         return Accuracy
 
