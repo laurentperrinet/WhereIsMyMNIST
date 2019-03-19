@@ -62,9 +62,12 @@ class Where():
         self.device = torch.device("cpu" if self.args.no_cuda else "cuda")
         torch.manual_seed(self.args.seed)
         # DATA
+        suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
+        suffix += f'_{self.args.noise}_{self.args.contrast}'
+        suffix += f'_{self.args.N_pic}_{self.args.offset_std}_{self.args.offset_max}'
         self.display = Display(args)
         self.retina = Retina(args)
-        filename_dataset = '/tmp/dataset_train.pt'
+        filename_dataset = f'/tmp/dataset_train_{suffix}_{self.args.train_batch_size}.pt'
         if os.path.exists(filename_dataset):
             self.loader_train  = torch.load(filename_dataset)
         else:
@@ -90,7 +93,7 @@ class Where():
             torch.save(self.loader_train, filename_dataset)
             
         # TESTING DATASET
-        filename_dataset = '/tmp/dataset_test.pt'
+        filename_dataset = f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
         if os.path.exists(filename_dataset):
             self.loader_test  = torch.load(filename_dataset)
         else:
