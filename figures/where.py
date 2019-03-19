@@ -124,7 +124,7 @@ class Where():
 
         # MODEL
         self.model = WhereNet(self.args).to(self.device)
-        if not self.args.no_cudai:
+        if not self.args.no_cuda:
             # print('doing cuda')
             torch.cuda.manual_seed(self.args.seed)
             self.model.cuda()

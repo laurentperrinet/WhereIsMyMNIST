@@ -4,7 +4,49 @@ import matplotlib.pyplot as plt
 
 #import SLIP for whitening and PIL for resizing
 import SLIP
-
+# copied from https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py
+pe = {
+    # Image
+    # 'N_image' : None, #use all images in the folder
+    'N_image' : 100, #use 100 images in the folder
+    # 'N_image' : 10, #use 4 images in the folder
+    'seed' : None, # a seed for the Random Number Generator (RNG) for picking images in databases, set to None xor set to a given number to freeze the RNG
+    'N_X' : 256, # size of images
+    'N_Y' : 256, # size of images
+    # 'N_X' : 64, # size of images
+    # 'N_Y' : 64, # size of images
+    'noise' : 0.1, # level of noise when we use some
+    'do_mask'  : True, # self.pe.do_mask
+    'mask_exponent': 3., #sharpness of the mask
+    # whitening parameters:
+    'do_whitening'  : True, # = self.pe.do_whitening
+    'white_name_database' : 'kodakdb',
+    'white_n_learning' : 0,
+    'white_N' : .07,
+    'white_N_0' : .0, # olshausen = 0.
+    'white_f_0' : .4, # olshausen = 0.2
+    'white_alpha' : 1.4,
+    'white_steepness' : 4.,
+    'white_recompute' : False,
+    # Log-Gabor
+    #'base_levels' : 2.,
+    'base_levels' : 1.618,
+    'n_theta' : 24, # number of (unoriented) angles between 0. radians (included) and np.pi radians (excluded)
+    'B_sf' : .4, # 1.5 in Geisler
+    'B_theta' : 3.14159/18.,
+    # PATHS
+    'use_cache' : True,
+    'figpath': 'results',
+    'edgefigpath': 'results/edges',
+    'matpath': 'cache_dir',
+    'edgematpath': 'cache_dir/edges',
+    'datapath': 'database',
+    'ext' : '.pdf',
+    'figsize': 14.,
+    'formats': ['pdf', 'png', 'jpg'],
+    'dpi': 450,
+    'verbose': 0,
+    }
 verbose = 1
 ##########################################################################################################@
 ##########################################################################################################@
@@ -40,7 +82,7 @@ class Retina:
     
             np.save(filename, self.retina_inverse_transform)
             
-        self.whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
+        self.whit = SLIP.Image(pe=args.default_param_file)
         self.whit.set_size((args.N_pic, args.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
@@ -102,8 +144,8 @@ def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
     retina = np.zeros((N_theta, N_azimuth, N_eccentricity, N_phase, N_X*N_Y))
     
     from LogGabor import LogGabor
-    parameterfile = 'https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py'
-    lg = LogGabor(parameterfile)
+    #parameterfile = 'https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py'
+    lg = LogGabor(pe=pe)#parameterfile)
     lg.set_size((N_X, N_Y))
     # params = {'sf_0': .1, 'B_sf': lg.pe.B_sf,
     #           'theta': np.pi * 5 / 7., 'B_theta': lg.pe.B_theta}
@@ -233,7 +275,7 @@ class Display:
 ##########################################################################################################@
 
 
-whit = SLIP.Image(pe='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py')
+whit = SLIP.Image(pe='../data/default_param.py')
 
 def get_data_loader(batch_size=100, train=True, mean=0.1307, std=0.3081, seed=2019):
     import torch

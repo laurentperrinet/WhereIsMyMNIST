@@ -49,6 +49,8 @@ def init(filename=None, verbose=1, log_interval=100):
                             momentum=0.1,    
                             epochs=50,
                             # simulation
+                            #default_param_file ='https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py',
+                            default_param_file ='../data/default_param.py',
                             num_processes=1,
                             no_cuda=True,
                             log_interval=log_interval, # period with which we report results for the loss
