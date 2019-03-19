@@ -82,7 +82,7 @@ class Retina:
     
             np.save(filename, self.retina_inverse_transform)
             
-        self.whit = SLIP.Image(pe=args.default_param_file)
+        self.whit = SLIP.Image(pe=pe)
         self.whit.set_size((args.N_pic, args.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
@@ -275,7 +275,7 @@ class Display:
 ##########################################################################################################@
 
 
-whit = SLIP.Image(pe='../data/default_param.py')
+whit = SLIP.Image(pe=pe)
 
 def get_data_loader(batch_size=100, train=True, mean=0.1307, std=0.3081, seed=2019):
     import torch
