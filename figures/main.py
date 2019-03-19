@@ -59,12 +59,12 @@ def init(filename=None, verbose=1, log_interval=100):
                                 )
     if filename == 'debug':
         args.filename = '../data/debug'
-        args.train_batch_size = 10
+        args.train_batch_size = 100
         args.lr = 1e-2
         #args.noise = .5
         #args.contrast = .9
         #args.p_dropout = 0.
-        args.epochs = 2
+        args.epochs = 8
         args.test_batch_size = 20
         args.minibatch_size = 22
         #args.offset_std = 8

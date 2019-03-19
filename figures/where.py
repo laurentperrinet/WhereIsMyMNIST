@@ -5,12 +5,12 @@ import torch
 torch.set_default_tensor_type('torch.FloatTensor')
 from torchvision import datasets, transforms
 from torchvision.datasets import ImageFolder
+from torch.utils.data import TensorDataset, DataLoader
 from torch.autograd import Variable
 import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
-
 from retina import Display, Retina
 
 
@@ -48,7 +48,14 @@ class Where():
         # torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
         #self.What_model.load_state_dict(torch.load(model_path))        
         #self.What_model.eval()
-
+        path = "../data/MNIST_accuracy.npy"
+        if os.path.isfile(path):
+            self.accuracy_map =  np.load(path)
+            if args.verbose:
+                print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
+        else:
+            print('No accuracy data found.')
+            
         # GPU boilerplate
         self.args.no_cuda = self.args.no_cuda or not torch.cuda.is_available()
         # if self.args.verbose: print('cuda?', not self.args.no_cuda)
@@ -57,6 +64,58 @@ class Where():
         # DATA
         self.display = Display(args)
         self.retina = Retina(args)
+        filename_dataset = '/tmp/dataset_train.pt'
+        if os.path.exists(filename_dataset):
+            self.loader_train  = torch.load(filename_dataset)
+        else:
+            # MNIST DATASET
+            from retina import get_data_loader
+            loader_full = get_data_loader(batch_size=1, train=True, mean=args.mean, std=args.std, seed=args.seed)
+            # TRAINING DATASET
+            data_fullfield = np.zeros((self.args.train_batch_size, self.args.N_pic, self.args.N_pic))
+            retina_data = np.zeros((self.args.train_batch_size, self.retina.vsize))
+            accuracy_colliculus = np.zeros((self.args.train_batch_size, self.args.N_azimuth * self.args.N_eccentricity))
+            for i, (data, label) in enumerate(loader_full):
+                if i >= self.args.train_batch_size : break
+                data_fullfield[i, :, :], i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
+                retina_data[i, :]  =  self.retina.retina(data_fullfield[i, :, :])
+                accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
+            retina_data = Variable(torch.FloatTensor(retina_data))
+            data_fullfield = Variable(torch.FloatTensor(data_fullfield))
+            accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
+            retina_data, accuracy_colliculus, data_fullfield = retina_data.to(self.device), accuracy_colliculus.to(self.device), data_fullfield.to(self.device)
+
+            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+            self.loader_train = DataLoader(TensorDataset(data_fullfield, retina_data, accuracy_colliculus), batch_size=args.minibatch_size)
+            torch.save(self.loader_train, filename_dataset)
+            
+        # TESTING DATASET
+        filename_dataset = '/tmp/dataset_test.pt'
+        if os.path.exists(filename_dataset):
+            self.loader_test  = torch.load(filename_dataset)
+        else:
+            loader_full = get_data_loader(batch_size=1, train=False, mean=args.mean, std=args.std, seed=args.seed+1)        
+            data_fullfield = np.zeros((self.args.test_batch_size, self.args.N_pic, self.args.N_pic))
+            retina_data = np.zeros((self.args.test_batch_size, self.retina.vsize))
+            accuracy_colliculus = np.zeros((self.args.test_batch_size, self.args.N_azimuth * self.args.N_eccentricity))
+            digit_labels = np.zeros((self.args.test_batch_size, 1))
+            for i, (data, label) in enumerate(loader_full):
+                if i >= self.args.test_batch_size : break
+                data_fullfield[i, :, :], i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
+                retina_data[i, :]  =  self.retina.retina(data_fullfield[i, :, :])
+                accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
+                digit_labels[i, 0] = label
+
+            retina_data = Variable(torch.FloatTensor(retina_data))
+            data_fullfield = Variable(torch.FloatTensor(data_fullfield))
+            accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
+            digit_labels = Variable(torch.FloatTensor(digit_labels))
+            retina_data, accuracy_colliculus, data_fullfield = retina_data.to(self.device), accuracy_colliculus.to(self.device), data_fullfield.to(self.device)
+
+            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+            self.loader_test = DataLoader(TensorDataset(data_fullfield, retina_data, accuracy_colliculus, digit_labels), batch_size=args.minibatch_size)
+            torch.save(self.loader_test, filename_dataset)
+
         # MODEL
         self.model = WhereNet(self.args).to(self.device)
         if not self.args.no_cuda:
@@ -72,13 +131,7 @@ class Where():
             self.optimizer = optim.SGD(self.model.parameters(),
                                     lr=self.args.lr, momentum=self.args.momentum)
 
-        path = "../data/MNIST_accuracy.npy"
-        if os.path.isfile(path):
-            self.accuracy_map =  np.load(path)
-            if args.verbose:
-                print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
-        else:
-            print('No accuracy data found.')
+
 
 
     def minibatch(self, data):
@@ -86,21 +139,22 @@ class Where():
         batch_size = data.shape[0]
         retina_data = np.zeros((batch_size, self.retina.vsize))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
-        full =[]
+        data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))        
+        positions =[]
 
         for i in range(batch_size):
             #print(i, data[i, 0, :, :].numpy().shape)
-            data_fullfield, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
-            full.append(dict(data_fullfield=data_fullfield, i_offset=i_offset, j_offset=j_offset))
+            data_fullfield[i, :, :], i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
+            positions.append(dict(i_offset=i_offset, j_offset=j_offset))
             # TODO use one shot matrix multiplication
-            retina_data[i, :]  =  self.retina.retina(data_fullfield)
+            retina_data[i, :]  =  self.retina.retina(data_fullfield[i, :, :])
             accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
 
         retina_data = Variable(torch.FloatTensor(retina_data))
         accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
         retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)
                               
-        return full, retina_data, accuracy_colliculus
+        return positions, data_fullfield, retina_data, accuracy_colliculus
 
     def extract(self, data_fullfield, i_offset, j_offset):
         mid = self.args.N_pic//2
@@ -138,15 +192,17 @@ class Where():
         j_pred = j - self.args.N_pic//2
         return i_pred, j_pred
         
-    def test_what(self, full, pred_accuracy_colliculus, label):
+    def test_what(self, data_fullfield, pred_accuracy_colliculus, label):
+        batch_size = pred_accuracy_colliculus.shape[0]
         # extract foveal images
-        im = np.zeros((self.args.test_batch_size, self.args.w, self.args.w))
-        for idx in range(self.args.test_batch_size):
+        im = np.zeros((batch_size, self.args.w, self.args.w))
+        for idx in range(batch_size):
             i_pred, j_pred = self.index_prediction(pred_accuracy_colliculus[idx, :])
-            im[idx, :, :] = self.extract(full[idx]['data_fullfield'], i_pred, j_pred)
+            im[idx, :, :] = self.extract(data_fullfield[idx, :], i_pred, j_pred)
         # classify those images
         proba = self.classify_what(im).numpy()
         pred = proba.argmax(axis=1) # get the index of the max log-probability
+        #print(im.shape, batch_size, proba.shape, pred.shape, label.shape)
         return (pred==label.numpy())*1.
         
         
@@ -186,12 +242,9 @@ class Where():
 
     def train_epoch(self, epoch, seed, rank=0):
         torch.manual_seed(seed + epoch + rank*self.args.epochs)
-        for batch_idx, (data, label) in enumerate(self.display.loader_train):
+        for batch_idx, (data_fullfield, retina_data, accuracy_colliculus) in enumerate(self.loader_train):
             # Clear all accumulated gradients
             self.optimizer.zero_grad()
-            
-            # get a minibatch of the same digit at different positions and noises
-            full, retina_data, accuracy_colliculus = self.minibatch(data)
             
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
@@ -202,31 +255,21 @@ class Where():
             # Adjust parameters according to the computed gradients
             self.optimizer.step()
             
-            # stops prematurely (for testing purposes)
-            if batch_idx > self.args.train_batch_size : break
-            
         return loss.item()
 
     def test(self, dataloader=None):
         if dataloader is None:
-            dataloader = self.display.loader_test
+            dataloader = self.loader_test
         self.model.eval()
         accuracy = []
         correct = 0
-        for batch_idx, (data, label) in enumerate(dataloader):
-            # get a minibatch of the same digit at different positions and noises
-            full, retina_data, accuracy_colliculus = self.minibatch(data)
-            
+        for batch_idx, (data_fullfield, retina_data, accuracy_colliculus, digit_labels) in enumerate(dataloader):
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
-            
             # transform in a probability in collicular coordinates
             pred_accuracy_colliculus = F.sigmoid(prediction).detach().numpy()
-            
-            accuracy.append(self.test_what(full, pred_accuracy_colliculus, label).mean())
-
-            # stops prematurely (for testing purposes)
-            if batch_idx > self.args.test_batch_size : break
+            #print(self.test_what(data_fullfield, pred_accuracy_colliculus, label))
+            accuracy.append(self.test_what(data_fullfield, pred_accuracy_colliculus, digit_labels).mean())
                 
         return np.mean(accuracy)
 
