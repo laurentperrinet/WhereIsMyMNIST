@@ -25,7 +25,7 @@ def init(filename=None, verbose=1, log_interval=100):
                             # display
                             N_pic = 128,
                             offset_std = 30, #
-                            offset_max = 35, #
+                            offset_max = 44, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
                             noise=.7, #0 #
                             contrast=0.8, #1 #
                             sf_0=0.2,
@@ -73,9 +73,10 @@ def init(filename=None, verbose=1, log_interval=100):
     return args
 
 class MetaML:
-    def __init__(self, args, base = 2, N_scan = 9, tag='', verbose=0, log_interval=0):
+    def __init__(self, args, base = 2, N_scan = 9, tag='', verbose=0, log_interval=0, do_compute=True):
         self.args = args
         self.seed = args.seed
+        self.do_compute = do_compute
 
         self.base = base
         self.N_scan = N_scan
@@ -114,7 +115,7 @@ class MetaML:
             path = os.path.join(self.scan_folder, filename)
             print ('For parameter', parameter, '=', value_str, ', ', end=" ")
             if not(os.path.isfile(path + '_lock')):
-                if not(os.path.isfile(path)):
+                if not(os.path.isfile(path)) and self.do_compute:
                     open(path + '_lock', 'w').close()
                     try:
                         args = easydict.EasyDict(self.args.copy())

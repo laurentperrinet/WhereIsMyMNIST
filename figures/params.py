@@ -9,14 +9,17 @@ print(' parameter scan')
 print(50*'-')
 
 args = init(**opts)
+args.do_compute = False
+
 from where import Where as ML
 from what import WhatNet
-ml = ML(args)
+
 if False:
     print(50*'-')
     print('Default parameters')
     print(50*'-')
 
+    ml = ML(args)
     ml.train(path=args.filename)
     # ml.main(path=args.filename)
 
@@ -46,17 +49,6 @@ for base in [2, 8] if not args.filename == '../data/debug' else [2]:
 
 
     print(50*'-')
-    print(' parameter scan : retina')
-    print(50*'-')
-    args = init(**opts)
-    mml = MetaML(args)
-    for parameter in ['N_theta',
-                      'N_azimuth',
-                      'N_eccentricity',
-                      'rho']:
-        mml.parameter_scan(parameter)
-        
-    print(50*'-')
     print(' parameter scan : network')
     print(50*'-')
     args = init(**opts)
@@ -85,3 +77,14 @@ for base in [2, 8] if not args.filename == '../data/debug' else [2]:
     for parameter in ['lr', 'momentum', 'minibatch_size', 'epochs']:
         mml.parameter_scan(parameter)
 
+    print(50*'-')
+    print(' parameter scan : retina')
+    print(50*'-')
+    args = init(**opts)
+    mml = MetaML(args)
+    for parameter in ['N_theta',
+                      'N_azimuth',
+                      'N_eccentricity',
+                      'rho']:
+        mml.parameter_scan(parameter)
+        
