@@ -14,8 +14,10 @@
 \newcommand{\AuthorED}{Emmanuel Dauc\'e}%
 \newcommand{\AuthorLP}{Laurent Perrinet}%
 \newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS / Aix-Marseille Universit\'e - Marseille, France}%
-\newcommand{\WebsiteLP}{http://invibe.net/LaurentPerrinet}%
+\newcommand{\WebsiteLP}{https://laurentperrinet.github.io/}%
 \newcommand{\EmailLP}{Laurent.Perrinet@univ-amu.fr}%
+\newcommand{\orcidLP}{0000-0002-9536-010X}%
+
 \newcommand{\Title}{
 %%Tentative titles :
 %Looking where it is worth looking
@@ -25,12 +27,12 @@ Learning where to look: a foveated visuomotor control model
 % Learning where it is worth looking at
 %Where is My MNIST?
 }
-\newcommand{\Acknowledgments}{ XXX FRM ... - code and material @ \url{\Website/Publications/XXX}. TODO: RIck + Karl + Laurent Madelain }
+\newcommand{\Acknowledgments}{ XXX FRM ... - code and material @ .... TODO: RIck + Karl + Laurent Madelain }
 \newcommand{\Abstract}{
 \input{abstract}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[10pt,a4paper]{article}
+\documentclass[10pt,a4paper]{llncs}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 
@@ -51,9 +53,11 @@ Learning where to look: a foveated visuomotor control model
 
 %opening
 \title{
-\Title
+\Title \thanks{\Acknowledgments }
 }
-\author{\AuthorED \and \AuthorPA \and \AuthorLP  }
+\author{\AuthorED \inst{1}\orcidID{0000-1111-2222-3333} \and \AuthorPA \inst{1,2} \and \AuthorLP \inst{2}\orcidID{\orcidLP }  }
+\institute{<name of an institute1> 
+\and \Address \email{\EmailLP} \url{\WebsiteLP } }
 \date{}
 %============ bibliography ===================
 %\usepackage[numbers,comma,sort&compress,round]{natbib} %
@@ -104,6 +108,7 @@ backend=bibtex,
 
 \begin{abstract}
 \Abstract
+\keywords{First keyword \and Second keyword \and Third keyword}
 \end{abstract}
 
 \newpage
