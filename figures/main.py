@@ -6,7 +6,7 @@ import easydict
 from what import WhatNet
 from where import Where as ML
 
-def init(filename=None, verbose=1, log_interval=100):
+def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     if filename is None:
         import datetime
         filename = '../data/' + datetime.datetime.now().date().isoformat()
@@ -16,7 +16,7 @@ def init(filename=None, verbose=1, log_interval=100):
     args = easydict.EasyDict(
                             # MNIST
                             w=28,
-                            minibatch_size=100, # batcch size
+                            minibatch_size=100, # batch size
                             train_batch_size=50000, # size of training set
                             test_batch_size=5000,  # size of testing set
                             noise_batch_size=1000, 
@@ -25,9 +25,9 @@ def init(filename=None, verbose=1, log_interval=100):
                             # display
                             N_pic = 128,
                             offset_std = 30, #
-                            offset_max = 44, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
-                            noise=.7, #0 #
-                            contrast=0.8, #1 #
+                            offset_max = 34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
+                            noise=1., #0 #
+                            contrast=1., #
                             sf_0=0.2,
                             B_sf=0.3,
                             # foveation
@@ -38,16 +38,16 @@ def init(filename=None, verbose=1, log_interval=100):
                             rho = 1.41,
                             # network
                             bias_deconv=True,
-                            p_dropout=.5,
-                            dim1=1000,
-                            dim2=1000,
+                            p_dropout=.0,
+                            dim1=500,
+                            dim2=2000,
                             # training
-                            lr = 1e-4, #1e-3  #0.05
+                            lr = 1e-3,  # Learning rate
                             do_adam=True,
-                            bn1_bn_momentum=0.,
-                            bn2_bn_momentum=0.,
-                            momentum=0.1,    
-                            epochs=50,
+                            bn1_bn_momentum=0.5,
+                            bn2_bn_momentum=0.2,
+                            momentum=0.3,
+                            epochs=25,
                             # simulation
                             num_processes=1,
                             no_cuda=True,
@@ -55,7 +55,8 @@ def init(filename=None, verbose=1, log_interval=100):
                             verbose=verbose,
                             filename=filename,
                             seed=2019,
-                            N_cv=2,
+                            N_cv=4,
+                            do_compute=do_compute,
                                 )
     if filename == 'debug':
         args.filename = '../data/debug'

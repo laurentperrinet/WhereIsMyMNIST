@@ -1,7 +1,7 @@
 import torch
 from main import init, MetaML
 
-opts = dict(filename='../data/2019-03-16', verbose=0, log_interval=0)
+opts = dict(filename='../data/2019-03-16', verbose=0, log_interval=0, do_compute=False)
 #opts = dict(filename='debug', verbose=0, log_interval=0)
 
 print(50*'-')
@@ -9,16 +9,13 @@ print(' parameter scan')
 print(50*'-')
 
 args = init(**opts)
-args.do_compute = False
 
-from where import Where as ML
-from what import WhatNet
-
-if False:
+if True:
     print(50*'-')
     print('Default parameters')
     print(50*'-')
-
+    from where import Where as ML
+    from what import WhatNet
     ml = ML(args)
     ml.train(path=args.filename)
     # ml.main(path=args.filename)

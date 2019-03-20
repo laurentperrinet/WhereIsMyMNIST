@@ -139,13 +139,12 @@ class Retina:
 ######################
 
 def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
-                  N_X=128, N_Y=128, rho=1.41, ecc_max=.8, B_sf=.4, B_theta=np.pi/12):
+                  N_X=128, N_Y=128, rho=1.41, ecc_max=.8, sf_0_max=0.45, sf_0_r=0.03, B_sf=.4, B_theta=np.pi/12):
     
     retina = np.zeros((N_theta, N_azimuth, N_eccentricity, N_phase, N_X*N_Y))
     
     from LogGabor import LogGabor
-    #parameterfile = 'https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py'
-    lg = LogGabor(pe=pe)#parameterfile)
+    lg = LogGabor(pe=pe)
     lg.set_size((N_X, N_Y))
     # params = {'sf_0': .1, 'B_sf': lg.pe.B_sf,
     #           'theta': np.pi * 5 / 7., 'B_theta': lg.pe.B_theta}
@@ -161,7 +160,9 @@ def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
                 #psi = i_azimuth * np.pi * 2 / N_azimuth
                 psi = (i_azimuth + 1 * (i_eccentricity % 2)*.5) * np.pi * 2 / N_azimuth
                 theta_ref = i_theta*np.pi/N_theta
-                sf_0 = 0.5 * 0.03 / ecc
+                sf_0 = 0.5 * sf_0_r / ecc
+                sf_0 = np.min((sf_0, .45))
+                # TODO : find the good ref for this                print(sf_0)
                 x = N_X/2 + r * np.cos(psi)
                 y = N_Y/2 + r * np.sin(psi)
                 for i_phase in range(N_phase):
@@ -309,6 +310,7 @@ def do_offset(data, i_offset, j_offset, N_pic, data_min=None):
         data_min = data.min()
         
     data_fullfield = data_min * np.ones((N_pic, N_pic))
+    #print(data.shape, center+N_stim, i_offset, j_offset)
     data_fullfield[int(center+i_offset):int(center+N_stim+i_offset), int(center+j_offset):int(center+N_stim+j_offset)] = data
     return data_fullfield
     
