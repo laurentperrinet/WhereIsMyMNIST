@@ -10,7 +10,7 @@ print(50*'-')
 
 args = init(**opts)
 
-if True:
+if False:
     print(50*'-')
     print('Default parameters')
     print(50*'-')
@@ -20,6 +20,8 @@ if True:
     ml.train(path=args.filename)
     # ml.main(path=args.filename)
 
+from where import Where as ML
+from what import WhatNet
 if True:
     args = init(**opts)
     mml = MetaML(args)
