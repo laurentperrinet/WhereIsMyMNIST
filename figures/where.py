@@ -17,19 +17,19 @@ from retina import Display, Retina
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
         super(WhereNet, self).__init__()
-        self.args = args       
+        self.args = args
         self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
         self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
         self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
         self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
         self.bn3 = torch.nn.Linear(args.dim2, args.N_azimuth*args.N_eccentricity, bias=args.bias_deconv)
-                
-    def forward(self, image):  
-        x = F.relu(self.bn1(image))  
+
+    def forward(self, image):
+        x = F.relu(self.bn1(image))
         if self.args.bn1_bn_momentum>0: x = self.bn1_bn(x)
         x = F.relu(self.bn2(x))
-        if self.args.p_dropout>0: x = F.dropout(x, p=self.args.p_dropout) 
+        if self.args.p_dropout>0: x = F.dropout(x, p=self.args.p_dropout)
         if self.args.bn2_bn_momentum>0: x = self.bn2_bn(x)
         x = self.bn3(x)
         return x
@@ -48,7 +48,7 @@ class Where():
         #model = torch.load(model_path)
         #self.What_model = WhatNet()
         # torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
-        #self.What_model.load_state_dict(torch.load(model_path))        
+        #self.What_model.load_state_dict(torch.load(model_path))
         #self.What_model.eval()
         path = "../data/MNIST_accuracy.npy"
         if os.path.isfile(path):
@@ -57,13 +57,13 @@ class Where():
                 print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
         else:
             print('No accuracy data found.')
-            
+
         # GPU boilerplate
         self.args.no_cuda = self.args.no_cuda or not torch.cuda.is_available()
         # if self.args.verbose: print('cuda?', not self.args.no_cuda)
         self.device = torch.device("cpu" if self.args.no_cuda else "cuda")
         torch.manual_seed(self.args.seed)
-        
+
         # DATA
         suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
         suffix += f'_{self.args.noise}_{self.args.contrast}'
@@ -95,13 +95,13 @@ class Where():
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_train = DataLoader(TensorDataset(retina_data, accuracy_colliculus), batch_size=args.minibatch_size)
             torch.save(self.loader_train, filename_dataset)
-            
+
         # TESTING DATASET
         filename_dataset = f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
         if os.path.exists(filename_dataset):
             self.loader_test  = torch.load(filename_dataset)
         else:
-            loader_full = get_data_loader(batch_size=1, train=False, mean=args.mean, std=args.std, seed=args.seed+1)        
+            loader_full = get_data_loader(batch_size=1, train=False, mean=args.mean, std=args.std, seed=args.seed+1)
             data_fullfield = np.zeros((self.args.test_batch_size, self.args.N_pic, self.args.N_pic))
             retina_data = np.zeros((self.args.test_batch_size, self.retina.vsize))
             accuracy_colliculus = np.zeros((self.args.test_batch_size, self.args.N_azimuth * self.args.N_eccentricity))
@@ -142,7 +142,7 @@ class Where():
         batch_size = data.shape[0]
         retina_data = np.zeros((batch_size, self.retina.vsize))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
-        data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))        
+        data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         positions =[]
 
         for i in range(batch_size):
@@ -156,7 +156,7 @@ class Where():
         retina_data = Variable(torch.FloatTensor(retina_data))
         accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
         retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)
-                              
+
         return positions, data_fullfield, retina_data, accuracy_colliculus
 
     def extract(self, data_fullfield, i_offset, j_offset):
@@ -169,7 +169,7 @@ class Where():
         im = np.clip(im, 0.5, 1)
         im = (im-.5)*2
         return im
-    
+
     def classify_what(self, im):
         im = (im-self.args.mean)/self.args.std
         if im.ndim ==2:
@@ -178,26 +178,26 @@ class Where():
             im = Variable(torch.FloatTensor(im[:, None, ::]))
         with torch.no_grad():
             output = self.What_model(im)
-            
+
         return np.exp(output)
-        
-        
+
+
     def pred_accuracy(self, retina_data):
         # Predict classes using images from the train set
-        #retina_data = Variable(torch.FloatTensor(retina_data))        
+        #retina_data = Variable(torch.FloatTensor(retina_data))
         prediction = self.model(retina_data)
         # transform in a probability in collicular coordinates
         pred_accuracy_colliculus = F.sigmoid(prediction).detach().numpy()
         return pred_accuracy_colliculus
-        
+
     def index_prediction(self, pred_accuracy_colliculus):
-        im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)    
+        im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
         # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html
         i, j = np.unravel_index(np.argmax(im_colliculus.ravel()), im_colliculus.shape)
         i_pred = i - self.args.N_pic//2
         j_pred = j - self.args.N_pic//2
         return i_pred, j_pred
-        
+
     def test_what(self, data_fullfield, pred_accuracy_colliculus, digit_labels):
         batch_size = pred_accuracy_colliculus.shape[0]
         # extract foveal images
@@ -210,8 +210,8 @@ class Where():
         pred = proba.argmax(axis=1) # get the index of the max log-probability
         #print(im.shape, batch_size, proba.shape, pred.shape, label.shape)
         return (pred==digit_labels.numpy())*1.
-        
-        
+
+
     def train(self, path=None, seed=None):
         if not path is None:
             # using a data_cache
@@ -230,7 +230,7 @@ class Where():
             # setting up training
             if seed is None:
                 seed = self.args.seed
-                
+
             self.model.train() # set training mode
             for epoch in tqdm(range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
                 loss = self.train_epoch(epoch, seed, rank=0)
@@ -251,16 +251,18 @@ class Where():
         for retina_data, accuracy_colliculus in self.loader_train:
             # Clear all accumulated gradients
             self.optimizer.zero_grad()
-            
+
             # Predict classes using images from the train set
             prediction = self.model(retina_data)
             # Compute the loss based on the predictions and actual labels
             loss = self.loss_func(prediction, accuracy_colliculus)
+            # TODO try with the reverse divergence
+            # loss = self.loss_func(accuracy_colliculus, prediction)
             # Backpropagate the loss
             loss.backward()
             # Adjust parameters according to the computed gradients
             self.optimizer.step()
-            
+
         return loss.item()
 
     def test(self, dataloader=None):
@@ -273,7 +275,7 @@ class Where():
             # use that predicted map to extract the foveal patch and classify the image
             correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
             accuracy.append(correct.mean())
-                
+
         return np.mean(accuracy)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
