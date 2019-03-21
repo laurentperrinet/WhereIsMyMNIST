@@ -102,7 +102,7 @@ class MetaML:
         Accuracy = np.hstack((Accuracy, [t1]))
         return Accuracy
 
-    def scan(self, parameter, values):
+    def scan(self, parameter, values, verbose=True):
         import os
         print('scanning over', parameter, '=', values)
         seed = self.seed
@@ -129,11 +129,12 @@ class MetaML:
                 else:
                     Accuracy[value] = np.load(path)
 
-                try:
-                    print('Accuracy={:.1f}% +/- {:.1f}%'.format(Accuracy[value][:-1].mean()*100, Accuracy[value][:-1].std()*100),
-                  ' in {:.1f} seconds'.format(Accuracy[value][-1]))
-                except Exception as e:
-                    print('Failed with error', e)
+                if verbose:
+                    try:
+                        print('Accuracy={:.1f}% +/- {:.1f}%'.format(Accuracy[value][:-1].mean()*100, Accuracy[value][:-1].std()*100),
+                      ' in {:.1f} seconds'.format(Accuracy[value][-1]))
+                    except Exception as e:
+                        print('Failed with error', e)
 
             else:
                 print(' currently locked with ', path + '_lock')
@@ -144,15 +145,17 @@ class MetaML:
         if parameter in ['bn1_bn_momentum', 'bn2_bn_momentum', 'p_dropout']:
             values = np.linspace(0, 1, self.N_scan, endpoint=True)
         else:
-            values = self.args[parameter] * np.logspace(-1, 1, self.N_scan, base=self.base)
+            values = self.args[parameter] * np.logspace(-1, 1, self.N_scan, base=self.base, endpoint=True)
         if isinstance(self.args[parameter], int):
             # print('integer detected') # DEBUG
             values =  [int(k) for k in values]
-        Accuracy = self.scan(parameter, values)
+            
+        accuracies = self.scan(parameter, values)
+        print('accuracies=', accuracies)
         if display:
             fig, ax = plt.subplots(figsize=(8, 5))
-
-        return Accuracy
+            # TODO
+        return accuracies
 
 
 if __name__ == '__main__':
