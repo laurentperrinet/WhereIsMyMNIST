@@ -65,14 +65,14 @@ class Where():
         torch.manual_seed(self.args.seed)
 
         # DATA
-        suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
-        suffix += f'_{self.args.noise}_{self.args.contrast}'
-        suffix += f'_{self.args.offset_std}_{self.args.offset_max}'
-        suffix += f'_{self.args.N_theta}_{self.args.N_azimuth}'
-        suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
-        suffix += f'_{self.args.rho}_{self.args.N_pic}'
+        suffix = '_%.3f_%.3f' % (self.args.sf_0, self.args.B_sf) #f'_{self.args.sf_0}_{self.args.B_sf}'
+        suffix += '_%.3f_%.3f' % (self.args.noise, self.args.contrast) #f'_{self.args.noise}_{self.args.contrast}'
+        suffix += '_%.3f_%.3f' % (self.args.offset_std, self.args.offset_max) #f'_{self.args.offset_std}_{self.args.offset_max}'
+        suffix += '_%d_%d' % (self.args.N_theta, self.args.N_azimuth) #f'_{self.args.N_theta}_{self.args.N_azimuth}'
+        suffix += '_%d_%d' % (self.args.N_eccentricity, self.args.N_phase) #f'_{self.args.N_eccentricity}_{self.args.N_phase}'
+        suffix += '_%.3f_%d' % (self.args.rho, self.args.N_pic) #f'_{self.args.rho}_{self.args.N_pic}'
         # TRAINING DATASET
-        filename_dataset = f'/tmp/dataset_train_{suffix}_{self.args.train_batch_size}.pt'
+        filename_dataset = '/tmp/dataset_train' + suffix + '_%d.pt'% self.args.train_batch_size #f'/tmp/dataset_train_{suffix}_{self.args.train_batch_size}.pt'
         if os.path.exists(filename_dataset):
             self.loader_train  = torch.load(filename_dataset)
         else:
@@ -97,7 +97,7 @@ class Where():
             torch.save(self.loader_train, filename_dataset)
 
         # TESTING DATASET
-        filename_dataset = f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
+        filename_dataset = filename_dataset = '/tmp/dataset_test' + suffix + '_%d.pt'% self.args.test_batch_size #f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
         if os.path.exists(filename_dataset):
             self.loader_test  = torch.load(filename_dataset)
         else:
