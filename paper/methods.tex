@@ -41,18 +41,18 @@ Next, the effect of a saccade is mainly to shift the visual field from one place
 It is worth noting that active inference needs either the current identity $y$ or the current eye direction $u$ to be readable from the present view, in order to effectively predict future inferences, through computationally intensive predictions.
 Instead of doing predictions from a generative model, better off is to form a statistics over the (scene understanding) benefit obtained from past saccades in the same context, that is forming an \emph{accuracy map} from the current view. This is the essence of \emph{sampling-based metric prediction}.
 
-In detail, modeling the full sequence of operations that lead to both estimate $p(U'|x')$ and $p(Y|x')$ means predicting the future visual fields, that is tremendously costly. 
+In detail, modeling the full sequence of operations that lead to both estimate $p(U'|x')$ and $p(Y|x')$ means predicting the future visual field $x'$ over all possible saccades, that is tremendously costly. 
 It is worth instead to condense the putative effect of every saccade in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
-from the current observation. If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the categorical classifier over $\tilde{\boldsymbol{x}}$ can either be correct (1) or incorrect (0).
+from the current observation. If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the categorical classifier over $x'$ can either be correct (1) or incorrect (0).
 If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ forms a probability, i.e. a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
 % when issuing a saccade $a$ after seeing $\boldsymbol{x}$ (the initial visual field).
-It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|\tilde{\boldsymbol{x}})$, including the update of the eye direction, that is a sample of the ``real'' generative process.
+It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
 
 To sum up, a main assumption here is that instead of trying to detect the actual position of the target, it is better for the agent to estimate how accurate the categorical classifier will be after moving the eye. This forms an accuracy map that may be learned through trials and errors, by actuating saccades after processing the visual input, and taking the final classification success or failure as a teaching signal.
 
 Such a \emph{predictive accuracy map} is assumed to be the core of a realistic saccade-based vision system.
 Note that compared to a brute force approach which would test for all possible positions, this map should compress the information, as exemplified by a retinotopic map. The map should be mostly organized radially, preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
-The operations that transform the initial primary visual data should thus preserve the initial spatial information, so as to form the final  retinotopic accuracy map. ccordingly with the intial data, a retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery. 
+The operations that transform the initial primary visual data should thus preserve the initial spatial compression, so as to form the final  retinotopic accuracy map. Accordingly with the initial data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery. 
 %and telling how accurate the categorical classifier will be after the saccade is carried out~\citep{Dauce18}. %The set of all possible saccade predictions should
 Each different initial visual field may come with a different accuracy map, indirectly conveying information about the target retinotopic position. 
 
