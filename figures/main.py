@@ -32,7 +32,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                             B_sf=0.3,
                             # foveation
                             N_theta = 6,
-                            N_azimuth = 16,
+                            N_azimuth = 26,
                             N_eccentricity = 10,
                             N_phase = 2,
                             rho = 1.41,
@@ -46,7 +46,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                             do_adam=True,
                             bn1_bn_momentum=0.5,
                             bn2_bn_momentum=0.2,
-                            momentum=0.3,
+                            momentum=0.1,
                             epochs=25,
                             # simulation
                             num_processes=1,
@@ -55,7 +55,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                             verbose=verbose,
                             filename=filename,
                             seed=2019,
-                            N_cv=4,
+                            N_cv=8,
                             do_compute=do_compute,
                                 )
     if filename == 'debug':
@@ -151,7 +151,7 @@ class MetaML:
             values =  [int(k) for k in values]
             
         accuracies = self.scan(parameter, values)
-        print('accuracies=', accuracies)
+        # print('accuracies=', accuracies)
         if display:
             fig, ax = plt.subplots(figsize=(8, 5))
             # TODO
