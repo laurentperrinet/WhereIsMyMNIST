@@ -57,6 +57,17 @@ The operations that transform the initial primary visual data should thus preser
 Finally, each different initial visual field may come with a different accuracy map, indirectly conveying information about the target retinotopic position. 
 A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus {\bf [ref needed]}.
 
+\paragraph{Information gain and the inhibition of return}
+From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by an \emph{information gain}, namely:
+\begin{align}
+\text{IG}_\text{max} &= \max_{u'} \log p(y|u',x',x, u) - \log p(y|x, u)\\
+          &\simeq \max_{u'} \log p(y|x') - \log p(y|x)
+\end{align}
+with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the 'what' pathway. The accuracy gain may be averaged over many saccades and many initial eccentricities (so that the information gain may be close to zero when the initial $u$ is very central). 
+
+For the saccade is subject to predictions errors and execution noise, the actual $u'$ may be different from the initial prediction. The final accuracy, as instantiated in the accuracy map, contains this intrinsic imprecision, and is thus necessary lower than the optimal one. The consequence is that in some cases, the approximate information gain may become negative, when the future accuracy is actually lower than the current one. This is for instance the case when the target is centered on the fovea.  This should encourage the agent to select a saccade ``away'' from the central position, which is reminiscent of a well-known phenomenon in vision known as the ``inhibition of return''~\citep{Itti01}. Combining accuracy predictions from each pathway may thus allow to refine saccades selection in a way that complies with biological vision.   
+
+
 %Our main argument is that such an accuracy map is trainable in a rather straightforward way, 
 
 To test the validity of our hypothesis, let us find a %it is necessary to find at least one 
@@ -86,7 +97,7 @@ We define here the generative model for input display images as shown first in F
 Samples are drawn from a database of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``where'' network).
 \paragraph{Full-scale images.} Each sample position is draw a random in a full-scale image of size $128\times 128$. To enforce isotropic saccades, a centered circular mask covering the image (of radius $64$ pixels) is defined, and the position is such that the embedded sample fits entirely into that circular mask.
 \paragraph{Background noise setting. } To implement a realistic background noise, we generate synthetic textures~\citep{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image. 
-The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters. One controls the median spatial frequency $sf_0$ of the noise, while the other controls the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of random white noise image. Finally, these images are rectified to have a normalized contrast.
+The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency $sf_0$ of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. Finally, these images are rectified to have a normalized contrast.
 \paragraph{Mixing the signal and the noise. } Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
 %
 \subsection{Interoceptive generative model}
