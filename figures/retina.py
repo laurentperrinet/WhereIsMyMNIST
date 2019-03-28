@@ -63,11 +63,13 @@ class Retina:
             filename = '/tmp/retina' + suffix + '_transform.npy'
             self.retina_transform = np.load(filename)
         except:
+            print('Retina vectorizing...')
             self.retina_transform = vectorization(self.args.N_theta, self.args.N_azimuth,
                                                   self.args.N_eccentricity, 
                                                   self.args.N_phase, 
                                                   self.args.N_pic, self.args.N_pic, 
                                                   self.args.rho)
+            print('Done!')
             np.save(filename, self.retina_transform)
             
         self.vsize =  self.args.N_theta*self.args.N_azimuth*self.args.N_eccentricity*self.args.N_phase 
@@ -78,8 +80,10 @@ class Retina:
             self.retina_inverse_transform = np.load(filename)
         except:
             #self.retina_inverse_transform = retina_inverse(self.retina_transform)
+            print('Inversing retina transform...')
             self.retina_inverse_transform = np.linalg.pinv(self.retina_transform_vector)
     
+            print('Done!')
             np.save(filename, self.retina_inverse_transform)
             
         self.whit = SLIP.Image(pe=pe)
@@ -259,7 +263,7 @@ class Display:
     
     def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
-        if radius is None: radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
+        if radius is None: radius = minmax(np.abs(np.random.randn()) * self.args.offset_std, self.args.offset_max)
         if theta is None: theta = np.random.rand() * np.pi
         if i_offset is None: i_offset = int(radius * np.cos(theta))
         if j_offset is None: j_offset = int(radius * np.sin(theta))

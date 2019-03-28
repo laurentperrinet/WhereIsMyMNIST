@@ -18,22 +18,22 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                             w=28,
                             minibatch_size=100, # batch size
                             train_batch_size=50000, # size of training set
-                            test_batch_size=5000,  # size of testing set
+                            test_batch_size=10000,  # size of testing set
                             noise_batch_size=1000, 
                             mean=0.1307, 
                             std=0.3081, 
                             # display
                             N_pic = 128,
-                            offset_std = 30, #
-                            offset_max = 34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
+                            offset_std = 15, #30, #
+                            offset_max = 30, #34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
                             noise=1., #0 #
-                            contrast=1., #
+                            contrast=0.3, #
                             sf_0=0.2,
                             B_sf=0.3,
                             # foveation
                             N_theta = 6,
-                            N_azimuth = 26,
-                            N_eccentricity = 10,
+                            N_azimuth = 16, #26,
+                            N_eccentricity = 8, #10,
                             N_phase = 2,
                             rho = 1.41,
                             # network
