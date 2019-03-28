@@ -47,10 +47,10 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 # network
                                 bias_deconv=True,
                                 p_dropout=.0,
-                                dim1=500,
-                                dim2=2000,
+                                dim1=382,
+                                dim2=2618,
                                 # training
-                                lr = 5e-3,  # Learning rate
+                                lr=5e-3,  # Learning rate
                                 do_adam=True,
                                 bn1_bn_momentum=0.5,
                                 bn2_bn_momentum=0.2,
