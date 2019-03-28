@@ -50,8 +50,7 @@ def update_results(results, parameter, accuracies, ci=0.01):
         try:
             a1, b1, loc1, scale1 = beta.fit(accuracies[value][:-1], floc=0, fscale=1)
             p_low, p_sup = beta.ppf([ci, 1-ci], a=a1, b=b1)
-            print(p_low, p_sup)
-            
+            #print(p_low, p_sup)
             results[parameter]['p_low'].append(p_low*100)
             results[parameter]['p_sup'].append(p_sup*100)
         except:
