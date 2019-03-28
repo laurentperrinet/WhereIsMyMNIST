@@ -12,64 +12,9 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
         filename = '../data/' + datetime.datetime.now().date().isoformat()
         print('Using filename=', filename)
 
+    import json
+    filename_json = filename + '_param.json'
     
-    args = easydict.EasyDict(
-                            # MNIST
-                            w=28,
-                            minibatch_size=100, # batch size
-                            train_batch_size=50000, # size of training set
-                            test_batch_size=10000,  # size of testing set
-                            noise_batch_size=1000, 
-                            mean=0.1307, 
-                            std=0.3081, 
-                            # display
-                            N_pic = 128,
-                            offset_std = 15, #30, #
-                            offset_max = 30, #34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
-                            noise=1., #0 #
-                            contrast=0.3, #
-                            sf_0=0.2,
-                            B_sf=0.3,
-                            # foveation
-                            N_theta = 6,
-                            N_azimuth = 16, #26,
-                            N_eccentricity = 8, #10,
-                            N_phase = 2,
-                            rho = 1.41,
-                            # network
-                            bias_deconv=True,
-                            p_dropout=.0,
-                            dim1=500,
-                            dim2=2000,
-                            # training
-                            lr = 1e-3,  # Learning rate
-                            do_adam=True,
-                            bn1_bn_momentum=0.5,
-                            bn2_bn_momentum=0.2,
-                            momentum=0.1,
-                            epochs=25,
-                            # simulation
-                            num_processes=1,
-                            no_cuda=True,
-                            log_interval=log_interval, # period with which we report results for the loss
-                            verbose=verbose,
-                            filename=filename,
-                            seed=2019,
-                            N_cv=8,
-                            do_compute=do_compute,
-                                )
-    if filename == 'debug':
-        args.filename = '../data/debug'
-        args.train_batch_size = 100
-        args.lr = 1e-2
-        #args.noise = .5
-        #args.contrast = .9
-        #args.p_dropout = 0.
-        args.epochs = 8
-        args.test_batch_size = 20
-        args.minibatch_size = 22
-        #args.offset_std = 8
-        args.N_cv = 2
 
     return args
 
