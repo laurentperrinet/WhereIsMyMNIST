@@ -40,11 +40,24 @@ if True:
 
 results = {}
     
-def update_results(results, parameter, accuracies):
-    if not parameter in results.keys(): results[parameter] = dict(value=[], accuracy=[])
+def update_results(results, parameter, accuracies, ci=0.01):
+    from scipy.stats import beta
+
+    if not parameter in results.keys(): results[parameter] = dict(value=[], accuracy=[], p_low=[], p_sup=[])
     for value in accuracies.keys():
         results[parameter]['value'].append(value)
         results[parameter]['accuracy'].append(accuracies[value][:-1].mean()*100)
+        try:
+            a1, b1, loc1, scale1 = beta.fit(accuracies[value][:-1], floc=0, fscale=1)
+            p_low, p_sup = beta.ppf([ci, 1-ci], a=a1, b=b1)
+            print(p_low, p_sup)
+            
+            results[parameter]['p_low'].append(p_low*100)
+            results[parameter]['p_sup'].append(p_sup*100)
+        except:
+            results[parameter]['p_low'].append(accuracies[value][:-1].mean()*100)
+            results[parameter]['p_sup'].append(accuracies[value][:-1].mean()*100)
+        
     return results
             
 for base in [2] if not args.filename == '../data/debug' else [2]:

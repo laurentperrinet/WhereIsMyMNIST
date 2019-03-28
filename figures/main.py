@@ -18,6 +18,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     if os.path.isfile(filename_json):
         with open(filename_json, 'r') as fp:
             args = json.load(fp)
+            args = easydict.EasyDict(args)
         
     else:
         args = easydict.EasyDict(
