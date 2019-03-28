@@ -1,9 +1,11 @@
 import os
 import torch
 from main import init, MetaML
-
+from where import Where as ML
+from what import WhatNet
+        
 import sys
-opts = dict(filename='../data/2019-03-16', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
+opts = dict(filename='../data/2019-03-27', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
 #opts = dict(filename='debug', verbose=0, log_interval=0)
 
 print(50*'-')
@@ -12,7 +14,7 @@ print(50*'-')
 
 if True:
     args = init(**opts)
-    args.filename = '../data/2019-03-19'
+    #args.filename = '../data/2019-03-27'
     filename_train = args.filename + '_train.pt'
     if not(os.path.isfile(filename_train + '_lock')):
         open(filename_train + '_lock', 'w').close()
@@ -45,7 +47,7 @@ def update_results(results, parameter, accuracies):
         results[parameter]['accuracy'].append(accuracies[value][:-1].mean()*100)
     return results
             
-for base in [2, 8] if not args.filename == '../data/debug' else [2]:
+for base in [2] if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     print(' base=', base)
     print(50*'-')
@@ -55,7 +57,7 @@ for base in [2, 8] if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     args = init(**opts)
     mml = MetaML(args, base=base)
-    for parameter in ['sf_0', 'B_sf', 'offset_std', 'contrast']: # , 'noise'
+    for parameter in ['sf_0', 'B_sf', 'offset_std' , 'noise']: #, 'contrast'
         accuracies = mml.parameter_scan(parameter)
         results = update_results(results, parameter, accuracies)
         

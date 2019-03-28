@@ -198,12 +198,15 @@ class Where():
         j_pred = j - self.args.N_pic//2
         return i_pred, j_pred
 
-    def test_what(self, data_fullfield, pred_accuracy_colliculus, digit_labels):
+    def test_what(self, data_fullfield, pred_accuracy_colliculus, digit_labels, do_control=False):
         batch_size = pred_accuracy_colliculus.shape[0]
         # extract foveal images
         im = np.zeros((batch_size, self.args.w, self.args.w))
         for idx in range(batch_size):
-            i_pred, j_pred = self.index_prediction(pred_accuracy_colliculus[idx, :])
+            if do_control:
+                i_pred, j_pred = 0, 0
+            else:
+                i_pred, j_pred = self.index_prediction(pred_accuracy_colliculus[idx, :])
             im[idx, :, :] = self.extract(data_fullfield[idx, :, :], i_pred, j_pred)
         # classify those images
         proba = self.classify_what(im).numpy()
