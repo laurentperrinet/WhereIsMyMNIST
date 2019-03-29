@@ -85,7 +85,7 @@ class WhatWhere():
             print('Creating testing dataset')
             retina_data, _, label = self.generate_data(train = False, fullfield = False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            self.loader_test = DataLoader(TensorDataset(retina_data, label), batch_size=args.minibatch_size)
+            self.loader_test = DataLoader(TensorDataset(retina_data, label), batch_size=args.test_batch_size)
             if save:
                 torch.save(self.loader_test, filename_dataset)
             print('Done!')
@@ -159,8 +159,8 @@ class WhatWhere():
         output = self.model(retina_data)
         # transform in a probability in collicular coordinates
         pred = output.argmax(dim=1, keepdim=True)
-        pred_acc = pred.eq(label.view_as(pred)).sum().cpu().item()
-        return pred_acc
+        pred_acc = pred.eq(label.view_as(pred)).detach().numpy()
+        return pred_acc.mean()
 
 
     def train(self, path=None, seed=None):
