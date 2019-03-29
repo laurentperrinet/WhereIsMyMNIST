@@ -8,93 +8,83 @@ from where import Where as ML
 
 def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     if filename is None:
-        do_recompute = True
         import datetime
         filename = '../data/' + datetime.datetime.now().date().isoformat()
         print('Using filename=', filename)
-    else:
-        do_recompute = False
 
     import json
     filename_json = filename + '_param.json'
-    if os.path.isfile(filename_json) and not do_recompute:
-        with open(filename_json, 'r') as fp:
-            args = json.load(fp)
-            args = easydict.EasyDict(args)
-        
-    else:
-        args = easydict.EasyDict(
-                                # MNIST
-                                w=28,
-                                minibatch_size=100, # batch size
-                                train_batch_size=50000, # size of training set
-                                test_batch_size=5000,  # size of testing set
-                                noise_batch_size=1000, 
-                                mean=0.1307, 
-                                std=0.3081, 
-                                # display
-                                N_pic = 128,
-                                offset_std = 30, #
-                                offset_max = 34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
-                                noise=.5, #0 #
-                                contrast=.5, #
-                                sf_0=0.2,
-                                B_sf=0.08,
-                                # foveation
-                                N_theta = 6,
-                                N_azimuth = 26,
-                                N_eccentricity = 10,
-                                N_phase = 2,
-                                rho = 1.41,
-                                # network
-                                bias_deconv=True,
-                                p_dropout=.0,
-                                dim1=382,
-                                dim2=2618,
-                                # training
-                                lr=5e-3,  # Learning rate
-                                do_adam=True,
-                                bn1_bn_momentum=0.5,
-                                bn2_bn_momentum=0.2,
-                                momentum=0.1,
-                                epochs=25,
-                                # simulation
-                                num_processes=1,
-                                no_cuda=True,
-                                log_interval=log_interval, # period with which we report results for the loss
-                                verbose=verbose,
-                                filename=filename,
-                                seed=2019,
-                                N_cv=2,
-                                do_compute=do_compute,
-                                    )
-        if filename == 'debug':
-            args.filename = '../data/debug'
-            args.train_batch_size = 100
-            args.lr = 1e-2
-            #args.noise = .5
-            #args.contrast = .9
-            #args.p_dropout = 0.
-            args.epochs = 8
-            args.test_batch_size = 20
-            args.minibatch_size = 22
-            #args.offset_std = 8
-            args.N_cv = 2
-            
-        elif not do_recompute: # save if we want to keep the parameters
-            with open(filename_json, 'w') as fp:
-                json.dump(args, fp)
+    
+    args = easydict.EasyDict(
+                            # MNIST
+                            w=28,
+                            minibatch_size=100, # batch size
+                            train_batch_size=50000, # size of training set
+                            test_batch_size=10000,  # size of testing set
+                            noise_batch_size=1000, 
+                            mean=0.1307, 
+                            std=0.3081, 
+                            # display
+                            N_pic = 128,
+                            offset_std = 15, #30, #
+                            offset_max = 30, #34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
+                            noise=1., #0 #
+                            contrast=0.3, #
+                            sf_0=0.2,
+                            B_sf=0.3,
+                            # foveation
+                            N_theta = 6,
+                            N_azimuth = 16, #26,
+                            N_eccentricity = 8, #10,
+                            N_phase = 2,
+                            rho = 1.41,
+                            # network
+                            bias_deconv=True,
+                            p_dropout=.0,
+                            dim1=500,
+                            dim2=2000,
+                            # training
+                            lr = 1e-3,  # Learning rate
+                            do_adam=True,
+                            bn1_bn_momentum=0.5,
+                            bn2_bn_momentum=0.2,
+                            momentum=0.1,
+                            epochs=25,
+                            # simulation
+                            num_processes=1,
+                            no_cuda=True,
+                            log_interval=log_interval, # period with which we report results for the loss
+                            verbose=verbose,
+                            filename=filename,
+                            seed=2019,
+                            N_cv=8,
+                            do_compute=do_compute,
+                                )
+    if filename == 'debug':
+        args.filename = '../data/debug'
+        args.train_batch_size = 100
+        args.lr = 1e-2
+        #args.noise = .5
+        #args.contrast = .9
+        #args.p_dropout = 0.
+        args.epochs = 8
+        args.test_batch_size = 20
+        args.minibatch_size = 22
+        #args.offset_std = 8
+        args.N_cv = 2
 
     return args
 
 class MetaML:
-    def __init__(self, args, base=2, N_scan=7, tag=''):
+    def __init__(self, args, base = 2, N_scan = 9, tag='', verbose=0, log_interval=0, do_compute=True):
         self.args = args
         self.seed = args.seed
+        self.do_compute = do_compute
 
         self.base = base
         self.N_scan = N_scan
         self.tag = tag
+        self.default = dict(verbose=verbose, log_interval=log_interval)
         self.scan_folder = '../data/_tmp_scanning'
         os.makedirs(self.scan_folder, exist_ok=True)
 
@@ -128,7 +118,7 @@ class MetaML:
             path = os.path.join(self.scan_folder, filename)
             print ('For parameter', parameter, '=', value_str, ', ', end=" ")
             if not(os.path.isfile(path + '_lock')):
-                if not(os.path.isfile(path)) and self.args.do_compute:
+                if not(os.path.isfile(path)) and self.do_compute:
                     open(path + '_lock', 'w').close()
                     try:
                         args = easydict.EasyDict(self.args.copy())
@@ -139,10 +129,8 @@ class MetaML:
                     except Exception as e:
                         print('Failed with error', e)
                 else:
-                    try:
-                        Accuracy[value] = np.load(path)
-                    except:
-                        pass
+                    Accuracy[value] = np.load(path)
+
                 if verbose:
                     try:
                         print('Accuracy={:.1f}% +/- {:.1f}%'.format(Accuracy[value][:-1].mean()*100, Accuracy[value][:-1].std()*100),
