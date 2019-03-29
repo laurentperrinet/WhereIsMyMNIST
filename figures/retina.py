@@ -261,7 +261,7 @@ class Display:
     
     def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
-        if radius is None: radius = minmax(np.abs(np.random.randn()) * self.args.offset_std, self.args.offset_max)
+        if radius is None: radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
         if theta is None: theta = np.random.rand() * np.pi
         if i_offset is None: i_offset = int(radius * np.cos(theta))
         if j_offset is None: j_offset = int(radius * np.sin(theta))
@@ -326,26 +326,24 @@ def place_object(data, i_offset, j_offset, im_noise=None, N_pic=128, contrast=1.
 
     # normalize data in [0, 1]
     data_fullfield = (data_fullfield - data_fullfield.min())/(data_fullfield.max() - data_fullfield.min())
-    #data_fullfield = 2 * data_fullfield - 1 # [-1, 1] range
-    #data_fullfield /= 2 # back to [0, 1] range
+    # multiply by contrast
     data_fullfield *= contrast
-    #data_fullfield += .5 # back to [0, 1] range
     
     # add noise
     if noise>0.:
         if im_noise is None:
             im_noise, _ = MotionCloudNoise(sf_0=sf_0, B_sf=B_sf)
-        # print(im_noise.min(), im_noise.max())
-        #im_noise = 2 * im_noise - 1
+        # print('im_noise in range=', im_noise.min(), im_noise.mean(), im_noise.max())
+        im_noise = 2 * im_noise - 1 # go to [-1, 1] range
         im_noise = noise *  im_noise
         #im_noise = .5 * im_noise + .5 # back to [0, 1] range
-        #print(im_noise.min(), im_noise.max())
+        # print('im_noise in range=', im_noise.min(), im_noise.mean(), im_noise.max())
         if do_max:
+            data_fullfield[data_fullfield==0] = -np.inf
             data_fullfield = np.max((im_noise, data_fullfield), axis=0)
         else:
-            data_fullfield = np.mean((im_noise, data_fullfield), axis=0)
+            data_fullfield = np.sum((im_noise, data_fullfield), axis=0)
     #print(data_fullfield.min(), data_fullfield.max())
-        
         
     # add a circular mask
     if do_mask:

@@ -11,7 +11,7 @@ import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
-from retina import Display, Retina
+from retina import Display, Retina, minmax
 
 
 class WhereNet(torch.nn.Module):
@@ -207,6 +207,9 @@ class Where():
                 i_pred, j_pred = 0, 0
             else:
                 i_pred, j_pred = self.index_prediction(pred_accuracy_colliculus[idx, :])
+            # avoid going beyond the border (for extraction)
+            border = self.args.N_pic//2 - self.args.w//2
+            i_pred, j_pred = minmax(i_pred, border), minmax(j_pred, border)
             im[idx, :, :] = self.extract(data_fullfield[idx, :, :], i_pred, j_pred)
         # classify those images
         proba = self.classify_what(im).numpy()

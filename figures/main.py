@@ -8,14 +8,16 @@ from where import Where as ML
 
 def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     if filename is None:
+        do_recompute = True
         import datetime
         filename = '../data/' + datetime.datetime.now().date().isoformat()
         print('Using filename=', filename)
+    else:
+        do_recompute = False
 
     import json
     filename_json = filename + '_param.json'
-    
-    if os.path.isfile(filename_json):
+    if os.path.isfile(filename_json) and not do_recompute:
         with open(filename_json, 'r') as fp:
             args = json.load(fp)
             args = easydict.EasyDict(args)
@@ -34,10 +36,10 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 N_pic = 128,
                                 offset_std = 30, #
                                 offset_max = 34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
-                                noise=1.5, #0 #
-                                contrast=1., #
+                                noise=.5, #0 #
+                                contrast=.5, #
                                 sf_0=0.2,
-                                B_sf=0.05,
+                                B_sf=0.08,
                                 # foveation
                                 N_theta = 6,
                                 N_azimuth = 26,
@@ -79,7 +81,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
             #args.offset_std = 8
             args.N_cv = 2
             
-        else:
+        elif not do_recompute: # save if we want to keep the parameters
             with open(filename_json, 'w') as fp:
                 json.dump(args, fp)
 
