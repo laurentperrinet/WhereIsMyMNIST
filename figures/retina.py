@@ -47,7 +47,7 @@ pe = {
     'dpi': 450,
     'verbose': 0,
     }
-verbose = 1
+
 ##########################################################################################################@
 ##########################################################################################################@
 ##########################################################################################################@
@@ -63,14 +63,14 @@ class Retina:
             filename = '/tmp/retina' + suffix + '_transform.npy'
             self.retina_transform = np.load(filename)
         except:
-            print('Retina vectorizing...')
+            if self.args.verbose: print('Retina vectorizing...')
             self.retina_transform = vectorization(self.args.N_theta, self.args.N_azimuth,
                                                   self.args.N_eccentricity, 
                                                   self.args.N_phase, 
                                                   self.args.N_pic, self.args.N_pic, 
                                                   self.args.rho)
-            print('Done!')
             np.save(filename, self.retina_transform)
+            if self.args.verbose: print('Done vectorizing...')
             
         self.vsize =  self.args.N_theta*self.args.N_azimuth*self.args.N_eccentricity*self.args.N_phase 
         self.retina_transform_vector = self.retina_transform.reshape((self.vsize, self.args.N_pic**2))
@@ -79,12 +79,10 @@ class Retina:
             filename = '/tmp/retina' + suffix + '_inverse_transform.npy'
             self.retina_inverse_transform = np.load(filename)
         except:
-            #self.retina_inverse_transform = retina_inverse(self.retina_transform)
-            print('Inversing retina transform...')
+            if self.args.verbose: print('Inversing retina transform...')
             self.retina_inverse_transform = np.linalg.pinv(self.retina_transform_vector)
-    
-            print('Done!')
             np.save(filename, self.retina_inverse_transform)
+            if self.args.verbose: print('Done Inversing retina transform...')
             
         self.whit = SLIP.Image(pe=pe)
         self.whit.set_size((args.N_pic, args.N_pic))

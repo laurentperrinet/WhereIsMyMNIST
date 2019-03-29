@@ -88,7 +88,7 @@ for base in [2] if not args.filename == '../data/debug' else [2]:
 
     print(' parameter scan : learning ')
     args = init(**opts)
-    mml = MetaML(args, base=base)
+    mml = MetaML(args, base=base, tag='SGD')
     print(50*'-')
     print('Using SGD')
     print(50*'-')
@@ -99,7 +99,7 @@ for base in [2] if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     args = init(**opts)
     args.do_adam = True
-    mml = MetaML(args, tag='adam')
+    mml = MetaML(args, base=base, tag='adam')
     for parameter in ['lr', 'momentum', 'minibatch_size', 'epochs']:
         accuracies = mml.parameter_scan(parameter)
         results = update_results(results, parameter, accuracies)
