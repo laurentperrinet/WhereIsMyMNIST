@@ -3,16 +3,17 @@ import torch
 from main import init, MetaML
 from where import Where as ML
 from what import WhatNet
-        
+import numpy as np        
 import sys
-opts = dict(filename='../data/2019-03-27', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
+opts = dict(filename='../data/2019-03-30', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
 #opts = dict(filename='debug', verbose=0, log_interval=0)
+print('do_compute=', opts['do_compute'])
 
 print(50*'-')
 print(' parameter scan')
 print(50*'-')
 
-if True:
+if opts['do_compute']:
     args = init(**opts)
     #args.filename = '../data/2019-03-27'
     filename_train = args.filename + '_train.pt'
@@ -26,7 +27,10 @@ if True:
         ml = ML(args)
         ml.train(path=filename_train)
         # ml.main(path=args.filename)
-        os.remove(filename_train + '_lock')
+        try:
+            os.remove(filename_train + '_lock')
+        except:
+            pass
 
 if True:
     args = init(**opts)
@@ -59,7 +63,7 @@ def update_results(results, parameter, accuracies, ci=0.01):
         
     return results
             
-for base in [2] if not args.filename == '../data/debug' else [2]:
+for base in [np.sqrt(2), 2, 2*np.sqrt(2)] if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     print(' base=', base)
     print(50*'-')
@@ -69,7 +73,7 @@ for base in [2] if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     args = init(**opts)
     mml = MetaML(args, base=base)
-    for parameter in ['sf_0', 'B_sf', 'offset_std' , 'noise']: #, 'contrast'
+    for parameter in ['sf_0', 'B_sf', 'offset_std' , 'noise', 'contrast']: #
         accuracies = mml.parameter_scan(parameter)
         results = update_results(results, parameter, accuracies)
         
@@ -93,7 +97,8 @@ for base in [2] if not args.filename == '../data/debug' else [2]:
     print('Using SGD')
     print(50*'-')
     for parameter in ['lr', 'momentum', 'minibatch_size', 'epochs']:
-        mml.parameter_scan(parameter)
+        accuracies = mml.parameter_scan(parameter)
+        results = update_results(results, parameter + '_sgd', accuracies)
     print(50*'-')
     print('Using ADAM')
     print(50*'-')
@@ -102,7 +107,7 @@ for base in [2] if not args.filename == '../data/debug' else [2]:
     mml = MetaML(args, base=base, tag='adam')
     for parameter in ['lr', 'momentum', 'minibatch_size', 'epochs']:
         accuracies = mml.parameter_scan(parameter)
-        results = update_results(results, parameter, accuracies)
+        results = update_results(results, parameter + '_adam', accuracies)
 
     print(50*'-')
     print(' parameter scan : retina')

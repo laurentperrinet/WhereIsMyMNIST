@@ -8,14 +8,16 @@ from where import Where as ML
 
 def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     if filename is None:
+        do_recompute = True
         import datetime
         filename = '../data/' + datetime.datetime.now().date().isoformat()
         print('Using filename=', filename)
+    else:
+        do_recompute = False
 
     import json
     filename_json = filename + '_param.json'
-    
-    if os.path.isfile(filename_json):
+    if os.path.isfile(filename_json) and not do_recompute:
         with open(filename_json, 'r') as fp:
             args = json.load(fp)
             args = easydict.EasyDict(args)
@@ -34,10 +36,10 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 N_pic = 128,
                                 offset_std = 30, #
                                 offset_max = 34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
-                                noise=1.5, #0 #
-                                contrast=1., #
+                                noise=.5, #0 #
+                                contrast=.5, #
                                 sf_0=0.2,
-                                B_sf=0.05,
+                                B_sf=0.08,
                                 # foveation
                                 N_theta = 6,
                                 N_azimuth = 26,
@@ -63,7 +65,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 verbose=verbose,
                                 filename=filename,
                                 seed=2019,
-                                N_cv=8,
+                                N_cv=2,
                                 do_compute=do_compute,
                                     )
         if filename == 'debug':
@@ -79,22 +81,20 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
             #args.offset_std = 8
             args.N_cv = 2
             
-        else:
+        elif not do_recompute: # save if we want to keep the parameters
             with open(filename_json, 'w') as fp:
                 json.dump(args, fp)
 
     return args
 
 class MetaML:
-    def __init__(self, args, base = 2, N_scan = 9, tag='', verbose=0, log_interval=0, do_compute=True):
+    def __init__(self, args, base=2, N_scan=7, tag=''):
         self.args = args
         self.seed = args.seed
-        self.do_compute = do_compute
 
         self.base = base
         self.N_scan = N_scan
         self.tag = tag
-        self.default = dict(verbose=verbose, log_interval=log_interval)
         self.scan_folder = '../data/_tmp_scanning'
         os.makedirs(self.scan_folder, exist_ok=True)
 
@@ -128,7 +128,7 @@ class MetaML:
             path = os.path.join(self.scan_folder, filename)
             print ('For parameter', parameter, '=', value_str, ', ', end=" ")
             if not(os.path.isfile(path + '_lock')):
-                if not(os.path.isfile(path)) and self.do_compute:
+                if not(os.path.isfile(path)) and self.args.do_compute:
                     open(path + '_lock', 'w').close()
                     try:
                         args = easydict.EasyDict(self.args.copy())
@@ -139,8 +139,10 @@ class MetaML:
                     except Exception as e:
                         print('Failed with error', e)
                 else:
-                    Accuracy[value] = np.load(path)
-
+                    try:
+                        Accuracy[value] = np.load(path)
+                    except:
+                        pass
                 if verbose:
                     try:
                         print('Accuracy={:.1f}% +/- {:.1f}%'.format(Accuracy[value][:-1].mean()*100, Accuracy[value][:-1].std()*100),
