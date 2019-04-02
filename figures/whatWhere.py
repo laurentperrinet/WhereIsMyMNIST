@@ -36,10 +36,10 @@ class WhatWhereNet(torch.nn.Module):
 
 
 class WhatWhere():
-    def __init__(self, args, save = False):
+    def __init__(self, args, save = True):
         self.args = args
         print(1)
-        self.display = Display(args)
+        self.display = Display(args, save = save)
         print(2)
         self.retina = Retina(args)
         print(3)
