@@ -63,8 +63,9 @@ def update_results(results, parameter, accuracies, ci=0.01):
         
     return results
             
-for base in [np.sqrt(2), 2, 2*np.sqrt(2)] if not args.filename == '../data/debug' else [2]:
-#for base in [2] if not args.filename == '../data/debug' else [2]:
+bases = [2]
+#bases = [np.sqrt(2), 2, 2*np.sqrt(2)]    
+for base in bases if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     print(' base=', base)
     print(50*'-')

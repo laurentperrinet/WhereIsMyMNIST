@@ -50,7 +50,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 bias_deconv=True,
                                 p_dropout=.0,
                                 dim1=382,
-                                dim2=2618,
+                                dim2=618,
                                 # training
                                 lr=5e-3,  # Learning rate
                                 do_adam=True,
