@@ -128,7 +128,7 @@ class MetaML:
             path = os.path.join(self.scan_folder, filename)
             print ('For parameter', parameter, '=', value_str, ', ', end=" ")
             if not os.path.isfile(path + '_lock'):
-                if not(os.path.isfile(path)) and self.args.do_compute:
+                if not(os.path.isfile(path)) :# and self.args.do_compute:
                     open(path + '_lock', 'w').close()
                     try:
                         args = easydict.EasyDict(self.args.copy())
