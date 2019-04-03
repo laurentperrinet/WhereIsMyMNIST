@@ -65,7 +65,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 verbose=verbose,
                                 filename=filename,
                                 seed=2019,
-                                N_cv=2,
+                                N_cv=10,
                                 do_compute=do_compute,
                                     )
         if filename == 'debug':
