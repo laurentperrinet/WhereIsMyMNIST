@@ -128,6 +128,7 @@ class Where():
         if fullfield:
             data_fullfield = np.zeros((size, self.args.N_pic, self.args.N_pic))
         retina_data = np.zeros((size, self.retina.vsize))
+        accuracy_colliculus = np.zeros((size, self.args.N_azimuth * self.args.N_eccentricity))
         data, label = next(iter(loader_full)) 
         for i in range(size):
             if i%1000 == 0: print(i)
@@ -137,13 +138,14 @@ class Where():
             else:
                 data_fullfield, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
                 retina_data[i, :]  =  self.retina.retina(data_fullfield)
+            accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
         retina_data = Variable(torch.FloatTensor(retina_data)).to(self.device)
         if fullfield:
             data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
         else:
             data_fullfield = None
-        label = label.to(self.device)
-        return retina_data, data_fullfield, label
+        accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus)).to(self.device)
+        return retina_data, data_fullfield, accuracy_colliculus
     
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
