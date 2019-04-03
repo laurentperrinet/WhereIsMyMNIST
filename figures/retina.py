@@ -226,7 +226,7 @@ def accuracy_fullfield(accuracy_map, i_offset, j_offset, N_pic, colliculus_vecto
 ##########################################################################################################@
 
 class Display:
-    def __init__(self, args):
+    def __init__(self, args, save = True):
         self.args = args
         # TODO: split dataloaders and give them the same minibatch size
         self.loader_train = get_data_loader(batch_size=args.minibatch_size, train=True, mean=args.mean, std=args.std, seed=args.seed)
@@ -244,7 +244,8 @@ class Display:
             self.noise = np.zeros((args.noise_batch_size, args.N_pic, args.N_pic))
             for i_noise in range(args.noise_batch_size):
                 self.noise[i_noise, :, :], _ = MotionCloudNoise(sf_0=args.sf_0, B_sf=args.B_sf, seed=self.args.seed+i_noise)
-            np.save(path, self.noise)
+            if save:
+                np.save(path, self.noise)
     
     
     def place_object(self, data, i_offset, j_offset):
