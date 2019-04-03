@@ -36,7 +36,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 N_pic = 128,
                                 offset_std = 30, #
                                 offset_max = 34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
-                                noise=.5, #0 #
+                                noise=.75, #0 #
                                 contrast=.5, #
                                 sf_0=0.2,
                                 B_sf=0.08,
@@ -55,8 +55,8 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 lr=5e-3,  # Learning rate
                                 do_adam=True,
                                 bn1_bn_momentum=0.5,
-                                bn2_bn_momentum=0.2,
-                                momentum=0.1,
+                                bn2_bn_momentum=0.5,
+                                momentum=0.3,
                                 epochs=25,
                                 # simulation
                                 num_processes=1,
@@ -127,7 +127,7 @@ class MetaML:
             filename = parameter + '_' + self.tag + '_' + value_str.replace('.', '_') + '.npy'
             path = os.path.join(self.scan_folder, filename)
             print ('For parameter', parameter, '=', value_str, ', ', end=" ")
-            if not(os.path.isfile(path + '_lock')):
+            if not os.path.isfile(path + '_lock'):
                 if not(os.path.isfile(path)) and self.args.do_compute:
                     open(path + '_lock', 'w').close()
                     try:
@@ -136,13 +136,13 @@ class MetaML:
                         Accuracy[value] = self.protocol(args, seed)
                         np.save(path, Accuracy[value])
                         os.remove(path + '_lock')
-                    except Exception as e:
+                    except ImportError as e:
                         print('Failed with error', e)
                 else:
                     try:
                         Accuracy[value] = np.load(path)
-                    except:
-                        pass
+                    except Exception as e:
+                        print('Failed with error', e)
                 if verbose:
                     try:
                         print('Accuracy={:.1f}% +/- {:.1f}%'.format(Accuracy[value][:-1].mean()*100, Accuracy[value][:-1].std()*100),
