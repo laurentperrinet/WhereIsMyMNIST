@@ -80,7 +80,7 @@ class Where():
             from retina import get_data_loader        
             # SAVING DATASET
             print('Creating training dataset')
-            retina_data, _, label = self.generate_data(train = True, fullfield = True)
+            retina_data, _, label = self.generate_data(train = True, fullfield = False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_train = DataLoader(TensorDataset(retina_data, label), batch_size=args.minibatch_size)
             if save:
@@ -93,7 +93,7 @@ class Where():
             self.loader_test  = torch.load(filename_dataset)
         else:
             print('Creating testing dataset')
-            retina_data, _, label = self.generate_data(train = False, fullfield = True)
+            retina_data, _, label = self.generate_data(train = False, fullfield = False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_test = DataLoader(TensorDataset(retina_data, label), batch_size=args.test_batch_size)
             if save:
@@ -207,7 +207,7 @@ class Where():
         azimuth = indices_ij[0][0]
         eccentricity = indices_ij[1][0]
         if eccentricity < 5:
-            im_colliculus = self.retina.colliculus[azimuth,eccentricity,:]
+            im_colliculus = self.retina.colliculus[azimuth,eccentricity,:].reshape((self.args.N_pic, self.args.N_pic))
         else:
             im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
         # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html

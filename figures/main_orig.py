@@ -30,8 +30,8 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                             offset_max = 30, #34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
                             noise=1., #0 #
                             contrast=0.3, #
-                            sf_0=0.2,
-                            B_sf=0.3,
+                            sf_0=0.1,
+                            B_sf=0.1,
                             # foveation
                             N_theta = 6,
                             N_azimuth = 16, #26,
