@@ -19,10 +19,11 @@ for period in range(1,21):
     result[period] = {} 
     for contrast in (0.5, 0.7):
         args.contrast = contrast
+        args.B_sf = 1/period
         whatWhere = WhatWhere(args, save = False)
         whatWhere.train()
         data_test, label_test = next(iter(whatWhere.loader_test)) 
         acc = whatWhere.pred_accuracy(data_test, label_test)
-        print(f'sf_0 : %.2f, B_sf : %.2f, acc : %.2f'%(args.sf_0, args.B_sf, acc))
-        result[period][prop] = acc
+        print('sf_0 : %.2f, B_sf : %.2f, contrast: %.2f, acc : %.2f'%(args.sf_0, args.B_sf, args.contrast, acc))
+        result[period][contrast] = acc
         np.save(FIC_NAME + '-result.npy', result)
