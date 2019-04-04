@@ -80,7 +80,7 @@ class Where():
             from retina import get_data_loader        
             # SAVING DATASET
             print('Creating training dataset')
-            retina_data, _, label = self.generate_data(train = True, fullfield = False)
+            retina_data, _, _, label = self.generate_data(train = True, fullfield = False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_train = DataLoader(TensorDataset(retina_data, label), batch_size=args.minibatch_size)
             if save:
@@ -93,7 +93,7 @@ class Where():
             self.loader_test  = torch.load(filename_dataset)
         else:
             print('Creating testing dataset')
-            retina_data, _, label = self.generate_data(train = False, fullfield = False)
+            retina_data, _, _, label = self.generate_data(train = False, fullfield = False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_test = DataLoader(TensorDataset(retina_data, label), batch_size=args.test_batch_size)
             if save:
@@ -139,13 +139,16 @@ class Where():
                 data_fullfield, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
                 retina_data[i, :]  =  self.retina.retina(data_fullfield)
             accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
+            
         retina_data = Variable(torch.FloatTensor(retina_data)).to(self.device)
         if fullfield:
             data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
         else:
             data_fullfield = None
         accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus)).to(self.device)
-        return retina_data, data_fullfield, accuracy_colliculus
+        label = Variable(torch.FloatTensor(label)).to(self.device)
+        
+        return retina_data, data_fullfield, accuracy_colliculus, label
     
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
