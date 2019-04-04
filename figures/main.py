@@ -65,7 +65,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 verbose=verbose,
                                 filename=filename,
                                 seed=2019,
-                                N_cv=2,
+                                N_cv=10,
                                 do_compute=do_compute,
                                     )
         if filename == 'debug':
@@ -128,7 +128,7 @@ class MetaML:
             path = os.path.join(self.scan_folder, filename)
             print ('For parameter', parameter, '=', value_str, ', ', end=" ")
             if not os.path.isfile(path + '_lock'):
-                if not(os.path.isfile(path)) and self.args.do_compute:
+                if not(os.path.isfile(path)) :# and self.args.do_compute:
                     open(path + '_lock', 'w').close()
                     try:
                         args = easydict.EasyDict(self.args.copy())
