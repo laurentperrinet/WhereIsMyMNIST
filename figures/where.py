@@ -80,9 +80,9 @@ class Where():
             from retina import get_data_loader        
             # SAVING DATASET
             print('Creating training dataset')
-            retina_data, _, _, label = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load = batch_load)
+            retina_data, _, accuracy_colliculus, _ = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load = batch_load)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            self.loader_train = DataLoader(TensorDataset(retina_data, label), batch_size=args.minibatch_size)
+            self.loader_train = DataLoader(TensorDataset(retina_data, accuracy_colliculus), batch_size=args.minibatch_size)
             if save:
                 torch.save(self.loader_train, filename_dataset)
             print('Done!')
@@ -128,6 +128,7 @@ class Where():
         retina_data = np.zeros((batch_size, self.retina.vsize))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
         # cycling over digits
+        label = None
         if batch_load:
             if train:
                 size = self.args.train_batch_size
@@ -139,12 +140,10 @@ class Where():
             data, label = next(iter(loader_full)) 
             for i in range(size):
                 if i%1000 == 0: print(i)
+                data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
                 if fullfield:
-                    data_fullfield[i, :, :], i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
-                    retina_data[i, :]  =  self.retina.retina(data_fullfield[i, :, :])
-                else:
-                    data_fullfield, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
-                    retina_data[i, :]  =  self.retina.retina(data_fullfield)
+                    data_fullfield[i, :, :] =  data_fullfield_
+                accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
         else:    
             loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
             for i, (data, label) in enumerate(loader_full):
@@ -160,7 +159,8 @@ class Where():
         if fullfield:
             data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
         accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus)).to(self.device)
-        label = Variable(torch.FloatTensor(label)).to(self.device)
+        #label = Variable(torch.LongTensor(label)).to(self.device)
+        label = label.to(self.device)
         # returning
         return retina_data, data_fullfield, accuracy_colliculus, label
     
