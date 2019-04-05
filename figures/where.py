@@ -118,7 +118,7 @@ class Where():
             self.optimizer = optim.SGD(self.model.parameters(),
                                     lr=self.args.lr, momentum=self.args.momentum)
 
-    def generate_data(self, batch_size, train=True, fullfield=True):
+    def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False):
         # loading data
         from retina import get_data_loader
         loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
@@ -140,7 +140,7 @@ class Where():
                 size = self.args.test_batch_size
                 print('test dataset, size = ', size)
             loader_full = get_data_loader(batch_size=size, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+1)
-            data, label = next(iter(loader_full)) 
+            data, label = next(iter(loader_full))
             for i in range(size):
                 if i%1000 == 0: print(i)
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
@@ -149,7 +149,7 @@ class Where():
                 retina_data[i, :]  =  self.retina.retina(data_fullfield_)
                 accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
             digit_labels = label
-        else:    
+        else:
             loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
             for i, (data, label) in enumerate(loader_full):
                 if i >= self.args.train_batch_size : break
@@ -158,10 +158,9 @@ class Where():
                     data_fullfield[i, :, :] =  data_fullfield_
                 retina_data[i, :]  =  self.retina.retina(data_fullfield_)
                 accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
-                digit_labels[i] = label.detach.numpy()
+                digit_labels[i] = label#.detach.numpy()
             digit_labels = Variable(torch.LongTensor(digit_labels))
-        
-        # converting to torch format
+               # converting to torch format
         retina_data = Variable(torch.FloatTensor(retina_data)).to(self.device)
         if fullfield:
             data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
