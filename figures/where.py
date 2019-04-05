@@ -36,7 +36,7 @@ class WhereNet(torch.nn.Module):
 
 
 class Where():
-    def __init__(self, args, save=True):
+    def __init__(self, args, save=True, batch_load = False):
         self.args = args
         self.display = Display(args)
         self.retina = Retina(args)
@@ -81,7 +81,7 @@ class Where():
             from retina import get_data_loader        
             # SAVING DATASET
             if args.verbose: print('Creating training dataset')
-            retina_data, _, accuracy_colliculus, _ = self.generate_data(self.args.train_batch_size, train=True, fullfield=False)
+            retina_data, _, accuracy_colliculus, _ = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load = False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_train = DataLoader(TensorDataset(retina_data, accuracy_colliculus), batch_size=args.minibatch_size)
             if save:
@@ -95,9 +95,9 @@ class Where():
             self.loader_test  = torch.load(filename_dataset)
         else:
             if args.verbose: print('Creating testing dataset')
-            retina_data, retina_data, accuracy_colliculus, label = self.generate_data(self.args.test_batch_size, train=False, fullfield=True)
+            retina_data, retina_fullfield_data, accuracy_colliculus, label = self.generate_data(self.args.test_batch_size, train=False, fullfield=True, batch_load = False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            self.loader_test = DataLoader(TensorDataset(retina_data, retina_data, accuracy_colliculus, label), batch_size=args.test_batch_size)
+            self.loader_test = DataLoader(TensorDataset(retina_data, retina_fullfield_data, accuracy_colliculus, label), batch_size=args.test_batch_size)
             if save:
                 torch.save(self.loader_test, filename_dataset)
             if args.verbose: print('Done!')
