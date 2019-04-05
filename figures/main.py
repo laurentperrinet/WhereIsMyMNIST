@@ -28,7 +28,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 w=28,
                                 minibatch_size=100, # batch size
                                 train_batch_size=50000, # size of training set
-                                test_batch_size=5000,  # size of testing set
+                                test_batch_size=10000,  # size of testing set
                                 noise_batch_size=1000, 
                                 mean=0.1307, 
                                 std=0.3081, 

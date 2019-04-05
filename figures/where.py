@@ -74,31 +74,33 @@ class Where():
         # TRAINING DATASET
         filename_dataset = '/tmp/dataset_train' + suffix + '_%d.pt'% self.args.train_batch_size #f'/tmp/dataset_train_{suffix}_{self.args.train_batch_size}.pt'
         if os.path.exists(filename_dataset):
+            if args.verbose: print('Loading training dataset')
             self.loader_train  = torch.load(filename_dataset)
         else:
             # MNIST DATASET
             from retina import get_data_loader        
             # SAVING DATASET
-            print('Creating training dataset')
+            if args.verbose: print('Creating training dataset')
             retina_data, _, _, label = self.generate_data(self.args.train_batch_size, train=True, fullfield=False)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_train = DataLoader(TensorDataset(retina_data, label), batch_size=args.minibatch_size)
             if save:
                 torch.save(self.loader_train, filename_dataset)
-            print('Done!')
+            if args.verbose: print('Done!')
 
         # TESTING DATASET
         filename_dataset = filename_dataset = '/tmp/dataset_test' + suffix + '_%d.pt'% self.args.test_batch_size #f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
         if os.path.exists(filename_dataset):
+            if args.verbose: print('Loading training dataset')
             self.loader_test  = torch.load(filename_dataset)
         else:
-            print('Creating testing dataset')
+            if args.verbose: print('Creating testing dataset')
             retina_data, retina_data, accuracy_colliculus, label = self.generate_data(self.args.test_batch_size, train=False, fullfield=True)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
             self.loader_test = DataLoader(TensorDataset(retina_data, retina_data, accuracy_colliculus, label), batch_size=args.test_batch_size)
             if save:
                 torch.save(self.loader_test, filename_dataset)
-            print('Done!')
+            if args.verbose: print('Done!')
 
 
         # MODEL
@@ -127,6 +129,7 @@ class Where():
             data_fullfield = None
         retina_data = np.zeros((batch_size, self.retina.vsize))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
+        digit_labels = np.zeros(batch_size)
         # cycling over digits
         for i, (data, label) in enumerate(loader_full):
             if i >= self.args.train_batch_size : break
@@ -135,15 +138,16 @@ class Where():
                 data_fullfield[i, :, :] =  data_fullfield_
             retina_data[i, :]  =  self.retina.retina(data_fullfield_)
             accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
+            digit_labels[i] = label
         
         # converting to torch format
         retina_data = Variable(torch.FloatTensor(retina_data)).to(self.device)
         if fullfield:
             data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
         accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus)).to(self.device)
-        label = Variable(torch.FloatTensor(label)).to(self.device)
+        digit_labels = Variable(torch.FloatTensor(label)).to(self.device)
         # returning
-        return retina_data, data_fullfield, accuracy_colliculus, label
+        return retina_data, data_fullfield, accuracy_colliculus, digit_labels
     
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
