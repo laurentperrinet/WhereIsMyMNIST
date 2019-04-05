@@ -47,10 +47,15 @@ reproduce sequential eye movements that fit well with empirical data. %Compared 
 Saccades %are not the output of a value-based cost function, but 
 are here a consequence of an active seek for the agent to minimize the uncertainty about his beliefs, knowing his priors on the generative model of the visual world. %Such an approach applies well to our setting.
 %, as described in Figure~\ref{fig:intro}. 
+\if 1\ICANN
+\else
 
-
+\fi
 %An interesting perspective is given with previous modeling of such foveated sensors. 
-Finally, the non-uniform sampling of visual space is usually modeled as a log-polar conformal mapping~\citep{Traver10} which has a long history in computer vision and robotics. A first property of this mapping is the separation between the foveal and the peripheral areas as we defined above. This transformation has also other notable properties, such as the correspondence by way of translations in the radial and angular directions to respectively rotations and scalings in the visual domain. However, this sensor is to our knowledge most often not coupled to an action (but see~\citep{ref_needed)}. 
+Finally, the non-uniform sampling of visual space is usually modeled as a log-polar conformal mapping~\citep{Traver10} which has a long history in computer vision and robotics. A first property of this mapping is the separation between the foveal and the peripheral areas as we defined above. This transformation has also other notable properties, such as the correspondence by way of translations in the radial and angular directions to respectively rotations and scalings in the visual domain. However, this sensor is to our knowledge most often not coupled to an action
+\if 1\ICANN
+\else
+ (but see~\citep{ref_needed)}\fi. 
 
 \paragraph{Outline.}
 %The goal of this work is thus to emulate a model of active vision which is able to infer the position of a visual target independently from its category.

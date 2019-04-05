@@ -4,6 +4,7 @@
 %!BIB TS-program = bibtex
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
+\def\ICANN{1}%
 %: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %: notes
 %  journals = https://en.wikipedia.org/wiki/List_of_academic_journals_by_preprint_policy
@@ -22,13 +23,16 @@
 \newcommand{\Title}{
 %TODO:  (à changer / travailler / masser )
 %%Tentative titles by order of preference :
+\if 1\ICANN
+A foveated visuomotor control model of learning where to look at what to see
+\else
 Learning where to see before looking at what it is
 /
 Seeing where before looking what
 /
 Learning where to look: a foveated visuomotor control model
 /
-A foveated visuomotor control model of learning where to look at what
+\fi
 %Looking where it is worth looking
 %Learning where to see
 %Learning where to look for a target before seeing it
@@ -58,13 +62,16 @@ A foveated visuomotor control model of learning where to look at what
 \DeclareGraphicsExtensions{.pdf}%,.png,.jpg}
 %\graphicspath{{.}}%
 
-
 %opening
 \title{
-\Title \thanks{\Acknowledgments }
+\Title
+\if 1\ICANN
+\else
+\thanks{\Acknowledgments }
+\fi
 }
 \author{\AuthorED \inst{1}\orcidID{TODO:0000-1111-2222-3333} \and \AuthorPA \inst{1,2} \and \AuthorLP \inst{2}\orcidID{\orcidLP }  }
-\institute{\AddressED> 
+\institute{\AddressED>
 \and \AddressLP --- \email{\EmailLP } \url{https://laurentperrinet.github.io/} }
 \date{}
 %============ bibliography ===================
@@ -78,10 +85,13 @@ style=authoryear-comp,
 %giveninits=true,
 %uniquename=init,
 %sorting=none,
-%doi=false,
-%url=false,
-%isbn=false,
-%eprint=false,
+\if 1\ICANN
+doi=false,
+url=false,
+isbn=false,
+eprint=false,
+\else
+\fi
 texencoding=utf8,
 bibencoding=utf8,
 autocite=superscript,
@@ -108,7 +118,48 @@ backend=bibtex,
 \newcommand{\C}{\textbf{(C)~}}%
 \newcommand{\D}{\textbf{(D)~}}%
 
+\if 1\ICANN
 
+	% \usepackage{times}
+	%\inner 0.5in
+	% \oddsidemargin -0.5in		% margin, in addition to 1" standard
+	% \textwidth 17cm		% 8.5" - 2*(1+\oddsidemargin)
+
+	% \topmargin -1in		% in addition to 1.5" standard margin
+	% \textheight 10.69in 		% 11 - ( 1.5 + \topmargin + <bottom-margin> )
+
+	% \columnsep 0.25in
+	%
+	\parindent 0pt
+	\parskip 0pt
+
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\headsep}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\topmargin}{0pt}
+\setlength{\topsep}{0pt}
+\setlength{\partopsep}{0pt}
+
+%\usepackage[compact]{titlesec}
+%\titlespacing{\section}{0pt}{*0}{*0}
+%\titlespacing{\subsection}{0pt}{*0}{*0}
+%\titlespacing{\subsubsection}{0pt}{*0}{*0}
+	% \usepackage{titlesec}
+    %
+	% \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+	%\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+	%\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+%\flushbottom \sloppy
+%\pagestyle{empty} % No page numbers
+
+
+\renewcommand{\paragraph}{\emph}%
+
+\else
+
+\fi
 
 \begin{document}
 
@@ -137,8 +188,14 @@ backend=bibtex,
 \input{discussion}
 %
 %\newpage
-%\input{appendix}
+\if 1\ICANN
+\else
+\input{appendix}
+\fi
 
+\if 1\ICANN
+\else
+\fi
 
 %%%-----------------------------------------------------------------
 %{\bf References} \\
