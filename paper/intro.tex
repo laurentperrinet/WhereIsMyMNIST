@@ -59,11 +59,11 @@ Finally, the non-uniform sampling of visual space is usually modeled as a log-po
 
 \paragraph{Outline.}
 %The goal of this work is thus to emulate a model of active vision which is able to infer the position of a visual target independently from its category.
-Stemming from the active vision general principles, our aim is to produce a principled model that may both explain the essential features of human vision and provide ways toward efficient computer implementations. 
+Stemming from the active vision general principles, our aim is to produce a principled model that may both explain the essential features of human vision and provide ways toward efficient computer implementations. \if 1\ICANN
+\else
 \emph{We also aim at reunifying the fragmentation of the many different approaches respective to their fields (Machine learning, neuroscience, robotics), and envisage an integrated computational model of foveated active vision.}
-
-
-%However, inverting a generative model over a large (one-step ahead) hypothesis space of all possible saccades is computationally-intensive. % (think for instance of face category as a very large categorical space over a large visual transformation space) with no obvious neurophysiological counterpart.  (see Figure~\ref{fig:intro}-C)
+\fi
+It is known that inverting a generative model over a large (one-step ahead) hypothesis space of all possible saccades is computationally-intensive. % (think for instance of face category as a very large categorical space over a large visual transformation space) with no obvious neurophysiological counterpart.  (see Figure~\ref{fig:intro}-C)
 %Although we similarly include a generative process of the visual world,
 In particular, complex combinatorial inferences are here replaced by separate pathways, i.e. the spatial (``where'') and categorical (``what'') pathways, whose knowledge is combined to infer optimal eye displacement and subsequent identification.    
 %as conatining {\bf (containing??)} images of a handwritten random digit (drawn from the MNIST database) at a random position and embedded in a cluttered noise . 
