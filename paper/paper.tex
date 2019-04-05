@@ -133,6 +133,18 @@ backend=bibtex,
 	\parindent 0pt
 	\parskip 0pt
 
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\headsep}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\topmargin}{0pt}
+\setlength{\topsep}{0pt}
+\setlength{\partopsep}{0pt}
+
+%\usepackage[compact]{titlesec}
+%\titlespacing{\section}{0pt}{*0}{*0}
+%\titlespacing{\subsection}{0pt}{*0}{*0}
+%\titlespacing{\subsubsection}{0pt}{*0}{*0}
 	% \usepackage{titlesec}
     %
 	% \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
@@ -142,7 +154,10 @@ backend=bibtex,
 %\flushbottom \sloppy
 %\pagestyle{empty} % No page numbers
 
-%\else
+
+\renewcommand{\paragraph}{\emph}%
+
+\else
 
 \fi
 
