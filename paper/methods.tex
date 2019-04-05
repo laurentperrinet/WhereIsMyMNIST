@@ -4,7 +4,7 @@
 % vim: set fenc=utf-8
 % !TEX spellcheck = en-US
 %=================================================================
-\section{Methods}
+\section{Principles}
 \label{sec:methods}
 %=================================================================
 %=================================================================
@@ -27,9 +27,9 @@
 %%------------------------------%
 In this study, the visual scene is made of a target foreground object placed at a random position over a noisy background. An agent controls a foveal visual sensor that can move over the visual scene through saccades (see Figure~\ref{fig:intro}). 
 %We will define a neural network which implements this control process. 
-The agent aims at understanding the visual scene, namely identifying both the target position and identity from visual samples.
+The agent aims at understanding the visual scene, here identifying both the target position and identity from visual samples.
 
-\paragraph{Active inference}
+\subsection{Active inference}
 Active inference assumes a hidden external state $e$, which is known indirectly through its effects on the sensor. The external state  corresponds to the physical environment. The visual field $x$ is the state of the sensors, that is a partial view of the visual scene, measured through a generative process : $x\sim p(X|e)$. The real physical state $e$ being hidden, a parametric model $\theta$ is assumed to allow estimate the cause of the current visual field through model inversion thanks to Bayes formula, in short:
 $$p(E|x) \propto p(x|E;\theta)$$
 
@@ -52,7 +52,7 @@ this independence is conditional on action: both pathways should update their be
 Each pathway is here assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher cones density, and thus higher spatial precision. In contrast, the target localization should rely on full visual field, with peripheral regions having a lesser sensor density and a lesser sensitivity to high spatial frequencies. 
 \fi
 
-\paragraph{Metric training}
+\subsection{Metric training}
 Next, the effect of a saccade is mainly to shift the visual field from one place to another. Concretely, each saccade provokes a new visual field $x'$ and a new subjective position $u'$, while the target identity $y$ remains unchanged. Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate. Choosing the next saccade thus means using a model to predict how accurate $p(U'|x')$ and $p(Y|x')$ will be after the saccade realization. 
 
 % a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This .  followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
@@ -77,7 +77,7 @@ Finally, each different initial visual field may come with a different accuracy 
 A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus\if 1\ICANN .
 \else {\bf [ref needed]}.
 
-\paragraph{Information gain and the inhibition of return}
+\subsection{Information gain and the inhibition of return}
 From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by an \emph{information gain}, namely:
 \begin{align}
 \text{IG}_\text{max} &= \max_{u'} \log p(y|u',x',x, u) - \log p(y|x, u)\\
@@ -90,6 +90,8 @@ For the saccade is subject to predictions errors and execution noise, the actual
 %Our main argument is that such an accuracy map is trainable in a rather straightforward way, 
 
 \fi
+
+\section{Implementation}
 To test the validity of our hypothesis, let us find a %it is necessary to find at least one 
 function implementing the ``where'' network. This function should be able to find the position of an object knowing only the degraded retinal image. Here, we describe the methods that we will follow to find that function, from the generative models (first external and then internal) to the actual implementation of the ``where'' pathway. %
 
