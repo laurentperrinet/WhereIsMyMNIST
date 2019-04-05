@@ -144,7 +144,7 @@ class Where():
             data, label = next(iter(loader_full))
             for i in range(size):
                 if i%1000 == 0: print(i)
-                data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
+                data_fullfield_, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
                 if fullfield:
                     data_fullfield[i, :, :] =  data_fullfield_
                 retina_data[i, :]  =  self.retina.retina(data_fullfield_)
