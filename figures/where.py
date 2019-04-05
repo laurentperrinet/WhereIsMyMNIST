@@ -91,7 +91,7 @@ class Where():
         # TESTING DATASET
         filename_dataset = filename_dataset = '/tmp/dataset_test' + suffix + '_%d.pt'% self.args.test_batch_size #f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
         if os.path.exists(filename_dataset):
-            if args.verbose: print('Loading training dataset')
+            if args.verbose: print('Loading testing dataset')
             self.loader_test  = torch.load(filename_dataset)
         else:
             if args.verbose: print('Creating testing dataset')
@@ -121,7 +121,8 @@ class Where():
     def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False):
         # loading data
         from retina import get_data_loader
-        loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
+        # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
+        
         # init variables
         if fullfield: # warning = this matrix may fill your memory :-)
             data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
@@ -152,7 +153,7 @@ class Where():
         else:
             loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
             for i, (data, label) in enumerate(loader_full):
-                if i >= self.args.train_batch_size : break
+                if i >= self.args.train_batch_size : print(i); break
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
                 if fullfield:
                     data_fullfield[i, :, :] =  data_fullfield_
