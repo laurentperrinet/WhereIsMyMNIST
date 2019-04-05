@@ -262,7 +262,10 @@ class Display:
     
     def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
-        if radius is None: radius = minmax(np.random.randn() * self.args.offset_std, self.args.offset_max)
+        if radius is None: 
+            radius_f = np.abs(np.random.randn()) * self.args.offset_std
+            radius = minmax(radius_f , self.args.offset_max)
+            #print(radius_f, radius)
         if theta is None: theta = np.random.rand() * np.pi
         if i_offset is None: i_offset = int(radius * np.cos(theta))
         if j_offset is None: j_offset = int(radius * np.sin(theta))
@@ -303,7 +306,7 @@ def get_data_loader(batch_size=100, train=True, mean=0.1307, std=0.3081, seed=20
 def minmax(value, border):
     value = max(value, -border)
     value = min(value, border)
-    return int(value)
+    return value
 
 
 def do_offset(data, i_offset, j_offset, N_pic, data_min=None):

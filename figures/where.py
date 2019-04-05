@@ -143,6 +143,7 @@ class Where():
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
                 if fullfield:
                     data_fullfield[i, :, :] =  data_fullfield_
+                retina_data[i, :]  =  self.retina.retina(data_fullfield_)
                 accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
         else:    
             loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
