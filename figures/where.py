@@ -160,7 +160,8 @@ class Where():
                 accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
                 digit_labels[i] = label#.detach.numpy()
             digit_labels = Variable(torch.LongTensor(digit_labels))
-               # converting to torch format
+        
+        # converting to torch format
         retina_data = Variable(torch.FloatTensor(retina_data)).to(self.device)
         if fullfield:
             data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
