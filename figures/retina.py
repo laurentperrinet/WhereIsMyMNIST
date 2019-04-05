@@ -266,7 +266,7 @@ class Display:
             radius_f = np.abs(np.random.randn()) * self.args.offset_std
             radius = minmax(radius_f , self.args.offset_max)
             #print(radius_f, radius)
-        if theta is None: theta = np.random.rand() * np.pi
+        if theta is None: theta = np.random.rand() * 2 * np.pi
         if i_offset is None: i_offset = int(radius * np.cos(theta))
         if j_offset is None: j_offset = int(radius * np.sin(theta))
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
