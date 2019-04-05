@@ -57,28 +57,29 @@ Each pathway is here assumed to rely on different sensor morphologies. By analog
 \fi
 
 \subsection{Metric training}
-Next, the effect of a saccade is mainly to shift the visual field from one place to another. Concretely, each saccade provokes a new visual field $x'$ and a new subjective position $u'$, while the target identity $y$ remains unchanged. Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate. Choosing the next saccade thus means using a model to predict how accurate $p(U'|x')$ and $p(Y|x')$ will be after the saccade realization. 
-
+Next, the effect of a saccade is mainly to shift the visual field from one place to another. 
+\if 0\ICANN Concretely, each saccade provokes a new visual field $x'$ and a new subjective position $u'$, while the target identity $y$ remains unchanged. Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.\fi Choosing the next saccade thus means using a model to predict how accurate $p(U|x)$ and $p(Y|x)$ will be after the saccade realization. 
 % a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This .  followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
-
-It is worth noting that active inference needs either the current identity $y$ or the current eye direction $u$ to be readable from the present view, in order to effectively predict future inferences, through computationally intensive predictions. In detail, modeling the full sequence of operations that lead to both estimate $p(U'|x')$ and $p(Y|x')$ means predicting the future visual field $x'$ over all possible saccades, that may be tremendously costly in case of large visual fields. 
-
-In consequence, Instead of doing predictions from a generative model, better off is to form a statistics over the (scene understanding) benefit obtained from past saccades in the same context, that is forming an \emph{accuracy map} from the current view. This is the essence of \emph{sampling-based metric prediction} we develop here. The putative effect of every saccade should be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
+\if 1\ICANN 
+In principle, active inference predicts future inferences through modeling the full sequence of operations that lead to both estimate $p(U|x)$ and $p(Y|x)$. This means predicting the future visual fields over all possible saccades, which may be exaggeratedly computationally intensive.
+\else It is worth noting that active inference needs either the current identity $y$ or the current eye direction $u$ to be readable from the present view, in order to effectively predict future inferences, through computationally intensive predictions. In detail, modeling the full sequence of operations that lead to both estimate $p(U'|x')$ and $p(Y|x')$ means predicting the future visual field $x'$ over all possible saccades, that may be tremendously costly in case of large visual fields. 
+\fi
+Better off instead is to form a statistics over the (scene understanding) benefit obtained from past saccades in the same context, that is forming an \emph{accuracy map} from the current view. This is the essence of \emph{sampling-based metric prediction} we develop here. The putative effect of every saccade should be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
 from the current observation $x$. If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the categorical classifier over $x'$ can either be correct (1) or incorrect (0).
 If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ forms a probability, i.e. a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
 % when issuing a saccade $a$ after seeing $\boldsymbol{x}$ (the initial visual field).
-It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
-
+\if 0\ICANN It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.\fi
+\if 0\ICANN
 To sum up, a main assumption here is that instead of trying to detect the actual position of the target, it is better for the agent to estimate how accurate the categorical classifier will be after moving the eye. This forms an accuracy map that may be learned through trials and errors, by actuating saccades %after processing the visual input, 
-and taking the final classification success or failure as a teaching signal.
+and taking the final classification success or failure as a teaching signal.\fi
 Such a \emph{predictive accuracy map} is assumed to be the core of a realistic saccade-based vision system.
 
-Note that compared to a brute force approach which would scan for all possible positions in an image, this map should compress the information, as exemplified by a retinotopic map. The map should be mostly organized radially, preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
-The operations that transform the initial primary visual data should thus preserve the initial spatial compression, so as to form the final  retinotopic accuracy map. Accordingly with the initial data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery. 
+\if 0\ICANN Note that compared to a brute force approach which would scan for all possible positions in an image, this map should compress the information, as exemplified by a retinotopic map. The map should be mostly organized radially, preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
+\fi
+The operations that transform the initial primary visual data should  preserve the initial retinotopic organization, so as to form a final  retinotopic accuracy map (see figure \ref{fig:methods}). Accordingly with the initial data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery. 
 %and telling how accurate the categorical classifier will be after the saccade is carried out~\citep{Dauce18}. %The set of all possible saccade predictions should
-
-Finally, each different initial visual field may come with a different accuracy map, indirectly conveying information about the target retinotopic position. 
-A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus\if 1\ICANN .
+Finally, each different initial visual field may bring out a different accuracy map, indirectly conveying information about the target retinotopic position. 
+A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculo-motor control\if 1\ICANN .
 \else {\bf [ref needed]}.
 
 \subsection{Information gain and the inhibition of return}
