@@ -231,7 +231,7 @@ class Where():
             indices_ij = np.where(test == max(test.flatten()))
             azimuth = indices_ij[0][0]
             eccentricity = indices_ij[1][0]
-            if eccentricity < 5:
+            if False: #eccentricity < 5:
                 im_colliculus = self.retina.colliculus[azimuth,eccentricity,:].reshape((self.args.N_pic, self.args.N_pic))
             else:
                 im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
