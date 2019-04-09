@@ -3,10 +3,10 @@ import torch
 from main import init, MetaML
 from where import Where as ML
 from what import WhatNet
-import numpy as np        
+import numpy as np
 import sys
-opts = dict(filename='../data/2019-03-30', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
-#opts = dict(filename='debug', verbose=0, log_interval=0)
+opts = dict(filename='../data/2019-04-01', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
+# opts = dict(filename='debug', verbose=0, log_interval=0, do_compute=True)
 print('do_compute =', opts['do_compute'])
 
 print(50*'-')

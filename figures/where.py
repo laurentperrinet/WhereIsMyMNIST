@@ -77,8 +77,6 @@ class Where():
             if args.verbose: print('Loading training dataset')
             self.loader_train  = torch.load(filename_dataset)
         else:
-            # MNIST DATASET
-            from retina import get_data_loader        
             # SAVING DATASET
             if args.verbose: print('Creating training dataset')
             retina_data, _, accuracy_colliculus, _ = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load)
@@ -97,7 +95,7 @@ class Where():
             if args.verbose: print('Creating testing dataset')
             retina_data, data_fullfield, accuracy_colliculus, digit_labels = self.generate_data(self.args.test_batch_size, train=False, fullfield=True, batch_load=batch_load)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            self.loader_test = DataLoader(TensorDataset(retina_data, data_fullfield, accuracy_colliculus, digit_labels), batch_size=args.test_batch_size)
+            self.loader_test = DataLoader(TensorDataset(retina_data, data_fullfield, accuracy_colliculus, digit_labels), batch_size=args.minibatch_size)
             if save:
                 torch.save(self.loader_test, filename_dataset)
             if args.verbose: print('Done!')
@@ -122,7 +120,7 @@ class Where():
         # loading data
         from retina import get_data_loader
         # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
-        
+
         # init variables
         if fullfield: # warning = this matrix may fill your memory :-)
             data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
@@ -153,7 +151,7 @@ class Where():
         else:
             loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
             for i, (data, label) in enumerate(loader_full):
-                if i >= self.args.train_batch_size : print(i); break
+                if i >= batch_size : break
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
                 if fullfield:
                     data_fullfield[i, :, :] =  data_fullfield_
@@ -161,8 +159,8 @@ class Where():
                 accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
                 digit_labels[i] = label#.detach.numpy()
             digit_labels = Variable(torch.LongTensor(digit_labels))
-        
-        # converting to torch format
+
+       # converting to torch format
         retina_data = Variable(torch.FloatTensor(retina_data)).to(self.device)
         if fullfield:
             data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
@@ -322,7 +320,7 @@ class Where():
             dataloader = self.loader_test
         self.model.eval()
         accuracy = []
-        for data_fullfield, retina_data, accuracy_colliculus, digit_labels in dataloader:
+        for retina_data, data_fullfield, accuracy_colliculus, digit_labels in dataloader:
             pred_accuracy_colliculus = self.pred_accuracy(retina_data)
             # use that predicted map to extract the foveal patch and classify the image
             correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())

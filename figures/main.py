@@ -21,7 +21,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
         with open(filename_json, 'r') as fp:
             args = json.load(fp)
             args = easydict.EasyDict(args)
-        
+
     else:
         args = easydict.EasyDict(
                                 # MNIST
@@ -42,7 +42,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 B_sf=0.08,
                                 # foveation
                                 N_theta = 6,
-                                N_azimuth = 26,
+                                N_azimuth = 24,
                                 N_eccentricity = 10,
                                 N_phase = 2,
                                 rho = 1.41,
@@ -67,7 +67,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 seed=2019,
                                 N_cv=10,
                                 do_compute=do_compute,
-                                    )
+                                )
         if filename == 'debug':
             args.filename = '../data/debug'
             args.train_batch_size = 100
