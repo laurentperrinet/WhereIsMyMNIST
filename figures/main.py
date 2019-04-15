@@ -170,28 +170,3 @@ class MetaML:
             fig, ax = plt.subplots(figsize=(8, 5))
             # TODO
         return accuracies
-
-
-if __name__ == '__main__':
-
-    import os
-    filename = 'figures/accuracy.pdf'
-    if not os.path.exists(filename) :
-        args = init(verbose=0, log_interval=0, epochs=20)
-        from gaze import MetaML
-        mml = MetaML(args)
-        Accuracy = mml.protocol(args, 42)
-        print('Accuracy', Accuracy[:-1].mean(), '+/-', Accuracy[:-1].std())
-        import numpy as np
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=((8, 5)))
-        n, bins, patches = ax.hist(Accuracy[:-1]*100, bins=np.linspace(0, 100, 100), alpha=.4)
-        ax.vlines(np.median(Accuracy[:-1])*100, 0, n.max(), 'g', linestyles='dashed', label='median')
-        ax.vlines(25, 0, n.max(), 'r', linestyles='dashed', label='chance level')
-        ax.vlines(100, 0, n.max(), 'k', label='max')
-        ax.set_xlabel('Accuracy (%)')
-        ax.set_ylabel('Smarts')
-        ax.legend(loc='best')
-        plt.show()
-        plt.savefig(filename)
-        plt.savefig(filename.replace('.pdf', '.png'))

@@ -42,21 +42,6 @@ class Where():
         self.retina = Retina(args)
         # https://pytorch.org/docs/stable/nn.html#torch.nn.BCEWithLogitsLoss
         self.loss_func = torch.nn.BCEWithLogitsLoss()
-        from what import WhatNet
-        model_path = "../data/MNIST_cnn.pt"
-        self.What_model = torch.load(model_path)
-        #model = torch.load(model_path)
-        #self.What_model = WhatNet()
-        # torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
-        #self.What_model.load_state_dict(torch.load(model_path))
-        #self.What_model.eval()
-        path = "../data/MNIST_accuracy.npy"
-        if os.path.isfile(path):
-            self.accuracy_map =  np.load(path)
-            if args.verbose:
-                print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
-        else:
-            print('No accuracy data found.')
 
         # GPU boilerplate
         self.args.no_cuda = self.args.no_cuda or not torch.cuda.is_available()
@@ -100,7 +85,23 @@ class Where():
                 torch.save(self.loader_test, filename_dataset)
             if args.verbose: print('Done!')
 
-
+        from what import WhatNet
+        model_path = f"../data/MNIST_cnn_{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}.pt"
+        if not os.path.isfile(model_path):
+        else:
+            from what import main, WhatNet
+            main(filename_dataset=None, path=model_path)
+            
+        self.What_model = torch.load(model_path)
+        
+        path = "../data/MNIST_accuracy.npy"
+        if os.path.isfile(path):
+            self.accuracy_map =  np.load(path)
+            if args.verbose:
+                print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
+        else:
+            print('No accuracy data found.')
+            
         # MODEL
         self.model = WhereNet(self.args).to(self.device)
         if not self.args.no_cuda:
