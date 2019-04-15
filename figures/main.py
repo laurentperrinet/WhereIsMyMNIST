@@ -37,27 +37,27 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 offset_std = 30, #
                                 offset_max = 34, # 128//2 - 28//2 *1.41 = 64 - 14*1.4 = 64-20
                                 noise=.75, #0 #
-                                contrast=.5, #
-                                sf_0=0.2,
-                                B_sf=0.08,
+                                contrast=.7, #
+                                sf_0=0.1,
+                                B_sf=0.1,
                                 # foveation
-                                N_theta = 6,
-                                N_azimuth = 24,
-                                N_eccentricity = 10,
-                                N_phase = 2,
-                                rho = 1.41,
+                                N_theta=6,
+                                N_azimuth=24,
+                                N_eccentricity=10,
+                                N_phase=2,
+                                rho=1.41,
                                 # network
                                 bias_deconv=True,
                                 p_dropout=.0,
-                                dim1=382,
-                                dim2=618,
+                                dim1=1000,
+                                dim2=1000,
                                 # training
                                 lr=5e-3,  # Learning rate
                                 do_adam=True,
                                 bn1_bn_momentum=0.5,
                                 bn2_bn_momentum=0.5,
                                 momentum=0.3,
-                                epochs=25,
+                                epochs=60,
                                 # simulation
                                 num_processes=1,
                                 no_cuda=True,

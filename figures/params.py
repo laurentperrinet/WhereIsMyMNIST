@@ -6,7 +6,7 @@ from what import WhatNet
 import numpy as np
 import sys
 opts = dict(filename='../data/2019-04-01', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
-# opts = dict(filename='debug', verbose=0, log_interval=0, do_compute=True)
+#opts = dict(filename='debug', verbose=0, log_interval=0)
 print('do_compute =', opts['do_compute'])
 
 print(50*'-')
@@ -63,8 +63,9 @@ def update_results(results, parameter, accuracies, ci=0.01):
         
     return results
             
-bases = [2]
 bases = [np.sqrt(2), 2, 2*np.sqrt(2)]    
+bases = [2]
+bases = [np.sqrt(2), 2]
 for base in bases if not args.filename == '../data/debug' else [2]:
     print(50*'-')
     print(' base=', base)
