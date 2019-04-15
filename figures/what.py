@@ -58,7 +58,7 @@ def test(args, model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
     return correct / len(test_loader.dataset)
 
-def main(filename_dataset=None, path="../data/MNIST_cnn.pt"):
+def main(train_loader=None, test_loader=None, path="../data/MNIST_cnn.pt"):
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
@@ -88,12 +88,8 @@ def main(filename_dataset=None, path="../data/MNIST_cnn.pt"):
 
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    if not filename_dataset is None:
-        train_loader = torch.load(filename_dataset)
-    
-        test_loader = torch.load(filename_dataset)
-    else:
-        kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    if train_loader is None:
         train_loader = torch.utils.data.DataLoader(
             datasets.MNIST('../data', train=True, download=True,
                            transform=transforms.Compose([
@@ -101,6 +97,7 @@ def main(filename_dataset=None, path="../data/MNIST_cnn.pt"):
                                transforms.Normalize((0.1307,), (0.3081,))
                            ])),
             batch_size=args.batch_size, shuffle=True, **kwargs)
+    if test_loader is None:
         test_loader = torch.utils.data.DataLoader(
             datasets.MNIST('../data', train=False, transform=transforms.Compose([
                                transforms.ToTensor(),

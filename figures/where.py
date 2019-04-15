@@ -85,12 +85,17 @@ class Where():
                 torch.save(self.loader_test, filename_dataset)
             if args.verbose: print('Done!')
 
+        # loads a WHAT model (or learns it if not already done)
         from what import WhatNet
         model_path = f"../data/MNIST_cnn_{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}.pt"
         if not os.path.isfile(model_path):
-        else:
             from what import main, WhatNet
-            main(filename_dataset=None, path=model_path)
+            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load, do_extract=True)
+            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+            train_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
+            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load, do_extract=True)
+            test_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
+            main(train_loader=train_loader, test_loader=test_loader, path=model_path)
             
         self.What_model = torch.load(model_path)
         
@@ -117,14 +122,17 @@ class Where():
             self.optimizer = optim.SGD(self.model.parameters(),
                                     lr=self.args.lr, momentum=self.args.momentum)
 
-    def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False):
+    def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False, do_extract=False):
         # loading data
         from retina import get_data_loader
         # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
 
         # init variables
         if fullfield: # warning = this matrix may fill your memory :-)
-            data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
+            if do_extract:
+                data_fullfield = np.zeros((batch_size, self.args.w, self.args.w))
+            else:
+                data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         else:
             data_fullfield = None
         retina_data = np.zeros((batch_size, self.retina.vsize))
@@ -145,7 +153,10 @@ class Where():
                 if i%1000 == 0: print(i)
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
                 if fullfield:
-                    data_fullfield[i, :, :] =  data_fullfield_
+                    if do_extract:
+                        data_fullfield[i, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
+                    else:
+                        data_fullfield[i, :, :] =  data_fullfield_
                 retina_data[i, :]  =  self.retina.retina(data_fullfield_)
                 accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
             digit_labels = label
@@ -155,7 +166,10 @@ class Where():
                 if i >= batch_size : break
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
                 if fullfield:
-                    data_fullfield[i, :, :] =  data_fullfield_
+                    if do_extract:
+                        data_fullfield[i, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
+                    else:
+                        data_fullfield[i, :, :] =  data_fullfield_
                 retina_data[i, :]  =  self.retina.retina(data_fullfield_)
                 accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
                 digit_labels[i] = label#.detach.numpy()
