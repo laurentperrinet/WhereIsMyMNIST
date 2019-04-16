@@ -63,6 +63,7 @@ class Where():
 
         self.What_model = torch.load(model_path)
 
+        # TODO generate an accuracy map for different noise / contrast / sf_0 / B_sf
         path = "../data/MNIST_accuracy.npy"
         if os.path.isfile(path):
             self.accuracy_map =  np.load(path)
