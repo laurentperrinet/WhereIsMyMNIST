@@ -96,9 +96,9 @@ class Where():
             _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load, do_extract=True)
             test_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
             main(train_loader=train_loader, test_loader=test_loader, path=model_path)
-            
+
         self.What_model = torch.load(model_path)
-        
+
         path = "../data/MNIST_accuracy.npy"
         if os.path.isfile(path):
             self.accuracy_map =  np.load(path)
@@ -106,7 +106,7 @@ class Where():
                 print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
         else:
             print('No accuracy data found.')
-            
+
         # MODEL
         self.model = WhereNet(self.args).to(self.device)
         if not self.args.no_cuda:
@@ -184,7 +184,7 @@ class Where():
         digit_labels = digit_labels.to(self.device)
         # returning
         return retina_data, data_fullfield, accuracy_colliculus, digit_labels
-    
+
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         batch_size = data.shape[0]
@@ -250,7 +250,7 @@ class Where():
                 im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
         else:
             im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
-                
+
         # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html
         i, j = np.unravel_index(np.argmax(im_colliculus.ravel()), im_colliculus.shape)
         i_pred = i - self.args.N_pic//2
