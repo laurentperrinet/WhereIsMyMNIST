@@ -49,6 +49,28 @@ class Where():
         self.device = torch.device("cpu" if self.args.no_cuda else "cuda")
         torch.manual_seed(self.args.seed)
 
+        # loads a WHAT model (or learns it if not already done)
+        from what import WhatNet
+        model_path = f"../data/MNIST_cnn_{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}.pt"
+        if not os.path.isfile(model_path):
+            from what import main, WhatNet
+            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
+            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+            train_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
+            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
+            test_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
+            main(train_loader=train_loader, test_loader=test_loader, path=model_path)
+
+        self.What_model = torch.load(model_path)
+
+        path = "../data/MNIST_accuracy.npy"
+        if os.path.isfile(path):
+            self.accuracy_map =  np.load(path)
+            if args.verbose:
+                print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
+        else:
+            print('No accuracy data found.')
+
         # DATA
         suffix = '_%.3f_%.3f' % (self.args.sf_0, self.args.B_sf) #f'_{self.args.sf_0}_{self.args.B_sf}'
         suffix += '_%.3f_%.3f' % (self.args.noise, self.args.contrast) #f'_{self.args.noise}_{self.args.contrast}'
@@ -84,28 +106,6 @@ class Where():
             if save:
                 torch.save(self.loader_test, filename_dataset)
             if args.verbose: print('Done!')
-
-        # loads a WHAT model (or learns it if not already done)
-        from what import WhatNet
-        model_path = f"../data/MNIST_cnn_{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}.pt"
-        if not os.path.isfile(model_path):
-            from what import main, WhatNet
-            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load, do_extract=True)
-            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            train_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
-            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load, do_extract=True)
-            test_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
-            main(train_loader=train_loader, test_loader=test_loader, path=model_path)
-
-        self.What_model = torch.load(model_path)
-
-        path = "../data/MNIST_accuracy.npy"
-        if os.path.isfile(path):
-            self.accuracy_map =  np.load(path)
-            if args.verbose:
-                print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
-        else:
-            print('No accuracy data found.')
 
         # MODEL
         self.model = WhereNet(self.args).to(self.device)
@@ -157,8 +157,9 @@ class Where():
                         data_fullfield[i, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
                     else:
                         data_fullfield[i, :, :] =  data_fullfield_
-                retina_data[i, :]  =  self.retina.retina(data_fullfield_)
-                accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
+                if not do_extract:
+                    retina_data[i, :]  =  self.retina.retina(data_fullfield_)
+                    accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
             digit_labels = label
         else:
             loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
@@ -170,8 +171,9 @@ class Where():
                         data_fullfield[i, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
                     else:
                         data_fullfield[i, :, :] =  data_fullfield_
-                retina_data[i, :]  =  self.retina.retina(data_fullfield_)
-                accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
+                if not do_extract:
+                    retina_data[i, :]  =  self.retina.retina(data_fullfield_)
+                    accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
                 digit_labels[i] = label#.detach.numpy()
             digit_labels = Variable(torch.LongTensor(digit_labels))
 
