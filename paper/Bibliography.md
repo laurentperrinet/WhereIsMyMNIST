@@ -1,3 +1,7 @@
+General
+-----------
+
+-   https://www.ucl.ac.uk/ioo/research/research-labs-and-groups/child-vision-lab/event/visionucl-talks
 
 Active vision
 -------------
@@ -83,7 +87,10 @@ faire une transfo log-polaire\...
 -   M. Kümmerer, L. Theis, and M. Bethge **Deep Gaze I: Boosting
     Saliency Prediction with Feature Maps Trained on ImageNet** ICLR
     Workshop, 2015
-    -   <https://arxiv.org/pdf/1411.1045.pdf>
+    <https://arxiv.org/pdf/1411.1045.pdf>
+    
+-   A Unified Theory of Early Visual Representations from Retina to Cortex 
+    through Anatomically Constrained Deep CNNs <https://openreview.net/forum?id=S1xq3oR5tQ>
 
 Fovea models
 ------------
@@ -91,6 +98,9 @@ Fovea models
 -   Philip Kortum and Wilson S. Geisler. **Implementation of a foveated
     image coding system for image bandwidth reduction**. In: SPIE
     Proceedings 2657 (1996)
+    
+-   En lisant la page 476 de : <https://www.asc.ohio-state.edu/golubitsky.4/reprintweb-0.5/output/papers/6120261.pdf>, 
+    il y a des nombres intéressants à utiliser pour notre transformation log-polaire...
 
 V1 models
 ---------
@@ -130,6 +140,10 @@ crowding, ce gain est perdu.
 Attention network
 -----------------
 
+What/Where 
+-----------------
+-    Benjamin de Haas, Justus-Liebig-Universität Gießen : 'Where' in the ventral stream? Pointers from feature-location tuning and individual salience
+
 
 Saliency maps
 -------------
@@ -151,4 +165,5 @@ Benchmarking
 Datasets
 --------
 
+-   Explaining the Human Visual Brain Challenge: <http://algonauts.csail.mit.edu/>
 -   <https://etra.acm.org/2019/challenge.html>
