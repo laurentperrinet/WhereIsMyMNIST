@@ -4,13 +4,14 @@
 %!BIB TS-program = bibtex
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
-\def\ICANN{1}%
+\def\ICANN{0}%
 %: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %: notes
 %  journals = https://en.wikipedia.org/wiki/List_of_academic_journals_by_preprint_policy
 %
 %: METADATA
 %: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newcommand{\ICANN}{0}
 \newcommand{\AuthorPA}{Pierre Albiges}
 \newcommand{\AuthorED}{Emmanuel Dauc\'e}%
 \newcommand{\AuthorLP}{Laurent Perrinet}%
@@ -24,17 +25,10 @@
 \newcommand{\Title}{
 %TODO:  (à changer / travailler / masser )
 %%Tentative titles by order of preference :
-\if 1\ICANN
 Learning Where to Look for What to See :\\ A Foveated Visual Search Model
-\else
-A foveated visuomotor control model of learning where to look at what to see/
-Learning where to see before looking at what it is
-/
-Seeing where before looking what
-/
-Learning where to look: a foveated visuomotor control model
-/
-\fi
+%Learning where to see before looking at what it is
+%Seeing where before looking what
+%Learning where to look: a foveated visuomotor control model
 %Looking where it is worth looking
 %Learning where to see
 %Learning where to look for a target before seeing it
@@ -63,6 +57,8 @@ Learning where to look: a foveated visuomotor control model
 \usepackage{graphicx}
 \DeclareGraphicsExtensions{.pdf}%,.png,.jpg}
 %\graphicspath{{.}}%
+
+\usepackage{color}
 
 %opening
 \title{
@@ -177,9 +173,6 @@ backend=bibtex,
 
 \keywords{\Keywords}
 
-\if 1\ICANN
-\else
-\fi
 
 \end{abstract}
 %
@@ -205,9 +198,6 @@ backend=bibtex,
 \input{appendix}
 \fi
 
-\if 1\ICANN
-\else
-\fi
 
 %%%-----------------------------------------------------------------
 %{\bf References} \\
