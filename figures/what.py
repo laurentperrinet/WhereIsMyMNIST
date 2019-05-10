@@ -90,6 +90,7 @@ def main(args=None, train_loader=None, test_loader=None, path="../data/MNIST_cnn
     else:
         args.batch_size = args.minibatch_size
         args.momentum = .5
+        args.save_model = True
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
