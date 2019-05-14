@@ -51,15 +51,44 @@ class Where():
 
         # loads a WHAT model (or learns it if not already done)
         from what import WhatNet
-        model_path = f"../data/MNIST_cnn_{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}.pt"
+        suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
+
+        model_path = f"../data/MNIST_cnn_{suffix}.pt"
         if not os.path.isfile(model_path):
+
+            # TRAINING DATASET
+            filename_dataset = f'/tmp/what_dataset_train_{suffix}_{self.args.train_batch_size}.pt'
+            if os.path.exists(filename_dataset):
+                if args.verbose: print('Loading WHAT training dataset')
+                train_loader  = torch.load(filename_dataset)
+            else:
+                # SAVING DATASET
+                if args.verbose: print('Creating WHAT training dataset')
+                _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
+                # print('data_extract.shape=', data_extract.shape)
+                # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+                train_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
+                if save:
+                    torch.save(train_loader, filename_dataset)
+                if args.verbose: print('Done!')
+
+            # TESTING DATASET
+            filename_dataset = f'/tmp/what_dataset_test_{suffix}_{self.args.test_batch_size}.pt'
+            if os.path.exists(filename_dataset):
+                if args.verbose: print('Loading WHAT testing dataset')
+                test_loader  = torch.load(filename_dataset)
+            else:
+                if args.verbose: print('Creating WHAT testing dataset')
+                _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
+                test_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
+                if save:
+                    torch.save(test_loader, filename_dataset)
+                if args.verbose: print('Done!')
+
+
+            print('Training the "what" model ', model_path)
             from what import main, WhatNet
-            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
-            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            train_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
-            _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
-            test_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
-            main(train_loader=train_loader, test_loader=test_loader, path=model_path)
+            main(args=self.args, train_loader=train_loader, test_loader=test_loader, path=model_path)
 
         self.What_model = torch.load(model_path)
 
@@ -87,15 +116,15 @@ class Where():
         else:
             # SAVING DATASET
             if args.verbose: print('Creating training dataset')
-            retina_data, _, accuracy_colliculus, _ = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load)
-            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            self.loader_train = DataLoader(TensorDataset(retina_data, accuracy_colliculus), batch_size=args.minibatch_size)
-            if save:
-                torch.save(self.loader_train, filename_dataset)
-            if args.verbose: print('Done!')
+        retina_data, _, accuracy_colliculus, _ = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load)
+        # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+        self.loader_train = DataLoader(TensorDataset(retina_data, accuracy_colliculus), batch_size=args.minibatch_size)
+        if save:
+            torch.save(self.loader_train, filename_dataset)
+        if args.verbose: print('Done!')
 
         # TESTING DATASET
-        filename_dataset = filename_dataset = '/tmp/dataset_test' + suffix + '_%d.pt'% self.args.test_batch_size #f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
+        filename_dataset = '/tmp/dataset_test' + suffix + '_%d.pt'% self.args.test_batch_size #f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
         if os.path.exists(filename_dataset):
             if args.verbose: print('Loading testing dataset')
             self.loader_test  = torch.load(filename_dataset)
@@ -131,7 +160,7 @@ class Where():
         # init variables
         if fullfield: # warning = this matrix may fill your memory :-)
             if do_extract:
-                data_fullfield = np.zeros((batch_size, self.args.w, self.args.w))
+                data_fullfield = np.zeros((batch_size, 1, self.args.w, self.args.w))
             else:
                 data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         else:
@@ -155,7 +184,7 @@ class Where():
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
                 if fullfield:
                     if do_extract:
-                        data_fullfield[i, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
+                        data_fullfield[i, 0, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
                     else:
                         data_fullfield[i, :, :] =  data_fullfield_
                 if not do_extract:
@@ -169,7 +198,7 @@ class Where():
                 data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
                 if fullfield:
                     if do_extract:
-                        data_fullfield[i, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
+                        data_fullfield[i, 0, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
                     else:
                         data_fullfield[i, :, :] =  data_fullfield_
                 if not do_extract:
