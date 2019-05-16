@@ -52,44 +52,22 @@ class Where():
         # loads a WHAT model (or learns it if not already done)
         from what import WhatNet
         suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-
         model_path = f"../data/MNIST_cnn_{suffix}.pt"
         if not os.path.isfile(model_path):
-
-            # TRAINING DATASET
-            filename_dataset = f'/tmp/what_dataset_train_{suffix}_{self.args.train_batch_size}.pt'
-            if os.path.exists(filename_dataset):
-                if args.verbose: print('Loading WHAT training dataset')
-                train_loader  = torch.load(filename_dataset)
-            else:
-                # SAVING DATASET
-                if args.verbose: print('Creating WHAT training dataset')
-                _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
-                # print('data_extract.shape=', data_extract.shape)
-                # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-                train_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
-                if save:
-                    torch.save(train_loader, filename_dataset)
-                if args.verbose: print('Done!')
-
-            # TESTING DATASET
-            filename_dataset = f'/tmp/what_dataset_test_{suffix}_{self.args.test_batch_size}.pt'
-            if os.path.exists(filename_dataset):
-                if args.verbose: print('Loading WHAT testing dataset')
-                test_loader  = torch.load(filename_dataset)
-            else:
-                if args.verbose: print('Creating WHAT testing dataset')
-                _, data_extract, _, digit_labels = self.generate_data(self.args.train_batch_size, train=True, fullfield=True, batch_load=batch_load, do_extract=True)
-                test_loader = DataLoader(TensorDataset(data_extract, digit_labels), batch_size=args.minibatch_size)
-                if save:
-                    torch.save(test_loader, filename_dataset)
-                if args.verbose: print('Done!')
-
-
+            train_loader = self.what_data_loader(suffix, 
+                                                 train=True, 
+                                                 save=save, 
+                                                 batch_load=batch_load)
+            test_loader = self.what_data_loader(suffix, 
+                                                train=False, 
+                                                save=save, 
+                                                batch_load=batch_load)
             print('Training the "what" model ', model_path)
-            from what import main, WhatNet
-            main(args=self.args, train_loader=train_loader, test_loader=test_loader, path=model_path)
-
+            from what import main
+            main(args=self.args, 
+                 train_loader=train_loader, 
+                 test_loader=test_loader, 
+                 path=model_path)
         self.What_model = torch.load(model_path)
 
         # TODO generate an accuracy map for different noise / contrast / sf_0 / B_sf
@@ -102,40 +80,23 @@ class Where():
             print('No accuracy data found.')
 
         # DATA
-        suffix = '_%.3f_%.3f' % (self.args.sf_0, self.args.B_sf) #f'_{self.args.sf_0}_{self.args.B_sf}'
-        suffix += '_%.3f_%.3f' % (self.args.noise, self.args.contrast) #f'_{self.args.noise}_{self.args.contrast}'
-        suffix += '_%.3f_%.3f' % (self.args.offset_std, self.args.offset_max) #f'_{self.args.offset_std}_{self.args.offset_max}'
-        suffix += '_%d_%d' % (self.args.N_theta, self.args.N_azimuth) #f'_{self.args.N_theta}_{self.args.N_azimuth}'
-        suffix += '_%d_%d' % (self.args.N_eccentricity, self.args.N_phase) #f'_{self.args.N_eccentricity}_{self.args.N_phase}'
-        suffix += '_%.3f_%d' % (self.args.rho, self.args.N_pic) #f'_{self.args.rho}_{self.args.N_pic}'
-        # TRAINING DATASET
-        filename_dataset = '/tmp/dataset_train' + suffix + '_%d.pt'% self.args.train_batch_size #f'/tmp/dataset_train_{suffix}_{self.args.train_batch_size}.pt'
-        if os.path.exists(filename_dataset):
-            if args.verbose: print('Loading training dataset')
-            self.loader_train  = torch.load(filename_dataset)
-        else:
-            # SAVING DATASET
-            if args.verbose: print('Creating training dataset')
-        retina_data, _, accuracy_colliculus, _ = self.generate_data(self.args.train_batch_size, train=True, fullfield=False, batch_load=batch_load)
-        # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-        self.loader_train = DataLoader(TensorDataset(retina_data, accuracy_colliculus), batch_size=args.minibatch_size)
-        if save:
-            torch.save(self.loader_train, filename_dataset)
-        if args.verbose: print('Done!')
+        suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
+        suffix += f'_{self.args.noise}_{self.args.contrast}'
+        suffix += f'_{self.args.offset_std}_{self.args.offset_max}'
+        suffix += f'_{self.args.N_theta}_{self.args.N_azimuth}'
+        suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
+        suffix += f'_{self.args.rho}_{self.args.N_pic}'
+            
+        self.loader_train = self.where_data_loader(suffix, 
+                                                   train=True, 
+                                                   save=save, 
+                                                   batch_load=batch_load)
+        self.loader_test = self.where_data_loader(suffix, 
+                                                  train=False, 
+                                                  save=save, 
+                                                  batch_load=batch_load)
 
-        # TESTING DATASET
-        filename_dataset = '/tmp/dataset_test' + suffix + '_%d.pt'% self.args.test_batch_size #f'/tmp/dataset_test_{suffix}_{self.args.test_batch_size}.pt'
-        if os.path.exists(filename_dataset):
-            if args.verbose: print('Loading testing dataset')
-            self.loader_test  = torch.load(filename_dataset)
-        else:
-            if args.verbose: print('Creating testing dataset')
-            retina_data, data_fullfield, accuracy_colliculus, digit_labels = self.generate_data(self.args.test_batch_size, train=False, fullfield=True, batch_load=batch_load)
-            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            self.loader_test = DataLoader(TensorDataset(retina_data, data_fullfield, accuracy_colliculus, digit_labels), batch_size=args.minibatch_size)
-            if save:
-                torch.save(self.loader_test, filename_dataset)
-            if args.verbose: print('Done!')
+        
 
         # MODEL
         self.model = WhereNet(self.args).to(self.device)
@@ -147,12 +108,87 @@ class Where():
         if self.args.do_adam:
             # see https://heartbeat.fritz.ai/basics-of-image-classification-with-pytorch-2f8973c51864
             self.optimizer = optim.Adam(self.model.parameters(),
-                                    lr=self.args.lr, betas=(1.-self.args.momentum, 0.999), eps=1e-8)
+                                        lr=self.args.lr, 
+                                        betas=(1.-self.args.momentum, 0.999), 
+                                        eps=1e-8)
         else:
             self.optimizer = optim.SGD(self.model.parameters(),
-                                    lr=self.args.lr, momentum=self.args.momentum)
+                                       lr=self.args.lr, 
+                                       momentum=self.args.momentum)
+            
+    def what_data_loader(self, suffix, train=True, save=False, batch_load=False):
+                         # TRAINING DATASET
+        if train:
+            batch_size = self.args.train_batch_size
+            data_type = 'train'
+        else:
+            batch_size = self.args.test_batch_size
+            data_type = 'test'
+        filename_dataset = f'/tmp/what_dataset_{data_type}_{suffix}_{batch_size}.pt'
+        if os.path.exists(filename_dataset):
+            if self.args.verbose: print(f'Loading WHAT {data_type}ing dataset')
+            data_loader  = torch.load(filename_dataset)
+        else:
+            # SAVING DATASET
+            if self.args.verbose: print(f'Creating WHAT {data_type}ing dataset')
+            _, data_extract, _, digit_labels = self.generate_data(batch_size, 
+                                                                  train=train, 
+                                                                  fullfield=True, 
+                                                                  batch_load=batch_load, 
+                                                                  do_extract=True)
+            # print('data_extract.shape=', data_extract.shape)
+            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+            data_loader = DataLoader(TensorDataset(data_extract, digit_labels), 
+                                     batch_size=self.args.minibatch_size)
+            if save:
+                torch.save(data_loader, filename_dataset)
+            if self.args.verbose: print('Done!')
+        return data_loader
+       
+    def where_data_loader(self, suffix, train=True, save=False, batch_load=False):
+        if train:
+            batch_size = self.args.train_batch_size
+            data_type = 'train'
+            fullfield = False
+        else:
+            batch_size = self.args.test_batch_size
+            fullfield = True
+            data_type = 'test'
+        filename_dataset = f'/tmp/dataset_{data_type}_{suffix}_{batch_size}.pt'
+        if os.path.exists(filename_dataset):
+            if self.args.verbose: print(f'Loading {data_type}ing dataset')
+            data_loader  = torch.load(filename_dataset)
+        else:
+            if self.args.verbose: print(f'Creating {data_type}ing dataset')
+            retina_data, data_fullfield, accuracy_colliculus, digit_labels = self.generate_data(batch_size,
+                                                                                                train=train, 
+                                                                                                fullfield=fullfield,
+                                                                                                batch_load=batch_load)
+            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
+            data_loader = DataLoader(TensorDataset(retina_data, data_fullfield, accuracy_colliculus, digit_labels),
+                                     batch_size=self.args.minibatch_size)
+            if save:
+                torch.save(data_loader, filename_dataset)
+            if self.args.verbose: print('Done!')
+        return data_loader
 
     def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False, do_extract=False):
+    """
+    Returns
+    -------
+    retina_data:
+        a tensor of retina-encoded input vectors (torch FloatTensor)
+    data_fullfield (optional):
+        if not do_extract:
+            a tensor of full-resolution input 2D images (torch FloatTensor)
+        else:
+            a small snippet around target position
+    accuracy_colliculus:
+        a tensor of retina-encoded output vector (torch FloatTensor)
+    digit_labels:
+        a tensor of integer labels (torch LongTensor)
+    """
+        
         # loading data
         from retina import get_data_loader
         # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
