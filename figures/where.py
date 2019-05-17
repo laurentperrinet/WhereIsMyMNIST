@@ -55,11 +55,13 @@ class Where():
         model_path = f"../data/MNIST_cnn_{suffix}.pt"
         if not os.path.isfile(model_path):
             train_loader = self.what_data_loader(suffix, 
-                                                 train=True, 
+                                                 train=True,
+                                                 what = True,
                                                  save=save, 
                                                  batch_load=batch_load)
             test_loader = self.what_data_loader(suffix, 
                                                 train=False, 
+                                                what = True,
                                                 save=save, 
                                                 batch_load=batch_load)
             print('Training the "what" model ', model_path)
@@ -116,78 +118,64 @@ class Where():
                                        lr=self.args.lr, 
                                        momentum=self.args.momentum)
             
-    def what_data_loader(self, suffix, train=True, save=False, batch_load=False):
+    def data_loader(self, suffix, train=True, what = False, save=False, batch_load=False):
                          # TRAINING DATASET
+        fullfield = True
         if train:
             batch_size = self.args.train_batch_size
             data_type = 'train'
         else:
             batch_size = self.args.test_batch_size
             data_type = 'test'
-        filename_dataset = f'/tmp/what_dataset_{data_type}_{suffix}_{batch_size}.pt'
+        if what:
+            net = 'WHAT'
+            do_extract = True
+        else:
+            net = ''
+            do_extract = False
+            if train:
+                fullfield = False
+        filename_dataset = f'/tmp/{net}_dataset_{data_type}_{suffix}_{batch_size}.pt'
         if os.path.exists(filename_dataset):
-            if self.args.verbose: print(f'Loading WHAT {data_type}ing dataset')
+            if self.args.verbose: print(f'Loading {net} {data_type}ing dataset')
             data_loader  = torch.load(filename_dataset)
         else:
             # SAVING DATASET
-            if self.args.verbose: print(f'Creating WHAT {data_type}ing dataset')
-            _, data_extract, _, digit_labels = self.generate_data(batch_size, 
+            if self.args.verbose: print(f'Creating {net} {data_type}ing dataset')
+            retina_data, full_data, accuracy_maps, digit_labels = self.generate_data(batch_size, 
                                                                   train=train, 
                                                                   fullfield=True, 
                                                                   batch_load=batch_load, 
-                                                                  do_extract=True)
+                                                                  do_extract=do_extract)
             # print('data_extract.shape=', data_extract.shape)
             # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            data_loader = DataLoader(TensorDataset(data_extract, digit_labels), 
-                                     batch_size=self.args.minibatch_size)
-            if save:
-                torch.save(data_loader, filename_dataset)
-            if self.args.verbose: print('Done!')
-        return data_loader
-       
-    def where_data_loader(self, suffix, train=True, save=False, batch_load=False):
-        if train:
-            batch_size = self.args.train_batch_size
-            data_type = 'train'
-            fullfield = False
-        else:
-            batch_size = self.args.test_batch_size
-            fullfield = True
-            data_type = 'test'
-        filename_dataset = f'/tmp/dataset_{data_type}_{suffix}_{batch_size}.pt'
-        if os.path.exists(filename_dataset):
-            if self.args.verbose: print(f'Loading {data_type}ing dataset')
-            data_loader  = torch.load(filename_dataset)
-        else:
-            if self.args.verbose: print(f'Creating {data_type}ing dataset')
-            retina_data, data_fullfield, accuracy_colliculus, digit_labels = self.generate_data(batch_size,
-                                                                                                train=train, 
-                                                                                                fullfield=fullfield,
-                                                                                                batch_load=batch_load)
-            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            data_loader = DataLoader(TensorDataset(retina_data, data_fullfield, accuracy_colliculus, digit_labels),
-                                     batch_size=self.args.minibatch_size)
+            if what:
+                data_loader = DataLoader(TensorDataset(full_data, digit_labels), 
+                                         batch_size=self.args.minibatch_size)
+            else:
+                data_loader = DataLoader(TensorDataset(retina_data, full_data, accuracy_maps, digit_labels),
+                                         batch_size=self.args.minibatch_size)
             if save:
                 torch.save(data_loader, filename_dataset)
             if self.args.verbose: print('Done!')
         return data_loader
 
     def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False, do_extract=False):
-    """
-    Returns
-    -------
-    retina_data:
-        a tensor of retina-encoded input vectors (torch FloatTensor)
-    data_fullfield (optional):
-        if not do_extract:
-            a tensor of full-resolution input 2D images (torch FloatTensor)
-        else:
-            a small snippet around target position
-    accuracy_colliculus:
-        a tensor of retina-encoded output vector (torch FloatTensor)
-    digit_labels:
-        a tensor of integer labels (torch LongTensor)
-    """
+        """
+        Returns
+        -------
+        retina_data:
+            a tensor of retina-encoded input vectors (torch FloatTensor)
+        data_fullfield (optional):
+            if not do_extract:
+                a tensor of full-resolution 2D images (torch FloatTensor)
+            else:
+                a tensor of 2D snippets around the target position
+        accuracy_colliculus:
+            a tensor of retina-encoded output vector (torch FloatTensor)
+        digit_labels:
+            a tensor of integer labels (torch LongTensor)
+        """
         
         # loading data
         from retina import get_data_loader
