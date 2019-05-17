@@ -10,20 +10,20 @@ Serves for initializing/scanning system parameters:
   - **WhereNet inputs**: 
     - 2D input image 
       - ``N_pic`` : image width
+    - Background noise:
+      - ``noise``
+      - ``contrast``
+      - ``sf_0``: median spatial frequency
+      - ``B_sf``: bandwidth around central frequency
+    - Target positioning:
+      - ``offset_std``
+      - ``offset_max``
     - Logpolar encoding: 
       - ``N_theta``
       - ``N_azimuth``
       - ``N_eccentricity``
       - ``N_phase``
       - ``rho``
-    - Background noise:
-      - ``noise``
-      - ``contrast``
-      - ``sf_0``
-      - ``B_sf``
-    - Target positioning:
-      - ``offset_std``
-      - ``offset_max``
       
   - **WhereNet setup**:
     - Parameters:
@@ -37,13 +37,14 @@ Serves for initializing/scanning system parameters:
     - Layers:
       - ``dim1``
       - ``dim2``
-    - Train/test:
-      - ``minibatch_size``
-      - ``train_batch_size``
-      - ``test_batch_size``
-      - ``noise_batch_size``
-      - ``epochs``
-      - ``log_interval``: period with which we report results for the loss
+      
+  - **Train/test**:
+    - ``minibatch_size``
+    - ``train_batch_size``
+    - ``test_batch_size``
+    - ``noise_batch_size``
+    - ``epochs``
+    - ``log_interval``: period with which we report results for the loss
       
   - **Computation**:
     - ``num_processes``

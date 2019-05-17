@@ -57,16 +57,16 @@ class Where():
         suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         model_path = f"../data/MNIST_cnn_{suffix}.pt"
         if not os.path.isfile(model_path):
-            train_loader = self.what_data_loader(suffix, 
-                                                 train=True,
-                                                 what = True,
-                                                 save=save, 
-                                                 batch_load=batch_load)
-            test_loader = self.what_data_loader(suffix, 
-                                                train=False, 
-                                                what = True,
-                                                save=save, 
-                                                batch_load=batch_load)
+            train_loader = self.data_loader(suffix, 
+                                            train=True,
+                                            what = True,
+                                            save=save, 
+                                            batch_load=batch_load)
+            test_loader = self.data_loader(suffix, 
+                                            train=False, 
+                                            what = True,
+                                            save=save, 
+                                            batch_load=batch_load)
             print('Training the "what" model ', model_path)
             from what import main
             main(args=self.args, 
@@ -99,14 +99,14 @@ class Where():
         suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
         suffix += f'_{self.args.rho}_{self.args.N_pic}'
             
-        self.loader_train = self.where_data_loader(suffix, 
-                                                   train=True, 
-                                                   save=save, 
-                                                   batch_load=batch_load)
-        self.loader_test = self.where_data_loader(suffix, 
-                                                  train=False, 
-                                                  save=save, 
-                                                  batch_load=batch_load)
+        self.loader_train = self.data_loader(suffix, 
+                                             train=True, 
+                                             save=save, 
+                                             batch_load=batch_load)
+        self.loader_test = self.data_loader(suffix, 
+                                            train=False, 
+                                            save=save, 
+                                            batch_load=batch_load)
         
 
         # MODEL

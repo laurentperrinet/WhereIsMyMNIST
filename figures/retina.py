@@ -51,24 +51,29 @@ pe = {
 ##########################################################################################################@
 ##########################################################################################################@
 ##########################################################################################################@
+
 class Retina:
+    """ Class implementing the retina transform
+    """
     def __init__(self, args):
         self.args = args
         delta = 1./args.N_azimuth
+        
         self.log_r, self.theta = np.meshgrid(np.linspace(0, 1, args.N_eccentricity + 1), np.linspace(-np.pi*(.5 + delta), np.pi*(1.5 - delta), args.N_azimuth + 1))
-        suffix = '_%d_%d' % (self.args.N_theta, self.args.N_azimuth) #f'_{self.args.N_theta}_{self.args.N_azimuth}'
-        suffix += '_%d_%d' % (self.args.N_eccentricity, self.args.N_phase) #f'_{self.args.N_eccentricity}_{self.args.N_phase}'
-        suffix += '_%.3f_%d' % (self.args.rho, self.args.N_pic) #f'_{self.args.rho}_{self.args.N_pic}'
+        
+        suffix = f'_{args.N_theta}_{args.N_azimuth}'
+        suffix += f'_{args.N_eccentricity}_{args.N_phase}'
+        suffix += f'_{args.rho}_{args.N_pic}'
         try:
             filename = '/tmp/retina' + suffix + '_transform.npy'
             self.retina_transform = np.load(filename)
         except:
             if self.args.verbose: print('Retina vectorizing...')
-            self.retina_transform = vectorization(self.args.N_theta, self.args.N_azimuth,
-                                                  self.args.N_eccentricity, 
-                                                  self.args.N_phase, 
-                                                  self.args.N_pic, self.args.N_pic, 
-                                                  self.args.rho)
+            self.retina_transform = vectorization(args.N_theta, args.N_azimuth,
+                                                  args.N_eccentricity, 
+                                                  args.N_phase, 
+                                                  args.N_pic, args.N_pic, 
+                                                  args.rho)
             np.save(filename, self.retina_transform)
             if self.args.verbose: print('Done vectorizing...')
             
@@ -138,6 +143,7 @@ class Retina:
         ax.set_xticks([])
         ax.set_yticks([])
         return ax
+    
 ######################
 
 def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
@@ -148,37 +154,52 @@ def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
     from LogGabor import LogGabor
     lg = LogGabor(pe=pe)
     lg.set_size((N_X, N_Y))
-    # params = {'sf_0': .1, 'B_sf': lg.pe.B_sf,
-    #           'theta': np.pi * 5 / 7., 'B_theta': lg.pe.B_theta}
-    # phase = np.pi/4
-    # edge = lg.normalize(lg.invert(lg.loggabor(
-    #     N_X/3, 3*N_Y/4, **params)*np.exp(-1j*phase)))
-
+    
     for i_theta in range(N_theta):
         for i_azimuth in range(N_azimuth):
             for i_eccentricity in range(N_eccentricity):
-                ecc = ecc_max * (1/rho)**(N_eccentricity - i_eccentricity)
-                r = np.sqrt(N_X**2+N_Y**2) / 2 * ecc  # radius
-                #psi = i_azimuth * np.pi * 2 / N_azimuth
-                psi = (i_azimuth + 1 * (i_eccentricity % 2)*.5) * np.pi * 2 / N_azimuth
-                theta_ref = i_theta*np.pi/N_theta
-                sf_0 = 0.5 * sf_0_r / ecc
-                sf_0 = np.min((sf_0, .45))
-                # TODO : find the good ref for this                print(sf_0)
-                x = N_X/2 + r * np.cos(psi)
-                y = N_Y/2 + r * np.sin(psi)
                 for i_phase in range(N_phase):
-                    params = {'sf_0': sf_0, 'B_sf': B_sf,
-                              'theta': theta_ref + psi, 'B_theta': B_theta}
-                    phase = i_phase * np.pi/2
-                    # print(r, x, y, phase, params)
-
-                    retina[i_theta, i_azimuth, i_eccentricity, i_phase, :] = lg.normalize(
-                        lg.invert(lg.loggabor(x, y, **params)*np.exp(-1j*phase))).ravel()
+                    retina[i_theta, i_azimuth, i_eccentricity, i_phase, :] = local_filter(i_theta, 
+                                                                                          i_azimuth, 
+                                                                                          i_eccentricity, 
+                                                                                          i_phase,
+                                                                                          lg,
+                                                                                          N_X=N_X, 
+                                                                                          N_Y=N_Y, 
+                                                                                          rho=rho, 
+                                                                                          ecc_max=ecc_max, 
+                                                                                          sf_0_max=sf_0_max, 
+                                                                                          sf_0_r=sf_0_r, 
+                                                                                          B_sf=B_sf, 
+                                                                                          B_theta=B_theta)
 
     return retina
 
+def local_filter(i_theta, i_azimuth, i_eccentricity, i_phase, lg
+                 N_X=128, N_Y=128, 
+                 rho=1.41, ecc_max=.8, 
+                 sf_0_max=0.45, sf_0_r=0.03, 
+                 B_sf=.4, B_theta=np.pi/12):
+    
+    ecc = ecc_max * (1/rho)**(N_eccentricity - i_eccentricity)
+    r = np.sqrt(N_X**2+N_Y**2) / 2 * ecc  # radius
+    #psi = i_azimuth * np.pi * 2 / N_azimuth
+    psi = (i_azimuth + 1 * (i_eccentricity % 2)*.5) * np.pi * 2 / N_azimuth
+    theta_ref = i_theta*np.pi/N_theta
+    sf_0 = 0.5 * sf_0_r / ecc
+    sf_0 = np.min((sf_0, .45))
+    # TODO : find the good ref for this                print(sf_0)
+    x = N_X/2 + r * np.cos(psi)
+    y = N_Y/2 + r * np.sin(psi)
+    params = {'sf_0': sf_0, 
+              'B_sf': B_sf,
+              'theta': theta_ref + psi, 
+              'B_theta': B_theta}
+    phase = i_phase * np.pi/2
+    return lg.normalize(lg.invert(lg.loggabor(x, y, **params)*np.exp(-1j*phase))).ravel()
+
 def retina_data(data_fullfield, retina_transform):
+    
     N_pic = data_fullfield.shape[0]
     whit.set_size((N_pic, N_pic))
     data_fullfield = whit.whitening(data_fullfield)
