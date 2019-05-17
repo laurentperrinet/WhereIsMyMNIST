@@ -1,3 +1,63 @@
+"""Parameters setting
+
+Serves for initializing/scanning system parameters: 
+
+  - **MNIST LeNet parameters**: 
+    - ``w``: MNIST snippet width 
+    - ``mean``: LeNet input mean
+    - ``std``: LeNet input std
+    
+  - **WhereNet inputs**: 
+    - 2D input image 
+      - ``N_pic`` : image width
+    - Logpolar encoding: 
+      - ``N_theta``
+      - ``N_azimuth``
+      - ``N_eccentricity``
+      - ``N_phase``
+      - ``rho``
+    - Background noise:
+      - ``noise``
+      - ``contrast``
+      - ``sf_0``
+      - ``B_sf``
+    - Target positioning:
+      - ``offset_std``
+      - ``offset_max``
+      
+  - **WhereNet setup**:
+    - Parameters:
+      - ``bias_deconv``
+      - ``p_dropout``
+      - ``lr``: Learning rate
+      - ``do_adam``
+      - ``bn1_bn_momentum``
+      - ``bn2_bn_momentum``
+      - ``momentum``
+    - Layers:
+      - ``dim1``
+      - ``dim2``
+    - Train/test:
+      - ``minibatch_size``
+      - ``train_batch_size``
+      - ``test_batch_size``
+      - ``noise_batch_size``
+      - ``epochs``
+      - ``log_interval``: period with which we report results for the loss
+      
+  - **Computation**:
+    - ``num_processes``
+    - ``no_cuda``
+  
+  - **Others**:
+    - ``verbose``
+    - ``filename``
+    - ``seed``
+    - ``N_cv``
+    - ``do_compute``
+
+"""
+
 import os
 import numpy as np
 import time

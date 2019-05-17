@@ -49,7 +49,10 @@ class Where():
         self.device = torch.device("cpu" if self.args.no_cuda else "cuda")
         torch.manual_seed(self.args.seed)
 
-        # loads a WHAT model (or learns it if not already done)
+        #########################################################
+        # loads a WHAT model (or learns it if not already done) #
+        #########################################################
+        
         from what import WhatNet
         suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         model_path = f"../data/MNIST_cnn_{suffix}.pt"
@@ -72,6 +75,10 @@ class Where():
                  path=model_path)
         self.What_model = torch.load(model_path)
 
+        ######################
+        # Accuracy map setup #
+        ######################
+        
         # TODO generate an accuracy map for different noise / contrast / sf_0 / B_sf
         path = "../data/MNIST_accuracy.npy"
         if os.path.isfile(path):
@@ -81,7 +88,10 @@ class Where():
         else:
             print('No accuracy data found.')
 
-        # DATA
+        ######################
+        # WHERE model setup  #
+        ######################
+        
         suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
         suffix += f'_{self.args.noise}_{self.args.contrast}'
         suffix += f'_{self.args.offset_std}_{self.args.offset_max}'
@@ -97,7 +107,6 @@ class Where():
                                                   train=False, 
                                                   save=save, 
                                                   batch_load=batch_load)
-
         
 
         # MODEL
@@ -119,7 +128,23 @@ class Where():
                                        momentum=self.args.momentum)
             
     def data_loader(self, suffix, train=True, what = False, save=False, batch_load=False):
-                         # TRAINING DATASET
+        """
+        Arguments
+        ---------
+        suffix:
+            temporary data file suffix (string)
+        train:
+            train/test dataset switch (boolean)
+        what:
+            what/where network switch (boolean)
+        save:
+            data save switch (boolean)
+        batch_load:
+            batch/unitary data read out switch (boolean)
+        Returns
+        -------
+        a pytorch data loader
+        """
         fullfield = True
         if train:
             batch_size = self.args.train_batch_size
@@ -162,6 +187,16 @@ class Where():
 
     def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False, do_extract=False):
         """
+        Arguments
+        ---------
+        train:
+            train/test dataset switch (boolean)
+        fullfield:
+            2D images return switch (boolean)
+        batch_load:
+            batch/unitary data read out switch (boolean)
+        do_extract:
+            central snippet extraction switch (boolean)
         Returns
         -------
         retina_data:
