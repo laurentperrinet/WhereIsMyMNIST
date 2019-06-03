@@ -73,17 +73,6 @@ class Display:
             if save:
                 np.save(path, self.noise)
 
-    def place_object(self, data, i_offset, j_offset):
-        if True:
-            im_noise = self.noise[np.random.randint(self.args.noise_batch_size), :, :]
-            im_noise = np.roll(im_noise, np.random.randint(self.args.N_pic), 0)
-            im_noise = np.roll(im_noise, np.random.randint(self.args.N_pic), 1)
-        else:
-            im_noise = None
-        return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
-                            contrast=self.args.contrast, noise=self.args.noise,
-                            sf_0=self.args.sf_0, B_sf=self.args.B_sf)
-
     def draw(self, data, i_offset=None, j_offset=None, radius=None, theta=None):
         # radial draw
         if radius is None:
@@ -94,6 +83,17 @@ class Display:
         if i_offset is None: i_offset = int(radius * np.cos(theta))
         if j_offset is None: j_offset = int(radius * np.sin(theta))
         return self.place_object(data, i_offset, j_offset), i_offset, j_offset
+
+    def place_object(self, data, i_offset, j_offset):
+        if True:
+            im_noise = self.noise[np.random.randint(self.args.noise_batch_size), :, :]
+            im_noise = np.roll(im_noise, np.random.randint(self.args.N_pic), 0)
+            im_noise = np.roll(im_noise, np.random.randint(self.args.N_pic), 1)
+        else:
+            im_noise = None
+        return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
+                            contrast=self.args.contrast, noise=self.args.noise,
+                            sf_0=self.args.sf_0, B_sf=self.args.B_sf)
 
     def show(self, ax, data_fullfield, ms=26, markeredgewidth=6, do_cross=True):
         ax.imshow(data_fullfield, cmap=plt.gray(), vmin=0, vmax=1)

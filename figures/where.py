@@ -11,7 +11,8 @@ import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
-from retina import Display, Retina, minmax
+from display import Display, minmax
+from retina import Retina
 
 
 class WhereNet(torch.nn.Module):
