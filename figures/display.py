@@ -2,6 +2,50 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import SLIP
+# copied from https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py
+pe = {
+    # Image
+    # 'N_image' : None, #use all images in the folder
+    'N_image' : 100, #use 100 images in the folder
+    # 'N_image' : 10, #use 4 images in the folder
+    'seed' : None, # a seed for the Random Number Generator (RNG) for picking images in databases, set to None xor set to a given number to freeze the RNG
+    'N_X' : 256, # size of images
+    'N_Y' : 256, # size of images
+    # 'N_X' : 64, # size of images
+    # 'N_Y' : 64, # size of images
+    'noise' : 0.1, # level of noise when we use some
+    'do_mask'  : True, # self.pe.do_mask
+    'mask_exponent': 3., #sharpness of the mask
+    # whitening parameters:
+    'do_whitening'  : True, # = self.pe.do_whitening
+    'white_name_database' : 'kodakdb',
+    'white_n_learning' : 0,
+    'white_N' : .07,
+    'white_N_0' : .0, # olshausen = 0.
+    'white_f_0' : .4, # olshausen = 0.2
+    'white_alpha' : 1.4,
+    'white_steepness' : 4.,
+    'white_recompute' : False,
+    # Log-Gabor
+    #'base_levels' : 2.,
+    'base_levels' : 1.618,
+    'n_theta' : 24, # number of (unoriented) angles between 0. radians (included) and np.pi radians (excluded)
+    'B_sf' : .4, # 1.5 in Geisler
+    'B_theta' : 3.14159/18.,
+    # PATHS
+    'use_cache' : True,
+    'figpath': 'results',
+    'edgefigpath': 'results/edges',
+    'matpath': 'cache_dir',
+    'edgematpath': 'cache_dir/edges',
+    'datapath': 'database',
+    'ext' : '.pdf',
+    'figsize': 14.,
+    'formats': ['pdf', 'png', 'jpg'],
+    'dpi': 450,
+    'verbose': 0,
+    }
+
 
 
 class Display:
@@ -59,9 +103,15 @@ class Display:
         ax.set_yticks([])
         return ax
 
+def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=128, seed=42):
+    import MotionClouds as mc
+    mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
+    fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
+    env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha=alpha)
 
-whit = SLIP.Image(pe=pe)
-
+    z = mc.rectif(mc.random_cloud(env, seed=seed), contrast=1., method='Michelson')
+    z = z.reshape((mc.N_X, mc.N_Y))
+    return z, env
 
 def get_data_loader(batch_size=100, train=True, mean=0.1307, std=0.3081, seed=2019):
     import torch
@@ -146,13 +196,5 @@ def place_object(data, i_offset, j_offset, im_noise=None, N_pic=128, contrast=1.
     return data_fullfield
 
 
-def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=128, seed=42):
-    import MotionClouds as mc
-    mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
-    fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
-    env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha=alpha)
 
-    z = mc.rectif(mc.random_cloud(env, seed=seed), contrast=1., method='Michelson')
-    z = z.reshape((mc.N_X, mc.N_Y))
-    return z, env
 
