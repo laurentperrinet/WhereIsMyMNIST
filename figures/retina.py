@@ -113,13 +113,18 @@ class Retina:
                      #sf_0_max=0.45, sf_0_r=0.03,
                      #B_sf=.4, B_theta=np.pi / 12):
 
-        ecc_max = self.args.ecc_max
-        ecc = self.args.ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
+        # !!?? Magic numbers !!??
+        ecc_max = .8 # self.args.ecc_max
+        sf_0_r = 0.03 # self.args.sf_0_r
+        B_theta=np.pi / 12 #self.args.B_theta
+        
+        
+        ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
         # psi = i_azimuth * np.pi * 2 / N_azimuth
         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
         theta_ref = i_theta * np.pi / self.N_theta
-        sf_0 = 0.5 * self.args.sf_0_r / ecc
+        sf_0 = 0.5 * sf_0_r / ecc
         sf_0 = np.min((sf_0, .45))
         # TODO : find the good ref for this                print(sf_0)
         x = N_X / 2 + r * np.cos(psi)
@@ -127,7 +132,7 @@ class Retina:
         params = {'sf_0': sf_0,
                   'B_sf': self.args.B_sf,
                   'theta': theta_ref + psi,
-                  'B_theta': self.args.B_theta}
+                  'B_theta': B_theta}
         phase = i_phase * np.pi / 2
         return lg.normalize(lg.invert(lg.loggabor(x, y, **params) * np.exp(-1j * phase))).ravel()
 
