@@ -214,7 +214,7 @@ class Where():
         """
         
         # loading data
-        from retina import get_data_loader
+        from display import get_data_loader
         # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
 
         # init variables
@@ -276,7 +276,8 @@ class Where():
         digit_labels = digit_labels.to(self.device)
         # returning
         return retina_data, data_fullfield, accuracy_colliculus, digit_labels
-
+    
+    
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         batch_size = data.shape[0]
