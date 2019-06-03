@@ -57,35 +57,35 @@ class Retina:
     def __init__(self, args):
 
         self.args = args
-        self.N_theta = args.N_theta
-        self.N_azimuth = args.N_azimuth
-        self.N_eccentricity = args.N_eccentricity
-        self.N_phase = args.N_phase
-        self.N_pic = args.N_pic
-
-        self.feature_vector_size = self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase
 
         self.whit = SLIP.Image(pe=pe)
         self.whit.set_size((self.N_pic, self.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
 
-        self.init_grid()
+        self.N_theta = args.N_theta
+        self.N_azimuth = args.N_azimuth
+        self.N_eccentricity = args.N_eccentricity
+        self.N_phase = args.N_phase
+        self.N_pic = args.N_pic
+        self.feature_vector_size = self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase
+
+        #self.init_grid()
         self.init_retina_transform()
         self.init_inverse_retina()
         self.init_colliculus_transform()
         self.init_colliculus_inverse()
 
-    def init_grid(self):
-        delta = 1. / self.N_azimuth
-        self.log_r_grid, self.theta_grid = \
-        np.meshgrid(np.linspace(0, 1, self.N_eccentricity + 1),
-                    np.linspace(-np.pi * (.5 + delta), np.pi * (1.5 - delta), self.N_azimuth + 1))
+    #def init_grid(self):
+    #    delta = 1. / self.N_azimuth
+    #    self.log_r_grid, self.theta_grid = \
+    #    np.meshgrid(np.linspace(0, 1, self.N_eccentricity + 1),
+    #                np.linspace(-np.pi * (.5 + delta), np.pi * (1.5 - delta), self.N_azimuth + 1))
 
     def get_suffix(self):
-        suffix = f'_{args.N_theta}_{args.N_azimuth}'
-        suffix += f'_{args.N_eccentricity}_{args.N_phase}'
-        suffix += f'_{args.rho}_{args.N_pic}'
+        suffix = f'_{self.N_theta}_{self.N_azimuth}'
+        suffix += f'_{self.N_eccentricity}_{self.N_phase}'
+        suffix += f'_{self.args.rho}_{self.N_pic}'
         return suffix
 
     def init_retina_transform(self):
