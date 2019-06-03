@@ -224,7 +224,7 @@ class Where():
                 data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         else:
             data_fullfield = None
-        retina_data = np.zeros((batch_size, self.retina.vsize))
+        retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
         digit_labels = np.zeros(batch_size)
         # cycling over digits
@@ -279,7 +279,7 @@ class Where():
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         batch_size = data.shape[0]
-        retina_data = np.zeros((batch_size, self.retina.vsize))
+        retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
         data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         positions =[]
@@ -336,7 +336,7 @@ class Where():
             azimuth = indices_ij[0][0]
             eccentricity = indices_ij[1][0]
             if False: #eccentricity < 5:
-                im_colliculus = self.retina.colliculus[azimuth,eccentricity,:].reshape((self.args.N_pic, self.args.N_pic))
+                im_colliculus = self.retina.colliculus_transform[azimuth, eccentricity, :].reshape((self.args.N_pic, self.args.N_pic))
             else:
                 im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
         else:
