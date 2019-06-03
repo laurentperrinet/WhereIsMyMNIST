@@ -6,7 +6,8 @@ from main import init
 #args = init(filename='../data/2019-03-27')
 args = init()
 
-from retina import Display, Retina
+from display import Display
+from retina import Retina
 from where import Where, WhereNet
 from what import WhatNet
 where = Where(args)
