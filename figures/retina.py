@@ -113,6 +113,7 @@ class Retina:
                      #sf_0_max=0.45, sf_0_r=0.03,
                      #B_sf=.4, B_theta=np.pi / 12):
 
+        ecc_max = self.args.ecc_max
         ecc = self.args.ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
         # psi = i_azimuth * np.pi * 2 / N_azimuth
