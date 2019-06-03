@@ -175,7 +175,7 @@ def vectorization(N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
 
     return retina
 
-def local_filter(i_theta, i_azimuth, i_eccentricity, i_phase, lg
+def local_filter(i_theta, i_azimuth, i_eccentricity, i_phase, lg,
                  N_X=128, N_Y=128, 
                  rho=1.41, ecc_max=.8, 
                  sf_0_max=0.45, sf_0_r=0.03, 
