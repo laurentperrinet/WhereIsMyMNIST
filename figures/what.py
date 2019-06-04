@@ -4,7 +4,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+from torch.autograd import Variable
 import MotionClouds as mc
+
+import matplotlib.pyplot as plt
 
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
 
@@ -17,31 +20,36 @@ def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     return z, env
 
 class WhatBackground(object):
-    def __init__(self, contrast=1., noise=.5, sf_0=.1, B_sf=.1):
+    def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1):
         self.contrast = contrast
         self.noise = noise
         self.sf_0 = sf_0
         self.B_sf = B_sf
 
-    def __call__(self, sample, seed = 42):
+    def __call__(self, sample):
 
         # sample from the MNIST dataset
-        data, label = sample
+        data = np.array(sample)
         data = (data - data.min()) / (data.max() - data.min())
         data *= self.contrast
 
+        seed = hash(tuple(data.flatten())) % (2**31 - 1)
         im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
                                          B_sf=self.B_sf,
                                          seed=seed)
         im_noise = 2 * im_noise - 1  # go to [-1, 1] range
         im_noise = self.noise * im_noise
+        
+        #plt.imshow(im_noise)
+        #plt.show()
 
-        im = data + im_noise
+        im = np.add(data, im_noise)
         im /= 2  # back to [0, 1] range
         im += .5  # back to a .5 baseline
-        im = np.clip(data, 0, 1)
-        return im, label
-
+        im = np.clip(im, 0, 1)
+        im = im.reshape((28,28,1))
+        im *= 255
+        return im.astype('B') #Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class WhatNet(nn.Module):
     def __init__(self):
