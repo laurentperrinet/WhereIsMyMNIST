@@ -113,6 +113,7 @@ def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=128, seed=42):
     z = z.reshape((mc.N_X, mc.N_Y))
     return z, env
 
+
 def get_data_loader(batch_size=100, train=True, mean=0.1307, std=0.3081, seed=2019):
     import torch
     torch.manual_seed(seed=seed)

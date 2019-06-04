@@ -279,7 +279,8 @@ class Where():
         digit_labels = digit_labels.to(self.device)
         # returning
         return retina_data, data_fullfield, accuracy_colliculus, digit_labels
-
+    
+    
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         batch_size = data.shape[0]
