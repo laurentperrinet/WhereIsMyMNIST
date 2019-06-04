@@ -11,8 +11,8 @@ import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
-from retina import Display, Retina
-
+from retina import Retina
+from display import Display
 
 class WhatWhereNet(torch.nn.Module):
     def __init__(self, args):
@@ -116,7 +116,7 @@ class WhatWhere():
         loader_full = get_data_loader(batch_size=size, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+1)
         if fullfield:
             data_fullfield = np.zeros((size, self.args.N_pic, self.args.N_pic))
-        retina_data = np.zeros((size, self.retina.vsize))
+        retina_data = np.zeros((size, self.retina.feature_vector_size))
         data, label = next(iter(loader_full)) 
         for i in range(size):
             if i%1000 == 0: print(i)
@@ -137,7 +137,7 @@ class WhatWhere():
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         batch_size = data.shape[0]
-        retina_data = np.zeros((batch_size, self.retina.vsize))
+        retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
         data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         positions =[]
 

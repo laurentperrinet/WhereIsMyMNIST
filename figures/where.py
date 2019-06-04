@@ -11,7 +11,8 @@ import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
-from retina import Display, Retina, minmax
+from display import Display, minmax
+from retina import Retina
 
 
 class WhereNet(torch.nn.Module):
@@ -213,7 +214,7 @@ class Where():
         """
         
         # loading data
-        from retina import get_data_loader
+        from display import get_data_loader
         # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
 
         # init variables
@@ -224,7 +225,7 @@ class Where():
                 data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         else:
             data_fullfield = None
-        retina_data = np.zeros((batch_size, self.retina.vsize))
+        retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
         digit_labels = np.zeros(batch_size)
         # cycling over digits
@@ -275,11 +276,12 @@ class Where():
         digit_labels = digit_labels.to(self.device)
         # returning
         return retina_data, data_fullfield, accuracy_colliculus, digit_labels
-
+    
+    
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         batch_size = data.shape[0]
-        retina_data = np.zeros((batch_size, self.retina.vsize))
+        retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
         data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
         positions =[]
@@ -336,7 +338,7 @@ class Where():
             azimuth = indices_ij[0][0]
             eccentricity = indices_ij[1][0]
             if False: #eccentricity < 5:
-                im_colliculus = self.retina.colliculus[azimuth,eccentricity,:].reshape((self.args.N_pic, self.args.N_pic))
+                im_colliculus = self.retina.colliculus_transform[azimuth, eccentricity, :].reshape((self.args.N_pic, self.args.N_pic))
             else:
                 im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
         else:
