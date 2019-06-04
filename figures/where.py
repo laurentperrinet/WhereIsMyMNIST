@@ -36,6 +36,9 @@ class WhereNet(torch.nn.Module):
         return x
 
 
+
+
+
 class Where():
     def __init__(self, args, save=True, batch_load=False):
         self.args = args
@@ -214,7 +217,7 @@ class Where():
         """
         
         # loading data
-        from retina import get_data_loader
+        from display import get_data_loader
         # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
 
         # init variables
