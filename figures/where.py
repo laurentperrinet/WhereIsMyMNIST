@@ -14,6 +14,8 @@ import torch.nn as nn
 from display import Display, minmax
 from retina import Retina
 import MotionClouds as mc
+from display import pe
+import SLIP
 
 
 class WhereFill(object):
@@ -118,11 +120,18 @@ class WhereMask(object):
         data += 128
         #data *= 255
         #data = np.clip(data, 0, 255)
-        return data.astype('B')
+        return data #.astype('B')
     
 class WhereWhiten:
-    def __init(self)__:
-        pass
+    def __init__(self, N_pic=128):
+        self.N_pic = N_pic
+        self.whit = SLIP.Image(pe=pe)
+        self.whit.set_size((self.N_pic, self.N_pic))
+        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
+        self.K_whitening = self.whit.whitening_filt()
+    def __call__(self, sample):
+        data = self.whit.FTfilter(sample, self.K_whitening)
+        return data
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
