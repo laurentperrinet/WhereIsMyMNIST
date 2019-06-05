@@ -130,8 +130,8 @@ class WhereWhiten:
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
     def __call__(self, sample):
-        data = self.whit.FTfilter(sample, self.K_whitening)
-        return data
+        data = self.whit.FTfilter(sample, self.K_whitening) + 128
+        return data.astype('B')
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
