@@ -133,6 +133,13 @@ class WhereWhiten:
         data = self.whit.FTfilter(sample, self.K_whitening)
         return data
 
+class RetinaTransform:
+    def __init__(self, retina_transform_vector):
+        self.retina_transform_vector = retina_transform_vector
+    def __call__(self, sample):
+        data = self.retina_transform_vector @ np.ravel(sample)
+        return data
+
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
         super(WhereNet, self).__init__()
@@ -157,6 +164,7 @@ class WhereTrainer():
     def __init__(self, args, device='cpu'):
         self.args=args
         self.device=device
+        self.retina = Retina(args)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         transform = transforms.Compose([
             WhereShift(),
@@ -167,9 +175,6 @@ class WhereTrainer():
             transforms.ToTensor(),
             # transforms.Normalize((args.mean,), (args.std,))
         ])
-
-
-
 
 class Where():
     def __init__(self, args, save=True, batch_load=False):
