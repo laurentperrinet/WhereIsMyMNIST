@@ -1,9 +1,55 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+from torch.autograd import Variable
+import MotionClouds as mc
 
+import matplotlib.pyplot as plt
+
+def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
+
+    mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
+    fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
+    env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha=alpha)
+
+    z = mc.rectif(mc.random_cloud(env, seed=seed), contrast=1., method='Michelson')
+    z = z.reshape((mc.N_X, mc.N_Y))
+    return z, env
+
+class WhatBackground(object):
+    def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1):
+        self.contrast = contrast
+        self.noise = noise
+        self.sf_0 = sf_0
+        self.B_sf = B_sf
+
+    def __call__(self, sample):
+
+        # sample from the MNIST dataset
+        data = np.array(sample)
+        data = (data - data.min()) / (data.max() - data.min())
+        data *= self.contrast
+
+        seed = hash(tuple(data.flatten())) % (2**31 - 1)
+        im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
+                                         B_sf=self.B_sf,
+                                         seed=seed)
+        im_noise = 2 * im_noise - 1  # go to [-1, 1] range
+        im_noise = self.noise * im_noise
+        
+        #plt.imshow(im_noise)
+        #plt.show()
+
+        im = np.add(data, im_noise)
+        im /= 2  # back to [0, 1] range
+        im += .5  # back to a .5 baseline
+        im = np.clip(im, 0, 1)
+        im = im.reshape((28,28,1))
+        im *= 255
+        return im.astype('B') #Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class WhatNet(nn.Module):
     def __init__(self):
@@ -99,22 +145,32 @@ def main(args=None, train_loader=None, test_loader=None, path="../data/MNIST_cnn
     device = torch.device("cuda" if use_cuda else "cpu")
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+
     if train_loader is None:
         train_loader = torch.utils.data.DataLoader(
-            datasets.MNIST('../data', train=True, download=True,
+            datasets.MNIST('../data',
+                           train=True,
+                           download=True,
                            transform=transforms.Compose([
+                               WhatBackground(),
                                transforms.ToTensor(),
                                transforms.Normalize((args.mean,), (args.std,))
                            ])),
-            batch_size=args.batch_size, shuffle=True, **kwargs)
+            batch_size=args.batch_size,
+            shuffle=True,
+            **kwargs)
     if test_loader is None:
         test_loader = torch.utils.data.DataLoader(
-            datasets.MNIST('../data', train=False, transform=transforms.Compose([
+            datasets.MNIST('../data',
+                           train=False,
+                           transform=transforms.Compose([
+                               WhatBackground(),
                                transforms.ToTensor(),
                                transforms.Normalize((args.mean,), (args.std,))
                            ])),
-            batch_size=args.test_batch_size, shuffle=True, **kwargs)
-
+            batch_size=args.test_batch_size,
+            shuffle=True,
+            **kwargs)
 
     model = WhatNet().to(device)
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
