@@ -10,7 +10,6 @@ import MotionClouds as mc
 import matplotlib.pyplot as plt
 
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
-
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
     fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
     env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha=alpha)
@@ -18,6 +17,31 @@ def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     z = mc.rectif(mc.random_cloud(env, seed=seed), contrast=1., method='Michelson')
     z = z.reshape((mc.N_X, mc.N_Y))
     return z, env
+
+class WhatShift(object):
+    def __init__(self, i_offset=0, j_offset=0):
+        self.i_offset = int(i_offset)
+        self.j_offset = int(j_offset)
+        
+    def __call__(self, sample):
+        sample = np.array(sample)
+        N_pic = sample.shape[0]
+        data = np.zeros((N_pic, N_pic))
+        i_binf_patch = max(0, -self.i_offset)
+        i_bsup_patch = min(N_pic, N_pic - self.i_offset)
+        j_binf_patch = max(0, -self.j_offset)
+        j_bsup_patch = min(N_pic, N_pic - self.j_offset)
+        patch = sample[i_binf_patch:i_bsup_patch, 
+                       j_binf_patch:j_bsup_patch]
+        
+        i_binf_data = max(0, self.i_offset)
+        i_bsup_data = min(N_pic, N_pic + self.i_offset)
+        j_binf_data = max(0, self.j_offset)
+        j_bsup_data = min(N_pic, N_pic + self.j_offset)
+        data[i_binf_data:i_bsup_data,
+             j_binf_data:j_bsup_data] = patch
+        return data.astype('B')
+
 
 class WhatBackground(object):
     def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1):
@@ -30,7 +54,11 @@ class WhatBackground(object):
 
         # sample from the MNIST dataset
         data = np.array(sample)
-        data = (data - data.min()) / (data.max() - data.min())
+        N_pic = data.shape[0]
+        if data.min() != data.max():
+            data = (data - data.min()) / (data.max() - data.min())
+        else:
+            data = np.zeros((N_pic, N_pic))
         data *= self.contrast
 
         seed = hash(tuple(data.flatten())) % (2**31 - 1)
@@ -68,14 +96,59 @@ class WhatNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
+    
+class WhatTrainer:
+    def __init__(self, args, train_loader=None, test_loader=None, device='cpu'):     
+        self.args = args
+        self.device = device
+        kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
+        transform=transforms.Compose([
+                               WhatShift(),
+                               WhatBackground(contrast=args.contrast, 
+                                              noise=args.noise, 
+                                              sf_0=args.sf_0, 
+                                              B_sf=args.B_sf),
+                               transforms.ToTensor(),
+                               #transforms.Normalize((args.mean,), (args.std,))
+                           ])
+        dataset_train = datasets.MNIST('../data',
+                        train=True,
+                        download=True,
+                        transform=transform,
+                        )
+        self.train_loader = torch.utils.data.DataLoader(dataset_train,
+                                         batch_size=args.minibatch_size,
+                                         shuffle=True,
+                                         **kwargs)
+        dataset_test = datasets.MNIST('../data',
+                        train=False,
+                        download=True,
+                        transform=transform,
+                        )
+        self.test_loader = torch.utils.data.DataLoader(dataset_test,
+                                         batch_size=args.minibatch_size,
+                                         shuffle=True,
+                                         **kwargs)
+        self.model = WhatNet().to(device)
+        self.loss_func = F.nll_loss
+        if args.do_adam:
+            self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
+        else:
+            self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
 
-def train(args, model, device, train_loader, optimizer, epoch):
+    def train(self, epoch):
+        train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
+        
+    def test(self):
+        return test(self.args, self.model, self.device, self.test_loader, self.loss_func)
+    
+def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        loss = F.nll_loss(output, target)
+        loss = loss_function(output, target)
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
@@ -83,7 +156,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
                 epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def test(args, model, device, test_loader):
+def test(args, model, device, test_loader, loss_function):
     model.eval()
     test_loss = 0
     correct = 0
@@ -91,7 +164,7 @@ def test(args, model, device, test_loader):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
+            test_loss += loss_function(output, target, reduction='sum').item() # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -102,11 +175,30 @@ def test(args, model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
     return correct / len(test_loader.dataset)
 
+class What:
+    def __init__(self, args):
+        use_cuda = not args.no_cuda and torch.cuda.is_available()
+        torch.manual_seed(args.seed)
+        device = torch.device("cuda" if use_cuda else "cpu")
+        suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
+        model_path = f"../data/MNIST_cnn_{suffix}.pt"
+        if os.path.exists(model_path):
+            self.model  = torch.load(model_path)
+        else:                                                       
+            whatTrainer = What(args, train_loader=train_loader, test_loader=test_loader, device=device)
+            for epoch in range(1, args.epochs + 1):
+                whatTrainer.train(epoch)
+                whatTrainer.test()
+            self.model = whatTrainer.model
+            if (args.save_model):
+                #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
+                torch.save(self.model, model_path)         
+    
+
 def main(args=None, train_loader=None, test_loader=None, path="../data/MNIST_cnn.pt"):
     # Training settings
     if args is None:
         import argparse
-
         parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
         parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                             help='input batch size for training (default: 64)')
@@ -128,7 +220,6 @@ def main(args=None, train_loader=None, test_loader=None, path="../data/MNIST_cnn
                             help='random seed (default: 1)')
         parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                             help='how many batches to wait before logging training status')
-
         parser.add_argument('--save-model', action='store_true', default=True,
                             help='For Saving the current Model')
 
@@ -138,52 +229,7 @@ def main(args=None, train_loader=None, test_loader=None, path="../data/MNIST_cnn
         args.momentum = .5
         args.save_model = True
 
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
-
-    torch.manual_seed(args.seed)
-
-    device = torch.device("cuda" if use_cuda else "cpu")
-
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
-
-    if train_loader is None:
-        train_loader = torch.utils.data.DataLoader(
-            datasets.MNIST('../data',
-                           train=True,
-                           download=True,
-                           transform=transforms.Compose([
-                               WhatBackground(),
-                               transforms.ToTensor(),
-                               transforms.Normalize((args.mean,), (args.std,))
-                           ])),
-            batch_size=args.batch_size,
-            shuffle=True,
-            **kwargs)
-    if test_loader is None:
-        test_loader = torch.utils.data.DataLoader(
-            datasets.MNIST('../data',
-                           train=False,
-                           transform=transforms.Compose([
-                               WhatBackground(),
-                               transforms.ToTensor(),
-                               transforms.Normalize((args.mean,), (args.std,))
-                           ])),
-            batch_size=args.test_batch_size,
-            shuffle=True,
-            **kwargs)
-
-    model = WhatNet().to(device)
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
-
-    for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch)
-        test(args, model, device, test_loader)
-
-    if (args.save_model):
-        #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
-        torch.save(model, path)
-
-
+    what = What(args)
 
 if __name__ == '__main__':
     main()
