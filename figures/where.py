@@ -13,7 +13,92 @@ import torch.nn.functional as F
 import torch.nn as nn
 from display import Display, minmax
 from retina import Retina
+import MotionClouds as mc
 
+
+class WhereFill(object):
+    def __init__(self, N_pic=128):
+        self.N_pic=N_pic
+
+    def __call__(self, sample):
+        sample = np.array(sample)
+        w = sample.shape[0]
+        data = np.zeros((self.N_pic, self.N_pic))
+        N_mid = self.N_pic//2
+        w_mid = w // 2
+        data[N_mid - w_mid: N_mid - w_mid + w,
+             N_mid - w_mid: N_mid - w_mid + w] = sample
+        return data.astype('B')
+
+class WhereShift(object):
+    def __init__(self, i_offset=0, j_offset=0):
+        self.i_offset = int(i_offset)
+        self.j_offset = int(j_offset)
+
+    def __call__(self, sample):
+        sample = np.array(sample)
+        N_pic = sample.shape[0]
+        data = np.zeros((N_pic, N_pic))
+        i_binf_patch = max(0, -self.i_offset)
+        i_bsup_patch = min(N_pic, N_pic - self.i_offset)
+        j_binf_patch = max(0, -self.j_offset)
+        j_bsup_patch = min(N_pic, N_pic - self.j_offset)
+        patch = sample[i_binf_patch:i_bsup_patch,
+                j_binf_patch:j_bsup_patch]
+
+        i_binf_data = max(0, self.i_offset)
+        i_bsup_data = min(N_pic, N_pic + self.i_offset)
+        j_binf_data = max(0, self.j_offset)
+        j_bsup_data = min(N_pic, N_pic + self.j_offset)
+        data[i_binf_data:i_bsup_data,
+             j_binf_data:j_bsup_data] = patch
+        return data.astype('B')
+
+def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
+    mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
+    fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
+    env = mc.envelope_gabor(fx, fy, ft, sf_0=sf_0, B_sf=B_sf, B_theta=np.inf, V_X=0., V_Y=0., B_V=0, alpha=alpha)
+
+    z = mc.rectif(mc.random_cloud(env, seed=seed), contrast=1., method='Michelson')
+    z = z.reshape((mc.N_X, mc.N_Y))
+    return z, env
+
+class WhereBackground(object):
+    def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1):
+        self.contrast = contrast
+        self.noise = noise
+        self.sf_0 = sf_0
+        self.B_sf = B_sf
+
+    def __call__(self, sample):
+
+        # sample from the MNIST dataset
+        data = np.array(sample)
+        N_pic = data.shape[0]
+        if data.min() != data.max():
+            data = (data - data.min()) / (data.max() - data.min())
+        else:
+            data = np.zeros((N_pic, N_pic))
+        data *= self.contrast
+
+        seed = hash(tuple(data.flatten())) % (2 ** 31 - 1)
+        im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
+                                         B_sf=self.B_sf,
+                                         N_pic=N_pic,
+                                         seed=seed)
+        im_noise = 2 * im_noise - 1  # go to [-1, 1] range
+        im_noise = self.noise * im_noise
+
+        # plt.imshow(im_noise)
+        # plt.show()
+
+        im = np.add(data, im_noise)
+        im /= 2  # back to [0, 1] range
+        im += .5  # back to a .5 baseline
+        im = np.clip(im, 0, 1)
+        im = im.reshape((N_pic, N_pic, 1))
+        im *= 255
+        return im.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
@@ -35,6 +120,20 @@ class WhereNet(torch.nn.Module):
         x = self.bn3(x)
         return x
 
+class WhereTrainer():
+    def __init__(self, args, device='cpu'):
+        self.args=args
+        self.device=device
+        kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
+        transform = transforms.Compose([
+            WhereShift(),
+            WhereBackground(contrast=args.contrast,
+                           noise=args.noise,
+                           sf_0=args.sf_0,
+                           B_sf=args.B_sf),
+            transforms.ToTensor(),
+            # transforms.Normalize((args.mean,), (args.std,))
+        ])
 
 
 
