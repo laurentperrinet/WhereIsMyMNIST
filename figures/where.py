@@ -100,6 +100,18 @@ class WhereBackground(object):
         im *= 255
         return im.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
+class WhereMask(object):
+    def __init__(self, N_pic=128):
+        self.N_pic = N_pic
+    def __call__(self, sample):
+        sample = np.array(sample)
+        x, y = np.mgrid[-1:1:1j * self.N_pic, -1:1:1j * self.N_pic]
+        R = np.sqrt(x ** 2 + y ** 2)
+        mask = 1. * (R < 1)
+        # print('mask', mask.min(), mask.max(), mask[0, 0])
+        data_fullfield = sample * mask
+        return sample.astype('B')
+
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
         super(WhereNet, self).__init__()
