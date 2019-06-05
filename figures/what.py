@@ -6,6 +6,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 import MotionClouds as mc
+import os
 
 import matplotlib.pyplot as plt
 
@@ -176,7 +177,8 @@ def test(args, model, device, test_loader, loss_function):
     return correct / len(test_loader.dataset)
 
 class What:
-    def __init__(self, args):
+    def __init__(self, args, train_loader=None, test_loader=None):
+        self.args = args
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
@@ -185,7 +187,7 @@ class What:
         if os.path.exists(model_path):
             self.model  = torch.load(model_path)
         else:                                                       
-            whatTrainer = What(args, train_loader=train_loader, test_loader=test_loader, device=device)
+            whatTrainer = WhatTrainer(args, train_loader=train_loader, test_loader=test_loader, device=device)
             for epoch in range(1, args.epochs + 1):
                 whatTrainer.train(epoch)
                 whatTrainer.test()
@@ -229,7 +231,7 @@ def main(args=None, train_loader=None, test_loader=None, path="../data/MNIST_cnn
         args.momentum = .5
         args.save_model = True
 
-    what = What(args)
+    what = What(args, train_loader=train_loader, test_loader=test_loader)
 
 if __name__ == '__main__':
     main()
