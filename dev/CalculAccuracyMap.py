@@ -45,7 +45,7 @@ for i_offset in range(-1, 2):
         acc = whatTrainer.test()
         # print(acc)
         # accuracy_map[26-i_offset][26-j_offset] = acc
-        f.write(acc)
+        f.write(str(acc))
     f.write('\n')
 f.close()
 
