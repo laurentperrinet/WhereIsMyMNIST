@@ -258,12 +258,20 @@ class Where():
         # WHERE model setup  #
         ######################
         
-        suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
-        suffix += f'_{self.args.noise}_{self.args.contrast}'
-        suffix += f'_{self.args.offset_std}_{self.args.offset_max}'
-        suffix += f'_{self.args.N_theta}_{self.args.N_azimuth}'
-        suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
-        suffix += f'_{self.args.rho}_{self.args.N_pic}'
+        # suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
+        # suffix += f'_{self.args.noise}_{self.args.contrast}'
+        # suffix += f'_{self.args.offset_std}_{self.args.offset_max}'
+        # suffix += f'_{self.args.N_theta}_{self.args.N_azimuth}'
+        # suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
+        # suffix += f'_{self.args.rho}_{self.args.N_pic}'
+
+        suffix = '_{}_{}'.format(self.args.sf_0, self.args.B_sf)
+        suffix += '_{}_{}'.format(self.args.noise, self.args.contrast)
+        suffix += '_{}_{}'.format(self.args.offset_std, self.args.offset_max)
+        suffix += '_{}_{}'.format(self.args.N_theta, self.args.N_azimuth)
+        suffix += '_{}_{}'.format(self.args.N_eccentricity, self.args.N_phase)
+        suffix += '_{}_{}'.format(self.args.rho, self.args.N_pic)
+
             
         self.loader_train = self.data_loader(suffix, 
                                              train=True, 
@@ -326,13 +334,16 @@ class Where():
             do_extract = False
             if train:
                 fullfield = False
-        filename_dataset = f'/tmp/{net}_dataset_{data_type}_{suffix}_{batch_size}.pt'
+        # filename_dataset = f'/tmp/{net}_dataset_{data_type}_{suffix}_{batch_size}.pt'
+        filename_dataset = '/tmp/{}_dataset_{}_{}_{}.pt'.format(net, data_type, suffix, batch_size)
         if os.path.exists(filename_dataset):
-            if self.args.verbose: print(f'Loading {net} {data_type}ing dataset')
+            # if self.args.verbose: print(f'Loading {net} {data_type}ing dataset')
+            if self.args.verbose: print('Loading {} {}ing dataset'.format(net, data_type))
             data_loader  = torch.load(filename_dataset)
         else:
             # SAVING DATASET
-            if self.args.verbose: print(f'Creating {net} {data_type}ing dataset')
+            # if self.args.verbose: print(f'Creating {net} {data_type}ing dataset')
+            if self.args.verbose: print('Creating {} {}ing dataset'.format(net, data_type))
             retina_data, full_data, accuracy_maps, digit_labels = self.generate_data(batch_size, 
                                                                   train=train, 
                                                                   fullfield=True, 
