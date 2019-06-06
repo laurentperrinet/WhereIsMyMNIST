@@ -48,7 +48,7 @@ class CollFill:
              N_mid - w_mid: N_mid - w_mid + w] = sample
         return data
 
-class WhereShift:
+class RetinaShift:
     def __init__(self, i_offset=0, j_offset=0):
         self.i_offset = int(i_offset)
         self.j_offset = int(j_offset)
@@ -57,6 +57,30 @@ class WhereShift:
         #sample = np.array(sample)
         N_pic = sample.shape[0]
         data = np.zeros((N_pic, N_pic))
+        i_binf_patch = max(0, -self.i_offset)
+        i_bsup_patch = min(N_pic, N_pic - self.i_offset)
+        j_binf_patch = max(0, -self.j_offset)
+        j_bsup_patch = min(N_pic, N_pic - self.j_offset)
+        patch = sample[i_binf_patch:i_bsup_patch,
+                j_binf_patch:j_bsup_patch]
+
+        i_binf_data = max(0, self.i_offset)
+        i_bsup_data = min(N_pic, N_pic + self.i_offset)
+        j_binf_data = max(0, self.j_offset)
+        j_bsup_data = min(N_pic, N_pic + self.j_offset)
+        data[i_binf_data:i_bsup_data,
+             j_binf_data:j_bsup_data] = patch
+        return data #.astype('B')
+    
+class CollShift:
+    def __init__(self, i_offset=0, j_offset=0):
+        self.i_offset = int(i_offset)
+        self.j_offset = int(j_offset)
+
+    def __call__(self, sample):
+        #sample = np.array(sample)
+        N_pic = sample.shape[0]
+        data = np.ones((N_pic, N_pic)) * 0.1
         i_binf_patch = max(0, -self.i_offset)
         i_bsup_patch = min(N_pic, N_pic - self.i_offset)
         j_binf_patch = max(0, -self.j_offset)
@@ -156,11 +180,12 @@ class RetinaTransform:
         data = self.retina_transform_vector @ np.ravel(sample)
         return data
     
-class ColliculusTransform:
+class CollTransform:
     def __init__(self, colliculus_transform_vector):
         self.colliculus_transform_vector = colliculus_transform_vector
     def __call__(self, target):
-        pass
+        data = self.colliculus_transform_vector @ np.ravel(target)
+        return data
         
 
 class WhereNet(torch.nn.Module):
@@ -183,8 +208,8 @@ class WhereNet(torch.nn.Module):
         x = self.bn3(x)
         return x
 
-class WhereTrainer():
-    def __init__(self, args, device='cpu'):
+class WhereTrainer:
+    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
         self.args=args
         self.device=device
         self.retina = Retina(args)
