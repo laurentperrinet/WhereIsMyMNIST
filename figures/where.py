@@ -5,6 +5,7 @@ import torch
 torch.set_default_tensor_type('torch.FloatTensor')
 from torchvision import datasets, transforms
 from torchvision.datasets import ImageFolder
+from torchvision.datasets.mnist import MNIST as MNIST_dataset
 from torch.utils.data import TensorDataset, DataLoader
 from torch.autograd import Variable
 import torchvision
@@ -14,63 +15,121 @@ import torch.nn as nn
 from display import Display, minmax
 from retina import Retina
 import MotionClouds as mc
-from display import pe
+from display import pe, minmax
+from PIL import Image
 import SLIP
 
+class MNIST(MNIST_dataset):
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
 
-class RetinaFill:
-    def __init__(self, N_pic=128):
-        self.N_pic=N_pic
+        Returns:
+            tuple: (image, target) where target is index of the target class.
+        """
+        if self.train:
+            img, target = self.train_data[index], self.train_labels[index]
+        else:
+            img, target = self.test_data[index], self.test_labels[index]
 
-    def __call__(self, sample):
-        sample = np.array(sample)
-        w = sample.shape[0]
-        data = np.zeros((self.N_pic, self.N_pic))
-        N_mid = self.N_pic//2
-        w_mid = w // 2
-        data[N_mid - w_mid: N_mid - w_mid + w,
-             N_mid - w_mid: N_mid - w_mid + w] = sample
-        return data
-    
-class CollFill:
-    def __init__(self, accuracy_map, N_pic=128):
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(img.numpy(), mode='L')
+        
+
+        if self.transform is not None:
+            img = self.transform((img, index))
+
+        if self.target_transform is not None:
+            target = self.target_transform((target, index))
+
+        return img, target
+
+
+class WhereFill:
+    def __init__(self, accuracy_map=None, N_pic=128):
         self.N_pic=N_pic
         self.accuracy_map = accuracy_map
 
-    def __call__(self, target):
-        # !! target information is lost!
-        sample = self.accuracy_map
+    def __call__(self, sample_index):
+        if self.accuracy_map is None:
+            sample = np.array(sample_index[0])
+        else:
+            # !! target information is lost!
+            sample = self.accuracy_map
         w = sample.shape[0]
         data = np.ones((self.N_pic, self.N_pic)) * 0.1
         N_mid = self.N_pic//2
         w_mid = w // 2
         data[N_mid - w_mid: N_mid - w_mid + w,
              N_mid - w_mid: N_mid - w_mid + w] = sample
-        return data
+        return (data, sample_index[1])    
 
 class WhereShift:
-    def __init__(self, i_offset=0, j_offset=0):
-        self.i_offset = int(i_offset)
-        self.j_offset = int(j_offset)
+    def __init__(self, args, i_offset=None, j_offset=None, radius=None, theta=None, baseline=0):
+        self.args = args
+        self.i_offset = i_offset
+        self.j_offset = j_offset
+        self.radius = radius
+        self.theta = theta
+        self.baseline = baseline
 
-    def __call__(self, sample):
+    def __call__(self, sample_index):
         #sample = np.array(sample)
+        
+        sample = sample_index[0]
+        index = sample_index[1]
+        
+        #print(index)
+        np.random.seed(index)
+        
+        if self.i_offset is not None:
+            i_offset = self.i_offset
+            if self.j_offset is None:
+                j_offset_f = np.random.randn() * self.args.offset_std
+                j_offset_f = minmax(j_offset_f, self.args.offset_max)
+                j_offset = int(j_offset_f)
+            else:
+                j_offset = int(self.j_offset)
+        else: 
+            if self.j_offset is not None:
+                j_offset = int(self.j_offset)
+                i_offset_f = np.random.randn() * self.args.offset_std
+                i_offset_f = minmax(i_offset_f, self.args.offset_max)
+                i_offset = int(i_offset_f)
+            else: #self.i_offset is None and self.j_offset is None
+                if self.theta is None:
+                    theta = np.random.rand() * 2 * np.pi
+                    #print(theta)
+                else:
+                    theta = self.theta
+                if self.radius is None:
+                    radius_f = np.abs(np.random.randn()) * self.args.offset_std
+                    radius = minmax(radius_f, self.args.offset_max)
+                    #print(radius)
+                else:
+                    radius = self.radius
+                i_offset = int(radius * np.cos(theta))
+                j_offset = int(radius * np.sin(theta))
+                
         N_pic = sample.shape[0]
-        data = np.zeros((N_pic, N_pic))
-        i_binf_patch = max(0, -self.i_offset)
-        i_bsup_patch = min(N_pic, N_pic - self.i_offset)
-        j_binf_patch = max(0, -self.j_offset)
-        j_bsup_patch = min(N_pic, N_pic - self.j_offset)
+        data = np.ones((N_pic, N_pic)) * self.baseline
+        i_binf_patch = max(0, -i_offset)
+        i_bsup_patch = min(N_pic, N_pic - i_offset)
+        j_binf_patch = max(0, -j_offset)
+        j_bsup_patch = min(N_pic, N_pic - j_offset)
         patch = sample[i_binf_patch:i_bsup_patch,
                 j_binf_patch:j_bsup_patch]
 
-        i_binf_data = max(0, self.i_offset)
-        i_bsup_data = min(N_pic, N_pic + self.i_offset)
-        j_binf_data = max(0, self.j_offset)
-        j_bsup_data = min(N_pic, N_pic + self.j_offset)
+        i_binf_data = max(0, i_offset)
+        i_bsup_data = min(N_pic, N_pic + i_offset)
+        j_binf_data = max(0, j_offset)
+        j_bsup_data = min(N_pic, N_pic + j_offset)
         data[i_binf_data:i_bsup_data,
              j_binf_data:j_bsup_data] = patch
-        return data #.astype('B')
+        return data #, index #.astype('B')
+    
         
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
@@ -156,12 +215,13 @@ class RetinaTransform:
         data = self.retina_transform_vector @ np.ravel(sample)
         return data
     
-class ColliculusTransform:
+class CollTransform:
     def __init__(self, colliculus_transform_vector):
         self.colliculus_transform_vector = colliculus_transform_vector
     def __call__(self, target):
-        pass
-        
+        data = self.colliculus_transform_vector @ np.ravel(target)
+        return data
+    
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
@@ -183,21 +243,37 @@ class WhereNet(torch.nn.Module):
         x = self.bn3(x)
         return x
 
-class WhereTrainer():
-    def __init__(self, args, device='cpu'):
+class WhereTrainer:
+    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
         self.args=args
         self.device=device
         self.retina = Retina(args)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
+        
+        suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
+        accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
+        if not os.path.isfile(model_path):
+            self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
+        else:
+            self.accuracy_map = np.load(accuracy_path)
+            
         transform = transforms.Compose([
-            WhereShift(),
-            WhereBackground(contrast=args.contrast,
-                           noise=args.noise,
-                           sf_0=args.sf_0,
-                           B_sf=args.B_sf),
-            transforms.ToTensor(),
+            RetinaFill(N_pic=args.N_pic),
+            RetinaShift(),
+            RetinaBackground(contrast=args.contrast,
+                             noise=args.noise,
+                             sf_0=args.sf_0,
+                             B_sf=args.B_sf),
+            RetinaMask(N_pic=args.N_pic),
+            RetinaWhiten(N_pic=args.N_pic),
+            RetinaTransform(retina.retina_transform_vector),
             # transforms.Normalize((args.mean,), (args.std,))
         ])
+        target_transform=transforms.Compose([
+                               CollFill(self.accuracy_map),
+                               CollShift(i_offset=i_offset, j_offset=j_offset),
+                               CollTransform(retina.colliculus_transform_vector),
+                           ])
 
 class Where():
     def __init__(self, args, save=True, batch_load=False):
