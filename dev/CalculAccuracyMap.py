@@ -1,4 +1,6 @@
 import torch
+import sys
+sys.path.append("../figures")
 from what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, train, test
 import datetime
 
