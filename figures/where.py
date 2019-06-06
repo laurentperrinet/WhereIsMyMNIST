@@ -18,7 +18,7 @@ from display import pe
 import SLIP
 
 
-class WhereFill(object):
+class RetinaFill:
     def __init__(self, N_pic=128):
         self.N_pic=N_pic
 
@@ -31,8 +31,24 @@ class WhereFill(object):
         data[N_mid - w_mid: N_mid - w_mid + w,
              N_mid - w_mid: N_mid - w_mid + w] = sample
         return data
+    
+class CollFill:
+    def __init__(self, accuracy_map, N_pic=128):
+        self.N_pic=N_pic
+        self.accuracy_map = accuracy_map
 
-class WhereShift(object):
+    def __call__(self, target):
+        # !! target information is lost!
+        sample = self.accuracy_map
+        w = sample.shape[0]
+        data = np.ones((self.N_pic, self.N_pic)) * 0.1
+        N_mid = self.N_pic//2
+        w_mid = w // 2
+        data[N_mid - w_mid: N_mid - w_mid + w,
+             N_mid - w_mid: N_mid - w_mid + w] = sample
+        return data
+
+class WhereShift:
     def __init__(self, i_offset=0, j_offset=0):
         self.i_offset = int(i_offset)
         self.j_offset = int(j_offset)
@@ -55,7 +71,7 @@ class WhereShift(object):
         data[i_binf_data:i_bsup_data,
              j_binf_data:j_bsup_data] = patch
         return data #.astype('B')
-
+        
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
     fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
@@ -65,7 +81,7 @@ def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     z = z.reshape((mc.N_X, mc.N_Y))
     return z, env
 
-class WhereBackground(object):
+class RetinaBackground:
     def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1):
         self.contrast = contrast
         self.noise = noise
@@ -103,7 +119,7 @@ class WhereBackground(object):
         im *= 255
         return im #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
-class WhereMask(object):
+class RetinaMask:
     def __init__(self, N_pic=128):
         self.N_pic = N_pic
     def __call__(self, sample):
@@ -122,7 +138,7 @@ class WhereMask(object):
         #data = np.clip(data, 0, 255)
         return data #.astype('B')
     
-class WhereWhiten:
+class RetinaWhiten:
     def __init__(self, N_pic=128):
         self.N_pic = N_pic
         self.whit = SLIP.Image(pe=pe)
@@ -139,6 +155,13 @@ class RetinaTransform:
     def __call__(self, sample):
         data = self.retina_transform_vector @ np.ravel(sample)
         return data
+    
+class ColliculusTransform:
+    def __init__(self, colliculus_transform_vector):
+        self.colliculus_transform_vector = colliculus_transform_vector
+    def __call__(self, target):
+        pass
+        
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
