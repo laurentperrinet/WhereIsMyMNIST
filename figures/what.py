@@ -175,14 +175,14 @@ def test(args, model, device, test_loader, loss_function):
     return correct / len(test_loader.dataset)
 
 class What:
-    def __init__(self, args, train_loader=None, test_loader=None):
+    def __init__(self, args, train_loader=None, test_loader=None, force=False):
         self.args = args
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
         suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         model_path = f"../data/MNIST_cnn_{suffix}.pt"
-        if os.path.exists(model_path):
+        if os.path.exists(model_path) and not force:
             self.model  = torch.load(model_path)
         else:                                                       
             whatTrainer = WhatTrainer(args, train_loader=train_loader, test_loader=test_loader, device=device)
