@@ -220,7 +220,8 @@ class Where():
         from what import WhatNet
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, elf.args.contrast)
-        model_path = f"../data/MNIST_cnn_{suffix}.pt"
+        # model_path = f"../data/MNIST_cnn_{suffix}.pt"
+        model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if not os.path.isfile(model_path):
             train_loader = self.data_loader(suffix, 
                                             train=True,
