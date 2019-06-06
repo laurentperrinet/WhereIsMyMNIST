@@ -190,8 +190,10 @@ class What:
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
-        suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        model_path = f"../data/MNIST_cnn_{suffix}.pt"
+        # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
+        suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        # model_path = f"../data/MNIST_cnn_{suffix}.pt"
+        model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if os.path.exists(model_path) and not force:
             self.model  = torch.load(model_path)
         else:                                                       
