@@ -14,6 +14,8 @@ import torch.nn as nn
 from display import Display, minmax
 from retina import Retina
 import MotionClouds as mc
+from display import pe
+import SLIP
 
 
 class WhereFill(object):
@@ -28,7 +30,7 @@ class WhereFill(object):
         w_mid = w // 2
         data[N_mid - w_mid: N_mid - w_mid + w,
              N_mid - w_mid: N_mid - w_mid + w] = sample
-        return data.astype('B')
+        return data
 
 class WhereShift(object):
     def __init__(self, i_offset=0, j_offset=0):
@@ -36,7 +38,7 @@ class WhereShift(object):
         self.j_offset = int(j_offset)
 
     def __call__(self, sample):
-        sample = np.array(sample)
+        #sample = np.array(sample)
         N_pic = sample.shape[0]
         data = np.zeros((N_pic, N_pic))
         i_binf_patch = max(0, -self.i_offset)
@@ -52,7 +54,7 @@ class WhereShift(object):
         j_bsup_data = min(N_pic, N_pic + self.j_offset)
         data[i_binf_data:i_bsup_data,
              j_binf_data:j_bsup_data] = patch
-        return data.astype('B')
+        return data #.astype('B')
 
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
@@ -73,7 +75,8 @@ class WhereBackground(object):
     def __call__(self, sample):
 
         # sample from the MNIST dataset
-        data = np.array(sample)
+        #data = np.array(sample)
+        data = sample
         N_pic = data.shape[0]
         if data.min() != data.max():
             data = (data - data.min()) / (data.max() - data.min())
@@ -96,21 +99,46 @@ class WhereBackground(object):
         im /= 2  # back to [0, 1] range
         im += .5  # back to a .5 baseline
         im = np.clip(im, 0, 1)
-        im = im.reshape((N_pic, N_pic, 1))
+        im = im.reshape((N_pic, N_pic))
         im *= 255
-        return im.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
+        return im #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class WhereMask(object):
     def __init__(self, N_pic=128):
         self.N_pic = N_pic
     def __call__(self, sample):
-        sample = np.array(sample)
+        data = np.array(sample)
+        #d_min = data.min()
+        #d_max = data.max()
+        data -= 128 #/ 255 #(data - d_min) / (d_max - d_min)
         x, y = np.mgrid[-1:1:1j * self.N_pic, -1:1:1j * self.N_pic]
         R = np.sqrt(x ** 2 + y ** 2)
         mask = 1. * (R < 1)
-        # print('mask', mask.min(), mask.max(), mask[0, 0])
-        data_fullfield = sample * mask
-        return sample.astype('B')
+        #print(data.shape, mask.shape)
+        #print('mask', mask.min(), mask.max(), mask[0, 0])
+        data *= mask.reshape((self.N_pic, self.N_pic))
+        data += 128
+        #data *= 255
+        #data = np.clip(data, 0, 255)
+        return data #.astype('B')
+    
+class WhereWhiten:
+    def __init__(self, N_pic=128):
+        self.N_pic = N_pic
+        self.whit = SLIP.Image(pe=pe)
+        self.whit.set_size((self.N_pic, self.N_pic))
+        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
+        self.K_whitening = self.whit.whitening_filt()
+    def __call__(self, sample):
+        data = self.whit.FTfilter(sample, self.K_whitening) + 128
+        return data.astype('B')
+
+class RetinaTransform:
+    def __init__(self, retina_transform_vector):
+        self.retina_transform_vector = retina_transform_vector
+    def __call__(self, sample):
+        data = self.retina_transform_vector @ np.ravel(sample)
+        return data
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
@@ -136,6 +164,7 @@ class WhereTrainer():
     def __init__(self, args, device='cpu'):
         self.args=args
         self.device=device
+        self.retina = Retina(args)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         transform = transforms.Compose([
             WhereShift(),
@@ -146,9 +175,6 @@ class WhereTrainer():
             transforms.ToTensor(),
             # transforms.Normalize((args.mean,), (args.std,))
         ])
-
-
-
 
 class Where():
     def __init__(self, args, save=True, batch_load=False):
