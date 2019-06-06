@@ -97,7 +97,7 @@ class WhatNet(nn.Module):
         return F.log_softmax(x, dim=1)
     
 class WhatTrainer:
-    def __init__(self, args, train_loader=None, test_loader=None, device='cpu'):     
+    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
         self.args = args
         self.device = device
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
@@ -135,7 +135,10 @@ class WhatTrainer:
                                              **kwargs)
         else:
             self.test_loader = test_loader
-        self.model = WhatNet().to(device)
+        if not model:
+            self.model = WhatNet().to(device)
+        else:
+            self.model = model
         self.loss_func = F.nll_loss
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
