@@ -26,7 +26,7 @@ f = open('AccuracyMap_{}_{}h{}.txt'.format(date[0:10], date[11:13], date[14:16])
 model = torch.load("../data/MNIST_cnn_0.1_0.1_0.75_0.7.pt")
 accuracy_map = torch.zeros(55,55)
 for i_offset in range(-1, 2):
-    for j_offset in range(-1, 22):
+    for j_offset in range(-1, 2):
         transform = transforms.Compose([
             WhatShift(i_offset=i_offset, j_offset=j_offset),
             WhatBackground(),
