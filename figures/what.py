@@ -110,24 +110,31 @@ class WhatTrainer:
                                transforms.ToTensor(),
                                #transforms.Normalize((args.mean,), (args.std,))
                            ])
-        dataset_train = datasets.MNIST('../data',
-                        train=True,
-                        download=True,
-                        transform=transform,
-                        )
-        self.train_loader = torch.utils.data.DataLoader(dataset_train,
-                                         batch_size=args.minibatch_size,
-                                         shuffle=True,
-                                         **kwargs)
-        dataset_test = datasets.MNIST('../data',
-                        train=False,
-                        download=True,
-                        transform=transform,
-                        )
-        self.test_loader = torch.utils.data.DataLoader(dataset_test,
-                                         batch_size=args.minibatch_size,
-                                         shuffle=True,
-                                         **kwargs)
+        if not train_loader:
+            dataset_train = datasets.MNIST('../data',
+                            train=True,
+                            download=True,
+                            transform=transform,
+                            )
+            self.train_loader = torch.utils.data.DataLoader(dataset_train,
+                                             batch_size=args.minibatch_size,
+                                             shuffle=True,
+                                             **kwargs)
+        else:
+            self.train_loader = train_loader
+
+        if not test_loader:
+            dataset_test = datasets.MNIST('../data',
+                            train=False,
+                            download=True,
+                            transform=transform,
+                            )
+            self.test_loader = torch.utils.data.DataLoader(dataset_test,
+                                             batch_size=args.minibatch_size,
+                                             shuffle=True,
+                                             **kwargs)
+        else:
+            self.test_loader = test_loader
         self.model = WhatNet().to(device)
         self.loss_func = F.nll_loss
         if args.do_adam:
