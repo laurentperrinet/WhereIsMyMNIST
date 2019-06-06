@@ -41,9 +41,13 @@ class Retina:
     #                np.linspace(-np.pi * (.5 + delta), np.pi * (1.5 - delta), self.N_azimuth + 1))
 
     def get_suffix(self):
-        suffix = f'_{self.N_theta}_{self.N_azimuth}'
-        suffix += f'_{self.N_eccentricity}_{self.N_phase}'
-        suffix += f'_{self.args.rho}_{self.N_pic}'
+        # suffix = f'_{self.N_theta}_{self.N_azimuth}'
+        # suffix += f'_{self.N_eccentricity}_{self.N_phase}'
+        # suffix += f'_{self.args.rho}_{self.N_pic}'
+
+        suffix = '_{}_{}'.format(self.N_theta, self.N_azimuth)
+        suffix += '_{}_{}'.format(self.N_eccentricity, self.N_phase)
+        suffix += '_{}_{}'.format(self.args.rho, self.N_pic)
         return suffix
 
     def init_retina_transform(self):
