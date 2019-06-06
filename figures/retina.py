@@ -168,7 +168,6 @@ class Retina:
     
     
     def show(self, ax, im, rmin=None, rmax=None, ms=26, markeredgewidth=1, alpha=.6, lw=.75, do_cross=True):
-        # ???? Rien à voir avec la choucroute ?????
         if rmin is None: rmin = im.min()
         if rmax is None: rmax = im.max()
         ax.imshow(im, cmap=plt.viridis(), vmin=rmin, vmax=rmax)
