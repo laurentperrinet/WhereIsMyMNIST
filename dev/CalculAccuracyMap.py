@@ -7,6 +7,7 @@ from torchvision import datasets, transforms
 
 import matplotlib.pyplot as plt
 
+import sys
 sys.path.append("../figures")
 from what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, train, test
 import datetime
