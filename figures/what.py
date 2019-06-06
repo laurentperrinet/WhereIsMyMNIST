@@ -97,7 +97,7 @@ class WhatNet(nn.Module):
         return F.log_softmax(x, dim=1)
     
 class WhatTrainer:
-    def __init__(self, args, train_loader=None, test_loader=None, device='cpu'):     
+    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
         self.args = args
         self.device = device
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
@@ -110,25 +110,35 @@ class WhatTrainer:
                                transforms.ToTensor(),
                                #transforms.Normalize((args.mean,), (args.std,))
                            ])
-        dataset_train = datasets.MNIST('../data',
-                        train=True,
-                        download=True,
-                        transform=transform,
-                        )
-        self.train_loader = torch.utils.data.DataLoader(dataset_train,
-                                         batch_size=args.minibatch_size,
-                                         shuffle=True,
-                                         **kwargs)
-        dataset_test = datasets.MNIST('../data',
-                        train=False,
-                        download=True,
-                        transform=transform,
-                        )
-        self.test_loader = torch.utils.data.DataLoader(dataset_test,
-                                         batch_size=args.minibatch_size,
-                                         shuffle=True,
-                                         **kwargs)
-        self.model = WhatNet().to(device)
+        if not train_loader:
+            dataset_train = datasets.MNIST('../data',
+                            train=True,
+                            download=True,
+                            transform=transform,
+                            )
+            self.train_loader = torch.utils.data.DataLoader(dataset_train,
+                                             batch_size=args.minibatch_size,
+                                             shuffle=True,
+                                             **kwargs)
+        else:
+            self.train_loader = train_loader
+
+        if not test_loader:
+            dataset_test = datasets.MNIST('../data',
+                            train=False,
+                            download=True,
+                            transform=transform,
+                            )
+            self.test_loader = torch.utils.data.DataLoader(dataset_test,
+                                             batch_size=args.minibatch_size,
+                                             shuffle=True,
+                                             **kwargs)
+        else:
+            self.test_loader = test_loader
+        if not model:
+            self.model = WhatNet().to(device)
+        else:
+            self.model = model
         self.loss_func = F.nll_loss
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
@@ -180,8 +190,10 @@ class What:
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
-        suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        model_path = f"../data/MNIST_cnn_{suffix}.pt"
+        # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
+        suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        # model_path = f"../data/MNIST_cnn_{suffix}.pt"
+        model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if os.path.exists(model_path) and not force:
             self.model  = torch.load(model_path)
         else:                                                       
@@ -190,6 +202,7 @@ class What:
                 whatTrainer.train(epoch)
                 whatTrainer.test()
             self.model = whatTrainer.model
+            print(model_path)
             if (args.save_model):
                 #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
                 torch.save(self.model, model_path)         

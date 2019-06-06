@@ -15,7 +15,7 @@ from what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, train, t
 from main import init
 args = init(filename='../data/2019-06-05')
 
-args.epochs = 1
+args.epochs = 60
 args.save_model = True
 what = What(args=args, force= True)
 
