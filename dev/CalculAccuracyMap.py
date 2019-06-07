@@ -18,16 +18,16 @@ args
 
 import datetime
 
-
-date = str(datetime.datetime.now())
+debut = datetime.datetime.now()
+date = str(debut)
 
 reseau = "MNIST_cnn_0.1_0.1_0.75_0.7.pt"
-f = open('AccuracyMap_{}_{}h{}_{}.txt'.format(date[0:10], date[11:13], date[14:16], reseau), "w+")
+f = open('AccuracyMap_{}_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
 
 model = torch.load("../data/"+ reseau)
 accuracy_map = torch.zeros(55,55)
-for i_offset in range(-27, 28):
-    for j_offset in range(-27, 28):
+for i_offset in range(-1, 2):
+    for j_offset in range(-1, 2):
         transform = transforms.Compose([
             WhatShift(i_offset=i_offset, j_offset=j_offset),
             WhatBackground(),
@@ -48,5 +48,10 @@ for i_offset in range(-27, 28):
         # accuracy_map[26-i_offset][26-j_offset] = acc
         f.write(str(acc)+' ')
     f.write('\n')
+
+fin = datetime.datetime.now()
+
+f.write("Durée d'exécution : " + str(fin-debut))
+
 f.close()
 
