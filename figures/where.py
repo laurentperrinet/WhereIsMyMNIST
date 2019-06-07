@@ -258,23 +258,36 @@ class WhereNet(torch.nn.Module):
         x = self.bn3(x)
         return x
 
+def where_suffix(args):
+    suffix = '_{}_{}'.format(args.sf_0, args.B_sf)
+    suffix += '_{}_{}'.format(args.noise, args.contrast)
+    suffix += '_{}_{}'.format(args.offset_std, args.offset_max)
+    suffix += '_{}_{}'.format(args.N_theta, args.N_azimuth)
+    suffix += '_{}_{}'.format(args.N_eccentricity, args.N_phase)
+    suffix += '_{}_{}'.format(args.rho, args.N_pic)
+    return suffix
+
 class WhereTrainer:
-    def __init__(self, args, what_model=None, model=None, train_loader=None, test_loader=None, device='cpu'):
+    def __init__(self, args, what_model=None, model=None, train_loader=None, test_loader=None, device='cpu', generate_data=True):
         self.args=args
         self.device=device
         self.retina = Retina(args)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         
         # suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
-        suffix = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
+        suffix_what = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
+        
+        
+        ## DATASET TRANSFORMS     
         # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
-        accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix)
+        accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix_what)
         if not os.path.isfile(accuracy_path):
             self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
         else:
             self.accuracy_map = np.load(accuracy_path)
-            
-        transform = transforms.Compose([
+        
+        ## DATASET TRANSFORMS     
+        self.transform = transforms.Compose([
             WhereFill(N_pic=args.N_pic),
             WhereShift(args),
             RetinaBackground(contrast=args.contrast,
@@ -287,55 +300,50 @@ class WhereTrainer:
             ToFloatTensor()
             # transforms.Normalize((args.mean,), (args.std,))
         ])
-        target_transform=transforms.Compose([
+        
+        self.fullfield_transform = transforms.Compose([
+            WhereFill(N_pic=args.N_pic),
+            WhereShift(args),
+            RetinaBackground(contrast=args.contrast,
+                             noise=args.noise,
+                             sf_0=args.sf_0,
+                             B_sf=args.B_sf),
+            RetinaMask(N_pic=args.N_pic),
+            RetinaWhiten(N_pic=args.N_pic),
+            ToFloatTensor()
+            # transforms.Normalize((args.mean,), (args.std,))
+        ])
+        
+        self.target_transform=transforms.Compose([
                                WhereFill(accuracy_map=self.accuracy_map, N_pic=args.N_pic),
                                WhereShift(args, baseline = 0.1),
                                CollTransform(self.retina.colliculus_transform_vector),
                                ToFloatTensor()
                            ])
+        
+        suffix = where_suffix(args)
+        
         if not train_loader:
-            dataset_train = MNIST('../data',
-                        train=True,
-                        download=True,
-                        transform=transform,
-                        target_transform = target_transform,
-                        )
-            self.train_loader = torch.utils.data.DataLoader(dataset_train,
-                                         batch_size=args.minibatch_size,
-                                         shuffle=True)
+            self.init_data_loader(args, suffix, train=True, generate_data=generate_data)
         else:
             self.train_loader = train_loader
         
         if not test_loader:
-            dataset_test = MNIST('../data',
-                        train=False,
-                        download=True,
-                        transform=transform,
-                        target_transform = target_transform,
-                        )
-            self.test_loader = torch.utils.data.DataLoader(dataset_test,
-                                         batch_size=args.minibatch_size,
-                                         shuffle=True)
+            self.init_data_loader(args, suffix, train=False, generate_data=generate_data)
         else:
             self.test_loader = test_loader
-            
-        if not what_model:
-            what = What(args) # trains the what_model if needed
-            self.what_model = what.model.to(device)
-        else:
-            self.what_model = what_model
             
         if not model:
             self.model = WhereNet(args).to(device)
         else:
             self.model = model
-    
             
         self.loss_func = torch.nn.BCEWithLogitsLoss()
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
         else:
             self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+            
         #if args.do_adam:
         #    # see https://heartbeat.fritz.ai/basics-of-image-classification-with-pytorch-2f8973c51864
         #    self.optimizer = optim.Adam(self.model.parameters(),
@@ -346,11 +354,55 @@ class WhereTrainer:
         #    self.optimizer = optim.SGD(self.model.parameters(),
         #                               lr=args.lr, 
         #                               momentum=args.momentum)
+        
+    def init_data_loader(self, args, suffix, train=True, generate_data=True):
+        if train:
+            use = 'train'
+        else:
+            use = 'test'
+        data_loader_path = '/tmp/where_{}_dataset_{}_{}.pt'.format(use, suffix, args.minibatch_size)
+        if os.path.isfile(data_loader_path):
+            if self.args.verbose: 
+                print('Loading {}ing dataset'.format(use))
+            data_loader = torch.load(data_loader_path)
+        else:
+            dataset = MNIST('../data',
+                    train=train,
+                    download=True,
+                    transform=self.transform,
+                    target_transform=self.target_transform,
+                    )
+            if generate_data:
+                if self.args.verbose: 
+                    print('Generating {}ing dataset'.format(use))
+                for i, (data, label) in enumerate(data_loader):
+                    if self.args.verbose: 
+                        print(i, (i+1) * args.minibatch_size)
+                    if i == 0:
+                        full_data = data
+                        full_label = label
+                    else:
+                        full_data = torch.cat((full_data, data), 0)
+                        full_label = torch.cat((full_label, label), 0)
+                dataset = TensorDataset(full_data, full_label)
+                
+            data_loader = DataLoader(dataset,
+                                     batch_size=args.minibatch_size,
+                                     shuffle=True)
+            if generate_data:
+                torch.save(data_loader, data_loader_path)
+                if self.args.verbose: 
+                    print('Done!')
+        if train:
+            self.train_loader = data_loader
+        else:
+            self.test_loader = data_loader
+    
     def train(self, epoch):
         train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
     
     def test(self):
-        pass
+        test(self.args, self.model, self.device, self.train_loader, self.loss_func)
 
 def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     # setting up training
@@ -383,9 +435,24 @@ def train(args, model, device, train_loader, loss_function, optimizer, epoch):
                 epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
+def test(args, model, device, test_loader, loss_function):
+    model.eval()
+    test_loss = 0
+    with torch.no_grad():
+        for batch_idx, (data, target) in enumerate(test_loader):
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += loss_function(output, target).item() # sum up batch loss
+            if batch_idx % args.log_interval == 0:
+                print('i = {}, test done on {:.0f}% of the test dataset.'.format(batch_idx, 100. * batch_idx / len(test_loader)))
 
+    test_loss /= len(test_loader.dataset)
+
+    print('\nTest set: Average loss: {:.4f}\n'.format(test_loss))
+    return test_loss
+            
 class Where():
-    def __init__(self, args, save=True, batch_load=False):
+    def __init__(self, args, save=True, batch_load=False, force_training=False, train_loader=None, test_loader=None):
         self.args = args
         self.display = Display(args)
         self.retina = Retina(args)
@@ -401,8 +468,13 @@ class Where():
         #########################################################
         # loads a WHAT model (or learns it if not already done) #
         #########################################################
-        
-        from what import WhatNet
+        if not what_model:
+            what = What(args) # trains the what_model if needed
+            self.What_model = what.model.to(device)
+        else:
+            self.What_model = what_model
+                
+        '''from what import WhatNet
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, elf.args.contrast)
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
@@ -424,8 +496,8 @@ class Where():
                  train_loader=train_loader, 
                  test_loader=test_loader, 
                  path=model_path)
-        self.What_model = torch.load(model_path)
-
+        self.What_model = torch.load(model_path)'''
+        
         ######################
         # Accuracy map setup #
         ######################
@@ -438,7 +510,8 @@ class Where():
                 print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
         else:
             print('No accuracy data found.')
-
+            
+        
         ######################
         # WHERE model setup  #
         ######################
@@ -450,26 +523,53 @@ class Where():
         # suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
         # suffix += f'_{self.args.rho}_{self.args.N_pic}'
 
-        suffix = '_{}_{}'.format(self.args.sf_0, self.args.B_sf)
+        '''suffix = '_{}_{}'.format(self.args.sf_0, self.args.B_sf)
         suffix += '_{}_{}'.format(self.args.noise, self.args.contrast)
         suffix += '_{}_{}'.format(self.args.offset_std, self.args.offset_max)
         suffix += '_{}_{}'.format(self.args.N_theta, self.args.N_azimuth)
         suffix += '_{}_{}'.format(self.args.N_eccentricity, self.args.N_phase)
-        suffix += '_{}_{}'.format(self.args.rho, self.args.N_pic)
+        suffix += '_{}_{}'.format(self.args.rho, self.args.N_pic)'''
+        
+        suffix = where_suffix(args)
+        model_path = '/tmp/where_model_{}.pt'.format(suffix)
+        if os.path.exists(model_path) and not force_training:
+            self.model  = torch.load(model_path)
+            self.trainer = WhereTrainer(args, 
+                                       model=self.model,
+                                       train_loader=train_loader, 
+                                       test_loader=test_loader, 
+                                       device=self.device)
+        else:                                                       
+            self.trainer = WhereTrainer(args, 
+                                       train_loader=train_loader, 
+                                       test_loader=test_loader, 
+                                       device=self.device)
+            for epoch in range(1, args.epochs + 1):
+                self.trainer.train(epoch)
+                self.trainer.test()
+            self.model = self.trainer.model
+            print(model_path)
+            if (args.save_model):
+                #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
+                torch.save(self.model, model_path) 
+                print('Model saved at', model_path)
+        
 
             
-        self.loader_train = self.data_loader(suffix, 
+        '''self.loader_train = self.data_loader(suffix, 
                                              train=True, 
                                              save=save, 
                                              batch_load=batch_load)
         self.loader_test = self.data_loader(suffix, 
                                             train=False, 
                                             save=save, 
-                                            batch_load=batch_load)
+                                            batch_load=batch_load)'''
         
+        self.loader_train = self.trainer.train_loader
+        self.loader_test = self.trainer.test_loader
 
         # MODEL
-        self.model = WhereNet(self.args).to(self.device)
+        '''self.model = WhereNet(self.args).to(self.device)'''
         if not self.args.no_cuda:
             # print('doing cuda')
             torch.cuda.manual_seed(self.args.seed)
