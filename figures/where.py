@@ -18,7 +18,9 @@ import MotionClouds as mc
 from display import pe, minmax
 from PIL import Image
 import SLIP
-from What import What
+from what import What
+from tqdm import tqdm
+
 
 class MNIST(MNIST_dataset):
     def __getitem__(self, index):
@@ -222,6 +224,12 @@ class CollTransform:
         data = self.colliculus_transform_vector @ np.ravel(target)
         return data
     
+class ToFloatTensor:
+    def __init__(self):
+        pass
+    def __call__(self, data):
+        return Variable(torch.FloatTensor(data))
+    
 class Normalize:
     def __init__(self):
         pass
@@ -261,7 +269,7 @@ class WhereTrainer:
         suffix = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
         # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
         accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix)
-        if not os.path.isfile(model_path):
+        if not os.path.isfile(accuracy_path):
             self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
         else:
             self.accuracy_map = np.load(accuracy_path)
@@ -275,13 +283,15 @@ class WhereTrainer:
                              B_sf=args.B_sf),
             RetinaMask(N_pic=args.N_pic),
             RetinaWhiten(N_pic=args.N_pic),
-            RetinaTransform(retina.retina_transform_vector),
+            RetinaTransform(self.retina.retina_transform_vector),
+            ToFloatTensor()
             # transforms.Normalize((args.mean,), (args.std,))
         ])
         target_transform=transforms.Compose([
                                WhereFill(accuracy_map=self.accuracy_map, N_pic=args.N_pic),
                                WhereShift(args, baseline = 0.1),
-                               CollTransform(retina.colliculus_transform_vector),
+                               CollTransform(self.retina.colliculus_transform_vector),
+                               ToFloatTensor()
                            ])
         if not train_loader:
             dataset_train = MNIST('../data',
@@ -311,7 +321,7 @@ class WhereTrainer:
             
         if not what_model:
             what = What(args) # trains the what_model if needed
-            self.what_model = What.model.to(device)
+            self.what_model = what.model.to(device)
         else:
             self.what_model = what_model
             
@@ -321,23 +331,58 @@ class WhereTrainer:
             self.model = model
     
             
-        self.loss_func = torch.nn.BCEWithLogitsLoss
-        #if args.do_adam:
-        #    self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
-        #else:
-        #    self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+        self.loss_func = torch.nn.BCEWithLogitsLoss()
         if args.do_adam:
-            # see https://heartbeat.fritz.ai/basics-of-image-classification-with-pytorch-2f8973c51864
-            self.optimizer = optim.Adam(self.model.parameters(),
-                                        lr=args.lr, 
-                                        betas=(1.-args.momentum, 0.999), 
-                                        eps=1e-8)
+            self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
         else:
-            self.optimizer = optim.SGD(self.model.parameters(),
-                                       lr=args.lr, 
-                                       momentum=args.momentum)
-        
-        
+            self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+        #if args.do_adam:
+        #    # see https://heartbeat.fritz.ai/basics-of-image-classification-with-pytorch-2f8973c51864
+        #    self.optimizer = optim.Adam(self.model.parameters(),
+        #                                lr=args.lr, 
+        #                                betas=(1.-args.momentum, 0.999), 
+        #                                eps=1e-8)
+        #else:
+        #    self.optimizer = optim.SGD(self.model.parameters(),
+        #                               lr=args.lr, 
+        #                               momentum=args.momentum)
+    def train(self, epoch):
+        train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
+    
+    def test(self):
+        pass
+
+def train(args, model, device, train_loader, loss_function, optimizer, epoch):
+    # setting up training
+    '''if seed is None:
+        seed = self.args.seed
+    model.train() # set training mode
+    for epoch in tqdm(range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
+        loss = self.train_epoch(epoch, seed, rank=0)
+        # report classification results
+        if self.args.verbose and self.args.log_interval>0:
+            if epoch % self.args.log_interval == 0:
+                status_str = '\tTrain Epoch: {} \t Loss: {:.6f}'.format(epoch, loss)
+                try:
+                    #from tqdm import tqdm
+                    tqdm.write(status_str)
+                except Exception as e:
+                    print(e)
+                    print(status_str)'''
+    
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = loss_function(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % args.log_interval == 0:
+            print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader), loss.item()))
+
 
 class Where():
     def __init__(self, args, save=True, batch_load=False):
