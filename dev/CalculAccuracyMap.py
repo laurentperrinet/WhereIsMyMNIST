@@ -26,8 +26,8 @@ f = open('AccuracyMap_{}_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:
 
 model = torch.load("../data/"+ reseau)
 accuracy_map = torch.zeros(55,55)
-for i_offset in range(-1, 2):
-    for j_offset in range(-1, 2):
+for i_offset in range(-27, 28):
+    for j_offset in range(-27, 28):
         transform = transforms.Compose([
             WhatShift(i_offset=i_offset, j_offset=j_offset),
             WhatBackground(),
