@@ -372,6 +372,9 @@ class WhereTrainer:
                     transform=self.transform,
                     target_transform=self.target_transform,
                     )
+            data_loader = DataLoader(dataset,
+                                     batch_size=args.minibatch_size,
+                                     shuffle=True)
             if generate_data:
                 if self.args.verbose: 
                     print('Generating {}ing dataset'.format(use))
@@ -386,10 +389,9 @@ class WhereTrainer:
                         full_label = torch.cat((full_label, label), 0)
                 dataset = TensorDataset(full_data, full_label)
                 
-            data_loader = DataLoader(dataset,
-                                     batch_size=args.minibatch_size,
-                                     shuffle=True)
-            if generate_data:
+                data_loader = DataLoader(dataset,
+                                         batch_size=args.minibatch_size,
+                                         shuffle=True)
                 torch.save(data_loader, data_loader_path)
                 if self.args.verbose: 
                     print('Done!')
