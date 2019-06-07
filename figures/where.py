@@ -452,7 +452,7 @@ def test(args, model, device, test_loader, loss_function):
     return test_loss
             
 class Where():
-    def __init__(self, args, save=True, batch_load=False, force_training=False, train_loader=None, test_loader=None):
+    def __init__(self, args, save=True, batch_load=False, force_training=False, train_loader=None, test_loader=None, generate_data=True):
         self.args = args
         self.display = Display(args)
         self.retina = Retina(args)
@@ -543,7 +543,8 @@ class Where():
             self.trainer = WhereTrainer(args, 
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
-                                       device=self.device)
+                                       device=self.device,
+                                       generate_data=generate_data)
             for epoch in range(1, args.epochs + 1):
                 self.trainer.train(epoch)
                 self.trainer.test()
