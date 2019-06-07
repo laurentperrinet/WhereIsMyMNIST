@@ -51,7 +51,7 @@ for i_offset in range(-1, 2):
 
 fin = datetime.datetime.now()
 
-f.write("Durée d'exécution : " + str(fin-debut))
+f.write("Duree d'execution : " + str(fin-debut))
 
 f.close()
 
