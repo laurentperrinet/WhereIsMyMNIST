@@ -257,8 +257,10 @@ class WhereTrainer:
         self.retina = Retina(args)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         
-        suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
-        accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
+        # suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
+        suffix = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
+        # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
+        accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix)
         if not os.path.isfile(model_path):
             self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
         else:
