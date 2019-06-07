@@ -16,6 +16,7 @@ from main import init
 args = init(filename='../data/2019-06-05')
 
 args.epochs = 60
+args.noise = 1
 args.save_model = True
 what = What(args=args, force= True)
 

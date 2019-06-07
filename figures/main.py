@@ -64,8 +64,7 @@ import numpy as np
 import time
 import easydict
 
-from what import WhatNet
-from where import Where as ML
+
 
 def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     if filename is None:
@@ -149,6 +148,8 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     return args
 
 class MetaML:
+    #from what import WhatNet
+    #from where import Where as ML
     def __init__(self, args, base=2, N_scan=7, tag=''):
         self.args = args
         self.seed = args.seed
