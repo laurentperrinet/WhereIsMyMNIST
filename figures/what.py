@@ -135,11 +135,14 @@ class WhatTrainer:
                                              **kwargs)
         else:
             self.test_loader = test_loader
+            
         if not model:
             self.model = WhatNet().to(device)
         else:
             self.model = model
+            
         self.loss_func = F.nll_loss
+        
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
         else:
@@ -196,12 +199,20 @@ class What:
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if os.path.exists(model_path) and not force:
             self.model  = torch.load(model_path)
+            self.trainer = WhatTrainer(args, 
+                                       model=self.model,
+                                       train_loader=train_loader, 
+                                       test_loader=test_loader, 
+                                       device=device)
         else:                                                       
-            whatTrainer = WhatTrainer(args, train_loader=train_loader, test_loader=test_loader, device=device)
+            self.trainer = WhatTrainer(args, 
+                                       train_loader=train_loader, 
+                                       test_loader=test_loader, 
+                                       device=device)
             for epoch in range(1, args.epochs + 1):
-                whatTrainer.train(epoch)
-                whatTrainer.test()
-            self.model = whatTrainer.model
+                self.trainer.train(epoch)
+                self.trainer.test()
+            self.model = self.trainer.model
             print(model_path)
             if (args.save_model):
                 #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")

@@ -18,6 +18,7 @@ import MotionClouds as mc
 from display import pe, minmax
 from PIL import Image
 import SLIP
+from What import What
 
 class MNIST(MNIST_dataset):
     def __getitem__(self, index):
@@ -36,7 +37,6 @@ class MNIST(MNIST_dataset):
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
         img = Image.fromarray(img.numpy(), mode='L')
-        
 
         if self.transform is not None:
             img = self.transform((img, index))
@@ -222,6 +222,13 @@ class CollTransform:
         data = self.colliculus_transform_vector @ np.ravel(target)
         return data
     
+class Normalize:
+    def __init__(self):
+        pass
+    def __call__(self, data):
+        data -= data.mean()
+        data /= data.std()
+        return data
 
 class WhereNet(torch.nn.Module):
     def __init__(self, args):
@@ -244,7 +251,7 @@ class WhereNet(torch.nn.Module):
         return x
 
 class WhereTrainer:
-    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
+    def __init__(self, args, what_model=None, model=None, train_loader=None, test_loader=None, device='cpu'):
         self.args=args
         self.device=device
         self.retina = Retina(args)
@@ -258,8 +265,8 @@ class WhereTrainer:
             self.accuracy_map = np.load(accuracy_path)
             
         transform = transforms.Compose([
-            RetinaFill(N_pic=args.N_pic),
-            RetinaShift(),
+            WhereFill(N_pic=args.N_pic),
+            WhereShift(args),
             RetinaBackground(contrast=args.contrast,
                              noise=args.noise,
                              sf_0=args.sf_0,
@@ -270,10 +277,65 @@ class WhereTrainer:
             # transforms.Normalize((args.mean,), (args.std,))
         ])
         target_transform=transforms.Compose([
-                               CollFill(self.accuracy_map),
-                               CollShift(i_offset=i_offset, j_offset=j_offset),
+                               WhereFill(accuracy_map=self.accuracy_map, N_pic=args.N_pic),
+                               WhereShift(args, baseline = 0.1),
                                CollTransform(retina.colliculus_transform_vector),
                            ])
+        if not train_loader:
+            dataset_train = MNIST('../data',
+                        train=True,
+                        download=True,
+                        transform=transform,
+                        target_transform = target_transform,
+                        )
+            self.train_loader = torch.utils.data.DataLoader(dataset_train,
+                                         batch_size=args.minibatch_size,
+                                         shuffle=True)
+        else:
+            self.train_loader = train_loader
+        
+        if not test_loader:
+            dataset_test = MNIST('../data',
+                        train=False,
+                        download=True,
+                        transform=transform,
+                        target_transform = target_transform,
+                        )
+            self.test_loader = torch.utils.data.DataLoader(dataset_test,
+                                         batch_size=args.minibatch_size,
+                                         shuffle=True)
+        else:
+            self.test_loader = test_loader
+            
+        if not what_model:
+            what = What(args) # trains the what_model if needed
+            self.what_model = What.model.to(device)
+        else:
+            self.what_model = what_model
+            
+        if not model:
+            self.model = WhereNet(args).to(device)
+        else:
+            self.model = model
+    
+            
+        self.loss_func = torch.nn.BCEWithLogitsLoss
+        #if args.do_adam:
+        #    self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
+        #else:
+        #    self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+        if args.do_adam:
+            # see https://heartbeat.fritz.ai/basics-of-image-classification-with-pytorch-2f8973c51864
+            self.optimizer = optim.Adam(self.model.parameters(),
+                                        lr=args.lr, 
+                                        betas=(1.-args.momentum, 0.999), 
+                                        eps=1e-8)
+        else:
+            self.optimizer = optim.SGD(self.model.parameters(),
+                                       lr=args.lr, 
+                                       momentum=args.momentum)
+        
+        
 
 class Where():
     def __init__(self, args, save=True, batch_load=False):
@@ -366,16 +428,7 @@ class Where():
             torch.cuda.manual_seed(self.args.seed)
             self.model.cuda()
 
-        if self.args.do_adam:
-            # see https://heartbeat.fritz.ai/basics-of-image-classification-with-pytorch-2f8973c51864
-            self.optimizer = optim.Adam(self.model.parameters(),
-                                        lr=self.args.lr, 
-                                        betas=(1.-self.args.momentum, 0.999), 
-                                        eps=1e-8)
-        else:
-            self.optimizer = optim.SGD(self.model.parameters(),
-                                       lr=self.args.lr, 
-                                       momentum=self.args.momentum)
+        
             
     def data_loader(self, suffix, train=True, what = False, save=False, batch_load=False):
         """
