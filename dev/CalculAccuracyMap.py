@@ -21,9 +21,10 @@ import datetime
 
 date = str(datetime.datetime.now())
 
-f = open('AccuracyMap_{}_{}h{}.txt'.format(date[0:10], date[11:13], date[14:16]), "w+")
+reseau = "MNIST_cnn_0.1_0.1_0.75_0.7.pt"
+f = open('AccuracyMap_{}_{}h{}_{}.txt'.format(date[0:10], date[11:13], date[14:16], reseau), "w+")
 
-model = torch.load("../data/MNIST_cnn_0.1_0.1_0.75_0.7.pt")
+model = torch.load("../data/"+ reseau)
 accuracy_map = torch.zeros(55,55)
 for i_offset in range(-27, 28):
     for j_offset in range(-27, 28):
