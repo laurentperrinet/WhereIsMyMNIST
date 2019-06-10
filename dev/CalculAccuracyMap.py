@@ -21,7 +21,7 @@ import datetime
 debut = datetime.datetime.now()
 date = str(debut)
 
-reseau = "MNIST_cnn_0.1_0.1_0.75_0.7.pt"
+reseau = "MNIST_cnn_0.1_0.1_1_0.7.pt"
 f = open('AccuracyMap_{}_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
 
 model = torch.load("../data/"+ reseau)

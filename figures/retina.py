@@ -51,18 +51,20 @@ class Retina:
         return suffix
 
     def init_retina_transform(self):
-        filename = '/tmp/retina' + self.get_suffix() + '_transform.npy'
+        filename = '../tmp/retina' + self.get_suffix() + '_transform.npy'
         try:
             self.retina_transform = np.load(filename)
         except:
             if self.args.verbose: print('Retina vectorizing...')
             self.retina_transform = self.vectorization()
+            print("ok")
             np.save(filename, self.retina_transform)
+            print("success")
             if self.args.verbose: print('Done vectorizing...')
         self.retina_transform_vector = self.retina_transform.reshape((self.feature_vector_size, self.N_pic ** 2))
 
     def init_inverse_retina(self):
-        filename = '/tmp/retina' + self.get_suffix() + '_inverse_transform.npy'
+        filename = '../tmp/retina' + self.get_suffix() + '_inverse_transform.npy'
         try:
             self.retina_inverse_transform = np.load(filename)
         except:
