@@ -44,7 +44,7 @@ f = open('AccuracyMap_{}_{}_{}h{}.txt'.format(nomPartielFichier, date[0:10], dat
 compteur = 0
 
 # model = torch.load("../data/"+ reseau)
-model = what
+model = what.model
 accuracy_map = torch.zeros(55,55)
 for i_offset in range(-borne, borne + 1):
     for j_offset in range(-borne, borne + 1):
