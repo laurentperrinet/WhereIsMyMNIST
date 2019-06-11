@@ -49,7 +49,7 @@ for i_offset in range(-borne, borne + 1):
         whatTrainer = WhatTrainer(args, model=model, test_loader=test_loader)
         acc = whatTrainer.test()
 
-        print("Avancement : ", float(int((compteur/borne**2*100)*100))/100, "%")
+        print("Avancement : ", float(int((compteur/(borne+1)**2*100)*100))/100, "%")
         compteur += 1
         # print(acc)
         # accuracy_map[26-i_offset][26-j_offset] = acc
