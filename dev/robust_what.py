@@ -9,6 +9,7 @@ from torch.autograd import Variable
 import MotionClouds as mc
 import os
 from display import minmax
+from PIL import Image
 
 class MNIST(MNIST_dataset):
     def __getitem__(self, index):
@@ -49,15 +50,19 @@ def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
 class WhatShift(object):
     def __init__(self, args, i_offset=None, j_offset=None):
         self.args = args
-        self.i_offset = int(i_offset)
-        self.j_offset = int(j_offset)
+        if i_offset != None :
+            self.i_offset = int(i_offset)
+        else : self.i_offset = i_offset
+        if j_offset != None :
+            self.j_offset = int(j_offset)
+        else : self.j_offset = j_offset
         self.args.offset_std = 5
         self.args.offset_max = 15
         
     def __call__(self, sample_index):
         # sample = np.array(sample)
 
-        sample = sample_index[0]
+        sample = np.array(sample_index[0])
         index = sample_index[1]
 
         # print(index)
@@ -255,7 +260,7 @@ class What:
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        suffix = "robust_what_{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if os.path.exists(model_path) and not force:
