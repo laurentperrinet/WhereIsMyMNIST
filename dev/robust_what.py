@@ -168,7 +168,7 @@ class WhatTrainer:
         self.device = device
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         transform=transforms.Compose([
-                               WhatShift(),
+                               WhatShift(args),
                                WhatBackground(contrast=args.contrast, 
                                               noise=args.noise, 
                                               sf_0=args.sf_0, 
