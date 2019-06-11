@@ -6,29 +6,45 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 
 import matplotlib.pyplot as plt
+import datetime
 
 import sys
 sys.path.append("../figures")
+
 from what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, train, test
 
 from main import init
 args = init(filename='../data/2019-06-05')
-args
+
+args.epochs = 60
+args.noise = 1
+args.save_model = False
+
+# Parametre modifie du reseau par rapport au reseau de base :
+do_adam = False
+
+# Entrainement du reseau :
+what = What(args=args, force=True)
 
 
-import datetime
+
+
+# Calcul de l'accuracy map :
 
 debut = datetime.datetime.now()
 date = str(debut)
 
-reseau = "MNIST_cnn_0.1_0.1_1_0.7.pt"
+# reseau = "MNIST_cnn_0.1_0.1_1_0.7.pt"
 borne = 13
+nomPartielFichier = "doAdamFalse"
 
 
-f = open('AccuracyMap_{}_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
+# f = open('AccuracyMap_{}_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
+f = open('AccuracyMap_{}_{}_{}h{}.txt'.format(nomPartielFichier, date[0:10], date[11:13], date[14:16]), "w+")
 compteur = 0
 
-model = torch.load("../data/"+ reseau)
+# model = torch.load("../data/"+ reseau)
+model = what.model
 accuracy_map = torch.zeros(55,55)
 for i_offset in range(-borne, borne + 1):
     for j_offset in range(-borne, borne + 1):
