@@ -177,7 +177,7 @@ class WhatTrainer:
                                #transforms.Normalize((args.mean,), (args.std,))
                            ])
         if not train_loader:
-            dataset_train = datasets.MNIST('../data',
+            dataset_train = MNIST('../data',
                             train=True,
                             download=True,
                             transform=transform,
@@ -190,7 +190,7 @@ class WhatTrainer:
             self.train_loader = train_loader
 
         if not test_loader:
-            dataset_test = datasets.MNIST('../data',
+            dataset_test = MNIST('../data',
                             train=False,
                             download=True,
                             transform=transform,
