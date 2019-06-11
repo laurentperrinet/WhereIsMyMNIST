@@ -24,7 +24,7 @@ args.save_model = False
 
 
 # Entrainement du reseau :
-what = What(args=args, force=False)
+what = What(args=args, force=True)
 
 
 
