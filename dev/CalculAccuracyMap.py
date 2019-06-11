@@ -50,6 +50,7 @@ for i_offset in range(-borne, borne + 1):
         acc = whatTrainer.test()
 
         print("Avancement : ", compteur/borne**2*100, "%")
+        compteur += 1
         # print(acc)
         # accuracy_map[26-i_offset][26-j_offset] = acc
         f.write(str(acc)+' ')
