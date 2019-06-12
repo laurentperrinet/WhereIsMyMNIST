@@ -56,7 +56,7 @@ class WhatShift(object):
         if j_offset != None :
             self.j_offset = int(j_offset)
         else : self.j_offset = j_offset
-        self.args.offset_std = 5
+        self.args.offset_std = 1
         self.args.offset_max = 15
         
     def __call__(self, sample_index):
@@ -145,20 +145,23 @@ class WhatBackground(object):
         return im.astype('B') #Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class WhatNet(nn.Module):
-    def __init__(self):
+    def __init__(self, args):
         super(WhatNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 20, 5, 1)
         self.conv2 = nn.Conv2d(20, 50, 5, 1)
         self.fc1 = nn.Linear(4*4*50, 500)
         self.fc2 = nn.Linear(500, 10)
+        self.args = args
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
         x = F.max_pool2d(x, 2, 2)
         x = F.relu(self.conv2(x))
         x = F.max_pool2d(x, 2, 2)
-        x = x.view(-1, 4*4*50)
+        x = x.view(-1, 4 * 4 * 50)
         x = F.relu(self.fc1(x))
+        if self.args.p_dropout > 0:
+            x = F.dropout(x, p=self.args.p_dropout)
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
     
@@ -203,7 +206,7 @@ class WhatTrainer:
             self.test_loader = test_loader
             
         if not model:
-            self.model = WhatNet().to(device)
+            self.model = WhatNet(args).to(device)
         else:
             self.model = model
             
@@ -260,7 +263,7 @@ class What:
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        suffix = "robust_what_{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        suffix = "robust_what_{}_{}_{}_{}_{}epoques".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast, self.args.epochs)
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if os.path.exists(model_path) and not force:

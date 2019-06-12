@@ -56,8 +56,11 @@ print(F)
 
 # 2) la methode avec les coordonnees
 
-row = [0,2,3,3,5]
-column = [0,0,1,1,2]
-data = [1,1,2,1,2]
+row = [0,0,1,1,2]
+column = [0,3,2,5,3]
+data = [1,1,2,1,2]  # date dans l'ordre de lecture classique
+print("\n\nConstruction d'une matrice avec les coordonnees")
+G = csr_matrix((data,(row, column)), shape=(3,6)).toarray()
+print(G)
 
 
