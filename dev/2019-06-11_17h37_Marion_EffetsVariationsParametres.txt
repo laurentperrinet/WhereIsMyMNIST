@@ -1,0 +1,74 @@
+On utilise what.py, pas robust_what.py
+
+Configuration de base :
+rho : 1.41
+B_sf : 0.1
+noise_batch_size : 1000
+std : 0.3081
+N_theta : 6
+N_cv : 10
+N_pic : 128
+bn1_bn_momentum : 0.5
+N_phase : 2
+do_compute : True
+train_batch_size : 50000
+epochs : 60
+N_eccentricity : 10
+no_cuda : True
+seed : 2019
+mean : 0.1307
+filename : ../data/2019-06-05
+contrast : 0.7
+dim2 : 1000
+bias_deconv : True
+N_azimuth : 24
+p_dropout : 0.0
+bn2_bn_momentum : 0.5
+noise : 1.0
+test_batch_size : 10000
+do_adam : True
+offset_std : 30
+minibatch_size : 100
+dim1 : 1000
+lr : 0.005
+momentum : 0.3
+w : 28
+verbose : 1
+offset_max : 34
+sf_0 : 0.1
+log_interval : 100
+num_processes : 1
+
+Accuracy de la configuration de base :
+0.9516 
+Duree d'execution : 0:00:09.431133
+
+Si on met do_adam=False, alors :
+0.9593 
+Duree d'execution : 1:08:00.824225
+
+Si on met lr = 0.001, alors :
+0.9759 
+Duree d'execution : 1:09:33.965499
+
+Si on met lr = 0.0001, alors :
+0.9616 
+Duree d'execution : 1:09:18.218166
+
+Si on met contrast = 0.5, alors :
+0.7915 
+Duree d'execution : 1:09:29.386656
+
+Si on met contrast = 0.3, alors :
+0.1135 
+Duree d'execution : 1:09:27.647151
+
+Si on met p_dropout = 0.5, alors :
+0.9516 
+Duree d'execution : 1:09:27.827232
+
+Si on met p_dropout = 1.0, alors :
+0.9516 
+Duree d'execution : 1:09:28.256818
+
+Duree d'execution totale: 8:04:55.556880
