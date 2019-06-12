@@ -206,7 +206,7 @@ class WhatTrainer:
             self.test_loader = test_loader
             
         if not model:
-            self.model = WhatNet().to(device)
+            self.model = WhatNet(args).to(device)
         else:
             self.model = model
             
