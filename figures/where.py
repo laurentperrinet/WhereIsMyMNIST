@@ -50,9 +50,11 @@ class MNIST(MNIST_dataset):
 
 
 class WhereFill:
-    def __init__(self, accuracy_map=None, N_pic=128):
+    def __init__(self, accuracy_map=None, N_pic=128, keep_label = False, baseline=0):
         self.N_pic=N_pic
         self.accuracy_map = accuracy_map
+        self.keep_label = keep_label
+        self.baseline = baseline
 
     def __call__(self, sample_index):
         if self.accuracy_map is None:
@@ -61,21 +63,26 @@ class WhereFill:
             # !! target information is lost!
             sample = self.accuracy_map
         w = sample.shape[0]
-        data = np.ones((self.N_pic, self.N_pic)) * 0.1
+        data = np.ones((self.N_pic, self.N_pic)) * self.baseline
         N_mid = self.N_pic//2
         w_mid = w // 2
         data[N_mid - w_mid: N_mid - w_mid + w,
              N_mid - w_mid: N_mid - w_mid + w] = sample
-        return (data, sample_index[1])    
+        if self.keep_label:
+            # !! sample_index[0] contains target information!
+            return (data, sample_index[1], sample_index[0])
+        else:
+            return (data, sample_index[1])    
 
 class WhereShift:
-    def __init__(self, args, i_offset=None, j_offset=None, radius=None, theta=None, baseline=0):
+    def __init__(self, args, i_offset=None, j_offset=None, radius=None, theta=None, baseline=0, keep_label = False):
         self.args = args
         self.i_offset = i_offset
         self.j_offset = j_offset
         self.radius = radius
         self.theta = theta
         self.baseline = baseline
+        self.keep_label = keep_label
 
     def __call__(self, sample_index):
         #sample = np.array(sample)
@@ -130,7 +137,11 @@ class WhereShift:
         j_bsup_data = min(N_pic, N_pic + j_offset)
         data[i_binf_data:i_bsup_data,
              j_binf_data:j_bsup_data] = patch
-        return data #, index #.astype('B')
+        if self.keep_label:
+            # !! sample_index[2] contains target information!
+            return data, sample_index[2]
+        else:
+            return data #, index #.astype('B')
     
         
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
@@ -217,18 +228,49 @@ class RetinaTransform:
         data = self.retina_transform_vector @ np.ravel(sample)
         return data
     
+class FullfieldRetinaTransform:
+    def __init__(self, retina_transform_vector):
+        self.retina_transform_vector = retina_transform_vector
+    def __call__(self, sample):
+        transformed_data = self.retina_transform_vector @ np.ravel(sample)
+        return (transformed_data, sample)
+    
+    
 class CollTransform:
     def __init__(self, colliculus_transform_vector):
         self.colliculus_transform_vector = colliculus_transform_vector
     def __call__(self, target):
         data = self.colliculus_transform_vector @ np.ravel(target)
         return data
+
+class FullfieldCollTransform:
+    def __init__(self, colliculus_transform_vector, keep_label = False):
+        self.colliculus_transform_vector = colliculus_transform_vector
+        self.keep_label = keep_label
+    def __call__(self, data):
+        if self.keep_label:
+            sample = data[0]
+            label = data[1]
+        else:
+            sample = data
+        transformed_data = self.colliculus_transform_vector @ np.ravel(sample)
+        if self.keep_label:
+            return (transformed_data, sample, label)
+        else:
+            return (transformed_data, sample)
     
 class ToFloatTensor:
     def __init__(self):
         pass
     def __call__(self, data):
         return Variable(torch.FloatTensor(data))
+    
+class FullfieldToFloatTensor:
+    def __init__(self):
+        pass
+    def __call__(self, data):
+        return (Variable(torch.FloatTensor(data[0])), Variable(torch.FloatTensor(data[1])))
+    
     
 class Normalize:
     def __init__(self):
@@ -268,15 +310,24 @@ def where_suffix(args):
     return suffix
 
 class WhereTrainer:
-    def __init__(self, args, what_model=None, model=None, train_loader=None, test_loader=None, device='cpu', generate_data=True):
+    def __init__(self, args, 
+                 what_model=None, 
+                 model=None, 
+                 train_loader=None, 
+                 test_loader=None, 
+                 device='cpu', 
+                 generate_data=True,
+                 retina=None):
         self.args=args
         self.device=device
-        self.retina = Retina(args)
+        if retina:
+            self.retina=retina
+        else:
+            self.retina = Retina(args)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         
         # suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
         suffix_what = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
-        
         
         ## DATASET TRANSFORMS     
         # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
@@ -297,7 +348,7 @@ class WhereTrainer:
             RetinaMask(N_pic=args.N_pic),
             RetinaWhiten(N_pic=args.N_pic),
             RetinaTransform(self.retina.retina_transform_vector),
-            ToFloatTensor()
+            # ToFloatTensor()
             # transforms.Normalize((args.mean,), (args.std,))
         ])
         
@@ -310,26 +361,40 @@ class WhereTrainer:
                              B_sf=args.B_sf),
             RetinaMask(N_pic=args.N_pic),
             RetinaWhiten(N_pic=args.N_pic),
-            ToFloatTensor()
+            FullfieldRetinaTransform(self.retina.retina_transform_vector),
+            # FullfieldToFloatTensor()
             # transforms.Normalize((args.mean,), (args.std,))
         ])
         
         self.target_transform=transforms.Compose([
-                               WhereFill(accuracy_map=self.accuracy_map, N_pic=args.N_pic),
+                               WhereFill(accuracy_map=self.accuracy_map, N_pic=args.N_pic, baseline=0.1),
                                WhereShift(args, baseline = 0.1),
                                CollTransform(self.retina.colliculus_transform_vector),
-                               ToFloatTensor()
+                               #ToFloatTensor()
+                           ])
+        
+        self.fullfield_target_transform=transforms.Compose([
+                               WhereFill(accuracy_map=self.accuracy_map, keep_label = True, N_pic=args.N_pic, baseline=0.1),
+                               WhereShift(args, baseline = 0.1, keep_label = True),
+                               FullfieldCollTransform(self.retina.colliculus_transform_vector, keep_label = True),
+                               #FullfieldToFloatTensor()
                            ])
         
         suffix = where_suffix(args)
         
         if not train_loader:
-            self.init_data_loader(args, suffix, train=True, generate_data=generate_data)
+            self.init_data_loader(args, suffix, 
+                                  train=True, 
+                                  generate_data=generate_data, 
+                                  fullfield = False)
         else:
             self.train_loader = train_loader
         
         if not test_loader:
-            self.init_data_loader(args, suffix, train=False, generate_data=generate_data)
+            self.init_data_loader(args, suffix, 
+                                  train=False, 
+                                  generate_data=generate_data, 
+                                  fullfield = True)
         else:
             self.test_loader = test_loader
             
@@ -339,6 +404,7 @@ class WhereTrainer:
             self.model = model
             
         self.loss_func = torch.nn.BCEWithLogitsLoss()
+        
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
         else:
@@ -355,39 +421,68 @@ class WhereTrainer:
         #                               lr=args.lr, 
         #                               momentum=args.momentum)
         
-    def init_data_loader(self, args, suffix, train=True, generate_data=True):
+    def init_data_loader(self, args, suffix, train=True, generate_data=True, fullfield = False, force_generate = False):
         if train:
             use = 'train'
         else:
             use = 'test'
         data_loader_path = '/tmp/where_{}_dataset_{}_{}.pt'.format(use, suffix, args.minibatch_size)
-        if os.path.isfile(data_loader_path):
+        if os.path.isfile(data_loader_path) and not force_generate:
             if self.args.verbose: 
                 print('Loading {}ing dataset'.format(use))
             data_loader = torch.load(data_loader_path)
         else:
-            dataset = MNIST('../data',
-                    train=train,
-                    download=True,
-                    transform=self.transform,
-                    target_transform=self.target_transform,
-                    )
+            if fullfield:
+                dataset = MNIST('../data',
+                        train=train,
+                        download=True,
+                        transform=self.fullfield_transform,
+                        target_transform=self.fullfield_target_transform,
+                        )
+            else:
+                dataset = MNIST('../data',
+                        train=train,
+                        download=True,
+                        transform=self.transform,
+                        target_transform=self.target_transform,
+                        )
             data_loader = DataLoader(dataset,
                                      batch_size=args.minibatch_size,
                                      shuffle=True)
             if generate_data:
                 if self.args.verbose: 
                     print('Generating {}ing dataset'.format(use))
-                for i, (data, label) in enumerate(data_loader):
+                for i, (data, acc) in enumerate(data_loader):
                     if self.args.verbose: 
                         print(i, (i+1) * args.minibatch_size)
                     if i == 0:
-                        full_data = data
-                        full_label = label
+                        if fullfield:
+                            full_data_features = data[0]
+                            full_acc_features = acc[0]
+                            full_data_fullfield = data[1]
+                            full_acc_fullfield = acc[1]
+                            full_label = acc[2]
+                        else:
+                            full_data = data
+                            full_acc = acc
                     else:
-                        full_data = torch.cat((full_data, data), 0)
-                        full_label = torch.cat((full_label, label), 0)
-                dataset = TensorDataset(full_data, full_label)
+                        if fullfield:
+                            full_data_features = torch.cat((full_data_features, data[0]), 0)
+                            full_acc_features = torch.cat((full_acc_features, acc[0]), 0)
+                            full_data_fullfield = torch.cat((full_data_fullfield, data[1]), 0)
+                            full_acc_fullfield = torch.cat((full_acc_fullfield, acc[1]), 0)
+                            full_label = torch.cat((full_label, acc[2]), 0)
+                        else:
+                            full_data = torch.cat((full_data, data), 0)
+                            full_acc = torch.cat((full_acc, acc), 0)
+                if fullfield:
+                    dataset = TensorDataset(full_data_features, 
+                                            full_data_fullfield, 
+                                            full_acc_features,
+                                            full_acc_fullfield,
+                                            full_label)
+                else:
+                    dataset = TensorDataset(full_data, full_acc)
                 
                 data_loader = DataLoader(dataset,
                                          batch_size=args.minibatch_size,
@@ -404,7 +499,7 @@ class WhereTrainer:
         train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
     
     def test(self):
-        test(self.args, self.model, self.device, self.train_loader, self.loss_func)
+        return test(self.args, self.model, self.device, self.test_loader, self.loss_func)
 
 def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     # setting up training
@@ -426,7 +521,8 @@ def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.to(device), target.to(device)
+        data = Variable(torch.FloatTensor(data.float())).to(device)
+        target = Variable(torch.FloatTensor(target.float())).to(device)
         optimizer.zero_grad()
         output = model(data)
         loss = loss_function(output, target)
@@ -441,25 +537,32 @@ def test(args, model, device, test_loader, loss_function):
     model.eval()
     test_loss = 0
     with torch.no_grad():
-        for batch_idx, (data, target) in enumerate(test_loader):
-            data, target = data.to(device), target.to(device)
+        for batch_idx, (data, data_fullfield, target, target_fullfield, label) in enumerate(test_loader):
+            data = Variable(torch.FloatTensor(data.float())).to(device)
+            target = Variable(torch.FloatTensor(target.float())).to(device)            
             output = model(data)
             test_loss += loss_function(output, target).item() # sum up batch loss
-            if batch_idx % args.log_interval == 0:
-                print('i = {}, test done on {:.0f}% of the test dataset.'.format(batch_idx, 100. * batch_idx / len(test_loader)))
+            #if batch_idx % args.log_interval == 0:
+            #    print('i = {}, test done on {:.0f}% of the test dataset.'.format(batch_idx, 100. * batch_idx / len(test_loader.dataset)))
 
-    test_loss /= len(test_loader.dataset)
-
+    test_loss /= len(test_loader)
     print('\nTest set: Average loss: {:.4f}\n'.format(test_loss))
     return test_loss
             
 class Where():
-    def __init__(self, args, save=True, batch_load=False, force_training=False, train_loader=None, test_loader=None, generate_data=True):
+    def __init__(self, args, 
+                 save=True, 
+                 batch_load=False, 
+                 force_training=False, 
+                 model=None,
+                 train_loader=None, 
+                 test_loader=None, 
+                 generate_data=True,
+                 what_model=None,
+                 retina=None,
+                 trainer=None):
+        
         self.args = args
-        self.display = Display(args)
-        self.retina = Retina(args)
-        # https://pytorch.org/docs/stable/nn.html#torch.nn.BCEWithLogitsLoss
-        self.loss_func = torch.nn.BCEWithLogitsLoss()
 
         # GPU boilerplate
         self.args.no_cuda = self.args.no_cuda or not torch.cuda.is_available()
@@ -470,11 +573,12 @@ class Where():
         #########################################################
         # loads a WHAT model (or learns it if not already done) #
         #########################################################
-        if not what_model:
-            what = What(args) # trains the what_model if needed
-            self.What_model = what.model.to(device)
+        if what_model:
+            self.what_model = what_model
         else:
-            self.What_model = what_model
+            what = What(args) # trains the what_model if needed
+            self.what_model = what.model.to(self.device)
+            
                 
         '''from what import WhatNet
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
@@ -505,13 +609,13 @@ class Where():
         ######################
         
         # TODO generate an accuracy map for different noise / contrast / sf_0 / B_sf
-        path = "../data/MNIST_accuracy.npy"
+        '''path = "../data/MNIST_accuracy.npy"
         if os.path.isfile(path):
             self.accuracy_map =  np.load(path)
             if args.verbose:
                 print('Loading accuracy... min, max=', self.accuracy_map.min(), self.accuracy_map.max())
         else:
-            print('No accuracy data found.')
+            print('No accuracy data found.')'''
             
         
         ######################
@@ -534,19 +638,35 @@ class Where():
         
         suffix = where_suffix(args)
         model_path = '/tmp/where_model_{}.pt'.format(suffix)
-        if os.path.exists(model_path) and not force_training:
+        if model:
+            self.model = model
+            if trainer:
+                self.trainer = trainer
+            else:
+                self.trainer = WhereTrainer(args, 
+                                       model=self.model,
+                                       train_loader=train_loader, 
+                                       test_loader=test_loader, 
+                                       device=self.device,
+                                       retina=retina)
+        elif trainer:
+            self.model = trainer.model
+            self.trainer = trainer
+        elif os.path.exists(model_path) and not force_training:
             self.model  = torch.load(model_path)
             self.trainer = WhereTrainer(args, 
                                        model=self.model,
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
-                                       device=self.device)
+                                       device=self.device,
+                                       retina=retina)
         else:                                                       
             self.trainer = WhereTrainer(args, 
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
                                        device=self.device,
-                                       generate_data=generate_data)
+                                       generate_data=generate_data,
+                                       retina=retina)
             for epoch in range(1, args.epochs + 1):
                 self.trainer.train(epoch)
                 self.trainer.test()
@@ -556,9 +676,17 @@ class Where():
                 #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
                 torch.save(self.model, model_path) 
                 print('Model saved at', model_path)
-        
-
+                
+        self.accuracy_map = self.trainer.accuracy_map
             
+        self.display = Display(args)
+        if retina:
+            self.retina = retina
+        else:
+            self.retina = self.trainer.retina
+        # https://pytorch.org/docs/stable/nn.html#torch.nn.BCEWithLogitsLoss
+        self.loss_func = self.trainer.loss_func #torch.nn.BCEWithLogitsLoss()        
+        
         '''self.loader_train = self.data_loader(suffix, 
                                              train=True, 
                                              save=save, 
@@ -568,8 +696,14 @@ class Where():
                                             save=save, 
                                             batch_load=batch_load)'''
         
-        self.loader_train = self.trainer.train_loader
-        self.loader_test = self.trainer.test_loader
+        if train_loader:
+            self.loader_train = train_loader
+        else:
+            self.loader_train = self.trainer.train_loader
+        if test_loader:
+            self.loader_test = test_loader
+        else:
+            self.loader_test = self.trainer.test_loader
 
         # MODEL
         '''self.model = WhereNet(self.args).to(self.device)'''
@@ -577,10 +711,9 @@ class Where():
             # print('doing cuda')
             torch.cuda.manual_seed(self.args.seed)
             self.model.cuda()
-
         
             
-    def data_loader(self, suffix, train=True, what = False, save=False, batch_load=False):
+    def data_loader(self, suffix, train=True, what=False, save=False, batch_load=False):
         """
         Arguments
         ---------
@@ -773,7 +906,7 @@ class Where():
         else:
             im = Variable(torch.FloatTensor(im[:, None, ::]))
         with torch.no_grad():
-            output = self.What_model(im)
+            output = self.what_model(im)
 
         return np.exp(output)
 
@@ -792,7 +925,7 @@ class Where():
             indices_ij = np.where(test == max(test.flatten()))
             azimuth = indices_ij[0][0]
             eccentricity = indices_ij[1][0]
-            if False: #eccentricity < 5:
+            if true: #eccentricity < 5:
                 im_colliculus = self.retina.colliculus_transform[azimuth, eccentricity, :].reshape((self.args.N_pic, self.args.N_pic))
             else:
                 im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
@@ -883,7 +1016,8 @@ class Where():
             dataloader = self.loader_test
         self.model.eval()
         accuracy = []
-        for retina_data, data_fullfield, accuracy_colliculus, digit_labels in dataloader:
+        for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels in dataloader:
+            retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
             pred_accuracy_colliculus = self.pred_accuracy(retina_data)
             # use that predicted map to extract the foveal patch and classify the image
             correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())

@@ -122,8 +122,8 @@ class Retina:
         # !!?? Magic numbers !!??
         ecc_max = .8 # self.args.ecc_max
         sf_0_r = 0.03 # self.args.sf_0_r
-        B_theta=np.pi / 12 #self.args.B_theta
-        
+        B_theta = np.pi/self.N_theta/2 #self.args.B_theta
+        B_sf = .4
         
         ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
