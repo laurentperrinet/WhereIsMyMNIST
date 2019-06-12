@@ -56,7 +56,7 @@ class WhatShift(object):
         if j_offset != None :
             self.j_offset = int(j_offset)
         else : self.j_offset = j_offset
-        self.args.offset_std = 0
+        self.args.offset_std = 2
         self.args.offset_max = 15
         
     def __call__(self, sample_index):
