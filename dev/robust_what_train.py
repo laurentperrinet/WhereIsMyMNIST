@@ -18,4 +18,6 @@ args = init(filename='../data/2019-06-05')
 args.epochs = 10
 args.noise = 1
 args.save_model = True
+
+args.what_offset_std = 3.0
 what = What(args=args, force= True)
