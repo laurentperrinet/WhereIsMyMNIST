@@ -13,7 +13,7 @@ sys.path.append("../figures")
 from robust_what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, train, test
 
 from main import init
-args = init(filename='../data/2019-06-05')
+args = init(filename='../data/2019-06-12')
 
 args.epochs = 60
 args.noise = 1
