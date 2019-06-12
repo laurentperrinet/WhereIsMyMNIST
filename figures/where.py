@@ -263,21 +263,30 @@ class ToFloatTensor:
     def __init__(self):
         pass
     def __call__(self, data):
-        return Variable(torch.FloatTensor(data))
+        return Variable(torch.FloatTensor(data.float()))
     
 class FullfieldToFloatTensor:
-    def __init__(self):
-        pass
+    def __init__(self, keep_label = False):
+        self.keep_label = keep_label
     def __call__(self, data):
-        return (Variable(torch.FloatTensor(data[0])), Variable(torch.FloatTensor(data[1])))
+        if self.keep_label:
+            return (Variable(torch.FloatTensor(data[0].float())), 
+                    Variable(torch.FloatTensor(data[1].float())),
+                    Variable(torch.IntTensor(data[2].int())))
+        else:
+            return (Variable(torch.FloatTensor(data[0].float())), Variable(torch.FloatTensor(data[1].float())))
     
     
 class Normalize:
-    def __init__(self):
-        pass
+    def __init__(self, fullfield=False):
+        self.fullfield = fullfield
     def __call__(self, data):
-        data -= data.mean()
-        data /= data.std()
+        if fullfield:
+            data[0] -= data[0].mean(dim=1, keepdim=True)
+            data[0] /= data[0].std(dim=1, keepdim=True)
+        else:
+            data -= data.mean(dim=1, keepdim=True)
+            data /= data.std(dim=1, keepdim=True)
         return data
 
 class WhereNet(torch.nn.Module):
@@ -560,7 +569,8 @@ class Where():
                  generate_data=True,
                  what_model=None,
                  retina=None,
-                 trainer=None):
+                 trainer=None,
+                 save_model = True):
         
         self.args = args
 
@@ -648,6 +658,7 @@ class Where():
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
                                        device=self.device,
+                                       generate_data=generate_data,
                                        retina=retina)
         elif trainer:
             self.model = trainer.model
@@ -659,6 +670,7 @@ class Where():
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
                                        device=self.device,
+                                       generate_data=generate_data,
                                        retina=retina)
         else:                                                       
             self.trainer = WhereTrainer(args, 
@@ -672,7 +684,7 @@ class Where():
                 self.trainer.test()
             self.model = self.trainer.model
             print(model_path)
-            if (args.save_model):
+            if save_model:
                 #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
                 torch.save(self.model, model_path) 
                 print('Model saved at', model_path)

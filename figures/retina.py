@@ -28,17 +28,17 @@ class Retina:
         self.N_phase = args.N_phase
         self.feature_vector_size = self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase
 
-        #self.init_grid()
+        self.init_grid()
         self.init_retina_transform()
         self.init_inverse_retina()
         self.init_colliculus_transform()
         self.init_colliculus_inverse()
 
-    #def init_grid(self):
-    #    delta = 1. / self.N_azimuth
-    #    self.log_r_grid, self.theta_grid = \
-    #    np.meshgrid(np.linspace(0, 1, self.N_eccentricity + 1),
-    #                np.linspace(-np.pi * (.5 + delta), np.pi * (1.5 - delta), self.N_azimuth + 1))
+    def init_grid(self):
+        delta = 1. / self.N_azimuth
+        self.log_r_grid, self.theta_grid = \
+        np.meshgrid(np.linspace(0, 1, self.N_eccentricity + 1),
+                    np.linspace(-np.pi * (.5 + delta), np.pi * (1.5 - delta), self.N_azimuth + 1))
 
     def get_suffix(self):
         # suffix = f'_{self.N_theta}_{self.N_azimuth}'
@@ -51,7 +51,7 @@ class Retina:
         return suffix
 
     def init_retina_transform(self):
-        filename = '../tmp/retina' + self.get_suffix() + '_transform.npy'
+        filename = '/tmp/retina' + self.get_suffix() + '_transform.npy'
         try:
             self.retina_transform = np.load(filename)
         except:
@@ -64,7 +64,7 @@ class Retina:
         self.retina_transform_vector = self.retina_transform.reshape((self.feature_vector_size, self.N_pic ** 2))
 
     def init_inverse_retina(self):
-        filename = '../tmp/retina' + self.get_suffix() + '_inverse_transform.npy'
+        filename = '/tmp/retina' + self.get_suffix() + '_inverse_transform.npy'
         try:
             self.retina_inverse_transform = np.load(filename)
         except:
