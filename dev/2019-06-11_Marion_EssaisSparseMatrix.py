@@ -43,6 +43,9 @@ print(sparsity)
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html
 
+# fonctions utiles :
+# eliminate_zeros()  # Remove zero entries from the matrix
+
 # Deux facons de construire une matrice CSR
 # 1) la version de la video
 
