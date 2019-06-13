@@ -48,34 +48,46 @@ class MNIST(MNIST_dataset):
 
         return img, target
 
+class RetinaFill:
+    def __init__(self, N_pic=128, baseline=0):
+        self.N_pic=N_pic
+        self.baseline = baseline
 
-class WhereFill:
-    def __init__(self, accuracy_map=None, N_pic=128, keep_label = False, baseline=0):
+    def __call__(self, sample_index):
+        sample = np.array(sample_index[0])
+        seed = sample_index[1]
+        w = sample.shape[0]
+        pixel_fullfield = np.ones((self.N_pic, self.N_pic)) * self.baseline
+        N_mid = self.N_pic//2
+        w_mid = w // 2
+        pixel_fullfield[N_mid - w_mid: N_mid - w_mid + w,
+                  N_mid - w_mid: N_mid - w_mid + w] = sample
+        return (pixel_fullfield, seed)
+
+class CollFill:
+    def __init__(self, accuracy_map, N_pic=128, keep_label = False, baseline=0.):
         self.N_pic=N_pic
         self.accuracy_map = accuracy_map
         self.keep_label = keep_label
         self.baseline = baseline
 
-    def __call__(self, sample_index):
-        if self.accuracy_map is None:
-            sample = np.array(sample_index[0])
-        else:
-            # !! target information is lost!
-            sample = self.accuracy_map
-        w = sample.shape[0]
-        data = np.ones((self.N_pic, self.N_pic)) * self.baseline
+    def __call__(self, data):
+        acc = self.accuracy_map
+        label = data[0]
+        seed = data[1]
+        w = acc.shape[0]
+        fullfield = np.ones((self.N_pic, self.N_pic)) * self.baseline
         N_mid = self.N_pic//2
         w_mid = w // 2
-        data[N_mid - w_mid: N_mid - w_mid + w,
-             N_mid - w_mid: N_mid - w_mid + w] = sample
+        fullfield[N_mid - w_mid: N_mid - w_mid + w,
+                  N_mid - w_mid: N_mid - w_mid + w] = acc
         if self.keep_label:
-            # !! sample_index[0] contains target information!
-            return (data, sample_index[1], sample_index[0])
+            return (fullfield, seed, label)
         else:
-            return (data, sample_index[1])    
+            return (fullfield, seed)
 
 class WhereShift:
-    def __init__(self, args, i_offset=None, j_offset=None, radius=None, theta=None, baseline=0, keep_label = False):
+    def __init__(self, args, i_offset=None, j_offset=None, radius=None, theta=None, baseline=0., keep_label = False):
         self.args = args
         self.i_offset = i_offset
         self.j_offset = j_offset
@@ -84,14 +96,16 @@ class WhereShift:
         self.baseline = baseline
         self.keep_label = keep_label
 
-    def __call__(self, sample_index):
+    def __call__(self, fullfield):
         #sample = np.array(sample)
         
-        sample = sample_index[0]
-        index = sample_index[1]
+        sample = fullfield[0]
+        seed = fullfield[1]
+        if self.keep_label:
+            label = fullfield[2]
         
         #print(index)
-        np.random.seed(index)
+        np.random.seed(seed)
         
         if self.i_offset is not None:
             i_offset = self.i_offset
@@ -123,25 +137,24 @@ class WhereShift:
                 j_offset = int(radius * np.sin(theta))
                 
         N_pic = sample.shape[0]
-        data = np.ones((N_pic, N_pic)) * self.baseline
+        fullfield = np.ones((N_pic, N_pic)) * self.baseline
         i_binf_patch = max(0, -i_offset)
         i_bsup_patch = min(N_pic, N_pic - i_offset)
         j_binf_patch = max(0, -j_offset)
         j_bsup_patch = min(N_pic, N_pic - j_offset)
         patch = sample[i_binf_patch:i_bsup_patch,
-                j_binf_patch:j_bsup_patch]
+                       j_binf_patch:j_bsup_patch]
 
         i_binf_data = max(0, i_offset)
         i_bsup_data = min(N_pic, N_pic + i_offset)
         j_binf_data = max(0, j_offset)
         j_bsup_data = min(N_pic, N_pic + j_offset)
-        data[i_binf_data:i_bsup_data,
-             j_binf_data:j_bsup_data] = patch
+        fullfield[i_binf_data:i_bsup_data,
+                  j_binf_data:j_bsup_data] = patch
         if self.keep_label:
-            # !! sample_index[2] contains target information!
-            return data, sample_index[2], i_offset, j_offset
+            return fullfield, label, i_offset, j_offset
         else:
-            return data #, index #.astype('B')
+            return fullfield #.astype('B')
     
         
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
@@ -164,51 +177,53 @@ class RetinaBackground:
 
         # sample from the MNIST dataset
         #data = np.array(sample)
-        data = sample
-        N_pic = data.shape[0]
-        if data.min() != data.max():
-            data = (data - data.min()) / (data.max() - data.min())
+        pixel_fullfield = sample
+        N_pic = pixel_fullfield.shape[0]
+        # to [0,1] interval
+        if pixel_fullfield.min() != pixel_fullfield.max():
+            fullfield = (pixel_fullfield - pixel_fullfield.min()) / (pixel_fullfield.max() - pixel_fullfield.min())
         else:
-            data = np.zeros((N_pic, N_pic))
-        data *= self.contrast
+            fullfield = np.zeros((N_pic, N_pic))
+        fullfield *= self.contrast
 
-        seed = hash(tuple(data.flatten())) % (2 ** 31 - 1)
-        im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
+        seed = hash(tuple(fullfield.flatten())) % (2 ** 31 - 1)
+        background_noise, env = MotionCloudNoise(sf_0=self.sf_0,
                                          B_sf=self.B_sf,
                                          N_pic=N_pic,
                                          seed=seed)
-        im_noise = 2 * im_noise - 1  # go to [-1, 1] range
-        im_noise = self.noise * im_noise
+        background_noise = 2 * background_noise - 1  # go to [-1, 1] range
+        background_noise = self.noise * background_noise
 
         # plt.imshow(im_noise)
         # plt.show()
 
-        im = np.add(data, im_noise)
-        im /= 2  # back to [0, 1] range
-        im += .5  # back to a .5 baseline
-        im = np.clip(im, 0, 1)
-        im = im.reshape((N_pic, N_pic))
-        im *= 255
-        return im #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
+        fullfield = np.add(fullfield, background_noise)
+        fullfield /= 2  # back to [0, 1] range
+        fullfield += .5  # back to a .5 baseline
+        fullfield = np.clip(fullfield, 0, 1)
+        fullfield = fullfield.reshape((N_pic, N_pic))
+        pixel_fullfield = fullfield * 255 # Back to pixels
+        return pixel_fullfield #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class RetinaMask:
     def __init__(self, N_pic=128):
         self.N_pic = N_pic
     def __call__(self, sample):
-        data = np.array(sample)
+        pixel_fullfield = np.array(sample)
         #d_min = data.min()
         #d_max = data.max()
-        data -= 128 #/ 255 #(data - d_min) / (d_max - d_min)
+        pixel_mean = 255 / 2
+        pixel_fullfield -=  pixel_mean #/ 255 #(data - d_min) / (d_max - d_min)
         x, y = np.mgrid[-1:1:1j * self.N_pic, -1:1:1j * self.N_pic]
         R = np.sqrt(x ** 2 + y ** 2)
         mask = 1. * (R < 1)
         #print(data.shape, mask.shape)
         #print('mask', mask.min(), mask.max(), mask[0, 0])
-        data *= mask.reshape((self.N_pic, self.N_pic))
-        data += 128
+        pixel_fullfield *= mask.reshape((self.N_pic, self.N_pic))
+        pixel_fullfield += pixel_mean
         #data *= 255
         #data = np.clip(data, 0, 255)
-        return data #.astype('B')
+        return pixel_fullfield #.astype('B')
     
 class RetinaWhiten:
     def __init__(self, N_pic=128):
@@ -217,31 +232,32 @@ class RetinaWhiten:
         self.whit.set_size((self.N_pic, self.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
-    def __call__(self, sample):
-        data = self.whit.FTfilter(sample, self.K_whitening) + 128
-        return data.astype('B')
+    def __call__(self, pixel_fullfield):
+        pixel_fullfield = self.whit.FTfilter(pixel_fullfield, self.K_whitening) #+ 128
+        fullfield = pixel_fullfield / 255 # Back to [0,1] interval
+        return fullfield #pixel_fullfield.astype('B')
 
 class RetinaTransform:
     def __init__(self, retina_transform_vector):
         self.retina_transform_vector = retina_transform_vector
-    def __call__(self, sample):
-        data = self.retina_transform_vector @ np.ravel(sample)
-        return data
+    def __call__(self, fullfield):
+        retina_features = self.retina_transform_vector @ np.ravel(fullfield)
+        return retina_features
     
 class FullfieldRetinaTransform:
     def __init__(self, retina_transform_vector):
         self.retina_transform_vector = retina_transform_vector
-    def __call__(self, sample):
-        transformed_data = self.retina_transform_vector @ np.ravel(sample)
-        return (transformed_data, sample)
+    def __call__(self, fullfield):
+        retina_features = self.retina_transform_vector @ np.ravel(fullfield)
+        return (retina_features, fullfield)
     
     
 class CollTransform:
     def __init__(self, colliculus_transform_vector):
         self.colliculus_transform_vector = colliculus_transform_vector
-    def __call__(self, target):
-        data = self.colliculus_transform_vector @ np.ravel(target)
-        return data
+    def __call__(self, acc_map):
+        coll_features = self.colliculus_transform_vector @ np.ravel(acc_map)
+        return coll_features
 
 class FullfieldCollTransform:
     def __init__(self, colliculus_transform_vector, keep_label = False):
@@ -249,15 +265,17 @@ class FullfieldCollTransform:
         self.keep_label = keep_label
     def __call__(self, data):
         if self.keep_label:
-            sample = data[0]
+            acc_map = data[0]
             label = data[1]
+            i_offset = data[2]
+            j_offset = data[3]
         else:
-            sample = data
-        transformed_data = self.colliculus_transform_vector @ np.ravel(sample)
+            acc_map = data
+        coll_features = self.colliculus_transform_vector @ np.ravel(acc_map)
         if self.keep_label:
-            return (transformed_data, sample, label, data[2], data[3])
+            return (coll_features, acc_map, label, i_offset, j_offset)
         else:
-            return (transformed_data, sample)
+            return (coll_features, acc_map)
     
 class ToFloatTensor:
     def __init__(self):
@@ -270,13 +288,14 @@ class FullfieldToFloatTensor:
         self.keep_label = keep_label
     def __call__(self, data):
         if self.keep_label:
-            return (Variable(torch.FloatTensor(data[0].astype('float'))), 
-                    Variable(torch.FloatTensor(data[1].astype('float'))),
-                    data[2],
-                    data[3],
-                    data[4])
+            return (Variable(torch.FloatTensor(data[0].astype('float'))), # logPolar features
+                    Variable(torch.FloatTensor(data[1].astype('float'))), # fullfield
+                    data[2],                                              # label
+                    data[3],                                              # i_offset
+                    data[4])                                              # j_offset
         else:
-            return (Variable(torch.FloatTensor(data[0].astype('float'))), Variable(torch.FloatTensor(data[1].astype('float'))))
+            return (Variable(torch.FloatTensor(data[0].astype('float'))), # logPolar features
+                    Variable(torch.FloatTensor(data[1].astype('float')))) # fullfield
     
     
 class Normalize:
@@ -301,20 +320,20 @@ class WhereNet(torch.nn.Module):
         self.args = args
         self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
-        #self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
+        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
         self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
-        #self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
+        self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
         self.bn3 = torch.nn.Linear(args.dim2, args.N_azimuth*args.N_eccentricity, bias=args.bias_deconv)
 
     def forward(self, image):
         x = F.relu(self.bn1(image))
-        #if self.args.bn1_bn_momentum>0: 
-        #    x = self.bn1_bn(x)
+        if self.args.bn1_bn_momentum>0:
+            x = self.bn1_bn(x)
         x = F.relu(self.bn2(x))
-        #if self.args.bn2_bn_momentum>0: 
-        #    x = self.bn2_bn(x)
-        #if self.args.p_dropout>0: 
-        #    x = F.dropout(x, p=self.args.p_dropout)
+        if self.args.bn2_bn_momentum>0:
+            x = self.bn2_bn(x)
+        if self.args.p_dropout>0:
+            x = F.dropout(x, p=self.args.p_dropout)
         x = self.bn3(x)
         return x
 
@@ -329,8 +348,7 @@ def where_suffix(args):
 
 class WhereTrainer:
     def __init__(self, args, 
-                 what_model=None, 
-                 model=None, 
+                 model=None,
                  train_loader=None, 
                  test_loader=None, 
                  device='cpu', 
@@ -357,7 +375,7 @@ class WhereTrainer:
         
         ## DATASET TRANSFORMS     
         self.transform = transforms.Compose([
-            WhereFill(N_pic=args.N_pic),
+            RetinaFill(N_pic=args.N_pic),
             WhereShift(args),
             RetinaBackground(contrast=args.contrast,
                              noise=args.noise,
@@ -372,7 +390,7 @@ class WhereTrainer:
         ])
         
         self.fullfield_transform = transforms.Compose([
-            WhereFill(N_pic=args.N_pic),
+            RetinaFill(N_pic=args.N_pic),
             WhereShift(args),
             RetinaBackground(contrast=args.contrast,
                              noise=args.noise,
@@ -387,17 +405,17 @@ class WhereTrainer:
         ])
         
         self.target_transform=transforms.Compose([
-                               WhereFill(accuracy_map=self.accuracy_map, N_pic=args.N_pic, baseline=0.1),
+                               CollFill(self.accuracy_map, N_pic=args.N_pic, baseline=0.1),
                                WhereShift(args, baseline = 0.1),
                                CollTransform(self.retina.colliculus_transform_vector),
                                ToFloatTensor()
                            ])
         
         self.fullfield_target_transform=transforms.Compose([
-                               WhereFill(accuracy_map=self.accuracy_map, keep_label = True, N_pic=args.N_pic, baseline=0.1),
-                               WhereShift(args, baseline = 0.1, keep_label = True),
-                               FullfieldCollTransform(self.retina.colliculus_transform_vector, keep_label = True),
-                               FullfieldToFloatTensor(keep_label = True)
+                               CollFill(self.accuracy_map, keep_label=True, N_pic=args.N_pic, baseline=0.1),
+                               WhereShift(args, baseline = 0.1, keep_label=True),
+                               FullfieldCollTransform(self.retina.colliculus_transform_vector, keep_label=True),
+                               FullfieldToFloatTensor(keep_label=True)
                            ])
         
         suffix = where_suffix(args)
@@ -406,7 +424,7 @@ class WhereTrainer:
             self.init_data_loader(args, suffix, 
                                   train=True, 
                                   generate_data=generate_data, 
-                                  fullfield = False)
+                                  fullfield=False)
         else:
             self.train_loader = train_loader
         
@@ -414,7 +432,7 @@ class WhereTrainer:
             self.init_data_loader(args, suffix, 
                                   train=False, 
                                   generate_data=generate_data, 
-                                  fullfield = True)
+                                  fullfield=True)
         else:
             self.test_loader = test_loader
             
