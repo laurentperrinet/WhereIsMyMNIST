@@ -255,8 +255,8 @@ def test(args, model, device, test_loader, loss_function):
             # test_loss += loss_function(output, target, reduction='sum').item() # sum up batch loss
             test_loss += loss_function(output, target).item()
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
-            print(pred)
-            print(pred.size)
+            # print(pred)
+            # print(pred.size)
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
