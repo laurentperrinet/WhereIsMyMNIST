@@ -1,0 +1,168 @@
+1)
+MNIST_cnn_0.1_0.1_0.75_0.7.pt
+entraine le 06/06/2019 17h23
+2019-06-05_param
+Ce reseau marche
+
+2)
+MNIST_cnn_0.1_0.1_1_0.7.pt
+entraine le 07/06/2019 14h55
+2019-06-05_param
+Ce reseau marche
+
+3)
+MNIST_cnn_robust_what_0.1_0.1_1_0.7.pt
+entraine le 11/06/2019 17h13
+2019-06-12_param
+sur une valeur interdite de what_offset_std (5 de mémoire)
+=> ne fonctionne pas (accuracy à 11%)
+
+4)
+MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques.pt
+entraine le 12/06/2019 15h22
+2019-06-12_param
+sur what_offset_std = 3, ie une valeur qui fonctionne
+Ce reseau marche
+
+5)
+MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques_2019-06-13_10h47.pt
+entraine le 13/06/2019 10h47
+2019-06-12_param
+sur what_offset_std = 3, ie une valeur qui fonctionne
+et avec un p_dropout = 0.5
+
+
+A)
+AccuracyMap_MNIST_cnn_0.1_0.1_0.75_0.7_2019-06-06_23h49.txt
+# args.noise plus bas par rapport à la configuration de base (cf plus-bas)
+correspond au reseau n.1
+
+{'w': 28,
+ 'minibatch_size': 100,
+ 'train_batch_size': 50000,
+ 'test_batch_size': 10000,
+ 'noise_batch_size': 1000,
+ 'mean': 0.1307,
+ 'std': 0.3081,
+ 'N_pic': 128,
+ 'offset_std': 30,
+ 'offset_max': 34,
+
+ 'noise': 0.75,
+
+ 'contrast': 0.7,
+ 'sf_0': 0.1,
+ 'B_sf': 0.1,
+ 'N_theta': 6,
+ 'N_azimuth': 24,
+ 'N_eccentricity': 10,
+ 'N_phase': 2,
+ 'rho': 1.41,
+ 'bias_deconv': True,
+ 'p_dropout': 0.0,
+ 'dim1': 1000,
+ 'dim2': 1000,
+ 'lr': 0.005,
+ 'do_adam': True,
+ 'bn1_bn_momentum': 0.5,
+ 'bn2_bn_momentum': 0.5,
+ 'momentum': 0.3,
+ 'epochs': 60,
+ 'num_processes': 1,
+ 'no_cuda': True,
+ 'log_interval': 100,
+ 'verbose': 1,
+ 'filename': '../data/2019-06-05',
+ 'seed': 2019,
+ 'N_cv': 10,
+ 'do_compute': True}
+
+
+B)
+AccuracyMap_MNIST_cnn_0.1_0.1_1_0.7_2019-06-11_09h13.txt
+## Configuration de base
+correspond au reseau n.2
+
+{'w': 28,
+ 'minibatch_size': 100,
+ 'train_batch_size': 50000,
+ 'test_batch_size': 10000,
+ 'noise_batch_size': 1000,
+ 'mean': 0.1307,
+ 'std': 0.3081,
+ 'N_pic': 128,
+ 'offset_std': 30,
+ 'offset_max': 34,
+ 'noise': 1.0,
+ 'contrast': 0.7,
+ 'sf_0': 0.1,
+ 'B_sf': 0.1,
+ 'N_theta': 6,
+ 'N_azimuth': 24,
+ 'N_eccentricity': 10,
+ 'N_phase': 2,
+ 'rho': 1.41,
+ 'bias_deconv': True,
+ 'p_dropout': 0.0,
+ 'dim1': 1000,
+ 'dim2': 1000,
+ 'lr': 0.005,
+ 'do_adam': True,
+ 'bn1_bn_momentum': 0.5,
+ 'bn2_bn_momentum': 0.5,
+ 'momentum': 0.3,
+ 'epochs': 60,
+ 'num_processes': 1,
+ 'no_cuda': True,
+ 'log_interval': 100,
+ 'verbose': 1,
+ 'filename': '../data/2019-06-05',
+ 'seed': 2019,
+ 'N_cv': 10,
+ 'do_compute': True}
+
+C)
+AccuracyMap_MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques_2019-06-12_16h11.txt
+correspond au reseau n.4
+
+{'w': 28,
+ 'minibatch_size': 100,
+ 'train_batch_size': 50000,
+ 'test_batch_size': 10000,
+ 'noise_batch_size': 1000,
+ 'mean': 0.1307,
+ 'std': 0.3081,
+ 'N_pic': 128,
+ 'offset_std': 30,
+ 'offset_max': 34,
+ 'noise': 1.0,
+ 'contrast': 0.7,
+ 'sf_0': 0.1,
+ 'B_sf': 0.1,
+ 'N_theta': 6,
+ 'N_azimuth': 24,
+ 'N_eccentricity': 10,
+ 'N_phase': 2,
+ 'rho': 1.41,
+ 'bias_deconv': True,
+ 'p_dropout': 0.0,
+ 'dim1': 1000,
+ 'dim2': 1000,
+ 'lr': 0.005,
+ 'do_adam': True,
+ 'bn1_bn_momentum': 0.5,
+ 'bn2_bn_momentum': 0.5,
+ 'momentum': 0.3,
+ 'epochs': 60,
+ 'num_processes': 1,
+ 'no_cuda': True,
+ 'log_interval': 100,
+ 'verbose': 1,
+ 'filename': '../data/2019-06-05',
+ 'seed': 2019,
+ 'N_cv': 10,
+ 'do_compute': True,
+
+ 'what_offset_std': 3.0,
+
+ 'what_offset_max': 15}
