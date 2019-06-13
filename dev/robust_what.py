@@ -257,6 +257,28 @@ def test(args, model, device, test_loader, loss_function):
         100. * correct / len(test_loader.dataset)))
     return correct / len(test_loader.dataset)
 
+def posteriorTest(args, model, device, test_loader, loss_function):
+    model.eval()
+    test_posterior = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            posterior = nn.softmax(output)
+            pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+            #!!
+            posterior_max = posterior[pred]
+            test_posterior += posterior_max.sum().item()
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_posterior /= len(test_loader.dataset)
+    correct /= len(test_loader.dataset)
+
+    print('\nTest set: Max posterior average: {:.4f}, Accuracy: {:.4f}\n'.format(
+        test_posterior, correct ))
+    return test_posterior 
+
 class What:
     def __init__(self, args, train_loader=None, test_loader=None, force=False):
         self.args = args
