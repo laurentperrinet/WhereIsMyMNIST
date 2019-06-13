@@ -226,6 +226,9 @@ class WhatTrainer:
         
     def test(self):
         return test(self.args, self.model, self.device, self.test_loader, self.loss_func)
+
+    def posteriorTest(self):
+        return posteriorTest(self.args, self.model, self.device, self.test_loader)
     
 def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     model.train()
@@ -261,7 +264,7 @@ def test(args, model, device, test_loader, loss_function):
         100. * correct / len(test_loader.dataset)))
     return correct / len(test_loader.dataset)
 
-def posteriorTest(args, model, device, test_loader, loss_function):
+def posteriorTest(args, model, device, test_loader):
     model.eval()
     test_posterior = 0
     correct = 0
@@ -269,10 +272,15 @@ def posteriorTest(args, model, device, test_loader, loss_function):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            posterior = nn.softmax(output)
+            # posterior = nn.softmax(output)
+            posterior = F.softmax(output, dim=1)
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             #!!
-            posterior_max = posterior[pred]
+            posterior_max = np.zeros(len(pred))
+            for i in range(len(pred)):
+                posterior_max[i] = posterior[i,pred[i]]
+            # posterior_max = posterior[pred]
+            # print(posterior_max)
             test_posterior += posterior_max.sum().item()
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -281,7 +289,7 @@ def posteriorTest(args, model, device, test_loader, loss_function):
 
     print('\nTest set: Max posterior average: {:.4f}, Accuracy: {:.4f}\n'.format(
         test_posterior, correct ))
-    return test_posterior 
+    return test_posterior, correct
 
 class What:
     def __init__(self, args, train_loader=None, test_loader=None, force=False):
