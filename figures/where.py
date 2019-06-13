@@ -281,7 +281,7 @@ class Normalize:
     def __init__(self, fullfield=False):
         self.fullfield = fullfield
     def __call__(self, data):
-        if fullfield:
+        if self.fullfield:
             data[0] -= data[0].mean(dim=1, keepdim=True)
             data[0] /= data[0].std(dim=1, keepdim=True)
         else:
