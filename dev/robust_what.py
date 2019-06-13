@@ -181,7 +181,7 @@ class WhatTrainer:
                                               sf_0=args.sf_0, 
                                               B_sf=args.B_sf),
                                transforms.ToTensor(),
-                               # transforms.Normalize((args.mean,), (args.std,))
+                               transforms.Normalize((args.mean,), (args.std,))
                            ])
         if not train_loader:
             dataset_train = MNIST('../data',
