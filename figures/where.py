@@ -96,13 +96,13 @@ class WhereShift:
         self.baseline = baseline
         self.keep_label = keep_label
 
-    def __call__(self, fullfield):
+    def __call__(self, data):
         #sample = np.array(sample)
         
-        sample = fullfield[0]
-        seed = fullfield[1]
+        sample = data[0]
+        seed = data[1]
         if self.keep_label:
-            label = fullfield[2]
+            label = data[2]
         
         #print(index)
         np.random.seed(seed)
@@ -315,6 +315,7 @@ class Normalize:
             return data
 
 class WhereNet(torch.nn.Module):
+    
     def __init__(self, args):
         super(WhereNet, self).__init__()
         self.args = args
@@ -324,7 +325,13 @@ class WhereNet(torch.nn.Module):
         self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
         self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
         self.bn3 = torch.nn.Linear(args.dim2, args.N_azimuth*args.N_eccentricity, bias=args.bias_deconv)
-
+        if self.args.bn1_bn_momentum>0 and self.args.verbose:
+            print('BN1 is on')
+        if self.args.bn2_bn_momentum>0 and self.args.verbose:
+            print('BN2 is on')
+        if self.args.p_dropout>0 and self.args.verbose:
+            print('Dropout is on')
+            
     def forward(self, image):
         x = F.relu(self.bn1(image))
         if self.args.bn1_bn_momentum>0:
@@ -670,20 +677,7 @@ class Where():
         ######################
         # WHERE model setup  #
         ######################
-        
-        # suffix = f'_{self.args.sf_0}_{self.args.B_sf}'
-        # suffix += f'_{self.args.noise}_{self.args.contrast}'
-        # suffix += f'_{self.args.offset_std}_{self.args.offset_max}'
-        # suffix += f'_{self.args.N_theta}_{self.args.N_azimuth}'
-        # suffix += f'_{self.args.N_eccentricity}_{self.args.N_phase}'
-        # suffix += f'_{self.args.rho}_{self.args.N_pic}'
-
-        '''suffix = '_{}_{}'.format(self.args.sf_0, self.args.B_sf)
-        suffix += '_{}_{}'.format(self.args.noise, self.args.contrast)
-        suffix += '_{}_{}'.format(self.args.offset_std, self.args.offset_max)
-        suffix += '_{}_{}'.format(self.args.N_theta, self.args.N_azimuth)
-        suffix += '_{}_{}'.format(self.args.N_eccentricity, self.args.N_phase)
-        suffix += '_{}_{}'.format(self.args.rho, self.args.N_pic)'''
+      
         
         suffix = where_suffix(args)
         model_path = '/tmp/where_model_{}.pt'.format(suffix)
@@ -755,7 +749,7 @@ class Where():
     
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
-        batch_size = data.shape[0]
+        '''batch_size = data.shape[0]
         retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
         accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
         data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
@@ -771,7 +765,7 @@ class Where():
 
         retina_data = Variable(torch.FloatTensor(retina_data))
         accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
-        retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)
+        retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)'''
 
         return positions, data_fullfield, retina_data, accuracy_colliculus
 
@@ -843,7 +837,7 @@ class Where():
 
 
     def train(self, path=None, seed=None):
-        if not path is None:
+        if path is not None:
             # using a data_cache
             if os.path.isfile(path):
                 #self.model.load_state_dict(torch.load(path))
@@ -851,7 +845,10 @@ class Where():
                 print('Loading file', path)
             else:
                 #print('Training model...')
-                self.train(path=None, seed=seed)
+                #self.train(path=None, seed=seed)
+                for epoch in range(1, args.epochs + 1):
+                    self.trainer.train(epoch)
+                    self.trainer.test()
                 torch.save(self.model, path)
                 #torch.save(self.model.state_dict(), path) #save the neural network state
                 print('Model saved at', path)
@@ -860,8 +857,12 @@ class Where():
             # setting up training
             if seed is None:
                 seed = self.args.seed
+                
+            for epoch in range(1, args.epochs + 1):
+                self.trainer.train(epoch)
+                self.trainer.test()
 
-            self.model.train() # set training mode
+            '''self.model.train() # set training mode
             for epoch in tqdm(range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
                 loss = self.train_epoch(epoch, seed, rank=0)
                 # report classification results
@@ -874,9 +875,9 @@ class Where():
                         except Exception as e:
                             print(e)
                             print(status_str)
-            self.model.eval()
+            self.model.eval()'''
 
-    def train_epoch(self, epoch, seed, rank=0):
+    '''def train_epoch(self, epoch, seed, rank=0):
         torch.manual_seed(seed + epoch + rank*self.args.epochs)
         for retina_data, accuracy_colliculus in self.loader_train:
             # Clear all accumulated gradients
@@ -893,7 +894,7 @@ class Where():
             # Adjust parameters according to the computed gradients
             self.optimizer.step()
 
-        return loss.item()
+        return loss.item()'''
 
     def test(self, dataloader=None):
         if dataloader is None:
