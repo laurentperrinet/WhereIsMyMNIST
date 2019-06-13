@@ -202,28 +202,32 @@ class RetinaBackground:
         fullfield += .5  # back to a .5 baseline
         fullfield = np.clip(fullfield, 0, 1)
         fullfield = fullfield.reshape((N_pic, N_pic))
-        pixel_fullfield = fullfield * 255 # Back to pixels
-        return pixel_fullfield #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
+        #pixel_fullfield = fullfield * 255 # Back to pixels
+        return fullfield #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class RetinaMask:
     def __init__(self, N_pic=128):
         self.N_pic = N_pic
-    def __call__(self, sample):
-        pixel_fullfield = np.array(sample)
-        #d_min = data.min()
-        #d_max = data.max()
-        pixel_mean = 255 / 2
-        pixel_fullfield -=  pixel_mean #/ 255 #(data - d_min) / (d_max - d_min)
+    def __call__(self, fullfield):
+        #pixel_fullfield = np.array(sample)
+        # to [0,1] interval
+        if fullfield.min() != fullfield.max():
+            fullfield = (fullfield - fullfield.min()) / (fullfield.max() - fullfield.min())
+        else:
+            fullfield = np.zeros((N_pic, N_pic))        
+        # to [-0.5, 0.5] interval
+        fullfield -=  0.5 #/ 255 #(data - d_min) / (d_max - d_min)
         x, y = np.mgrid[-1:1:1j * self.N_pic, -1:1:1j * self.N_pic]
         R = np.sqrt(x ** 2 + y ** 2)
         mask = 1. * (R < 1)
         #print(data.shape, mask.shape)
         #print('mask', mask.min(), mask.max(), mask[0, 0])
-        pixel_fullfield *= mask.reshape((self.N_pic, self.N_pic))
-        pixel_fullfield += pixel_mean
+        fullfield *= mask.reshape((self.N_pic, self.N_pic))
+        # back to [0,1]
+        fullfield += 0.5
         #data *= 255
         #data = np.clip(data, 0, 255)
-        return pixel_fullfield #.astype('B')
+        return fullfield #.astype('B')
     
 class RetinaWhiten:
     def __init__(self, N_pic=128):
@@ -232,11 +236,25 @@ class RetinaWhiten:
         self.whit.set_size((self.N_pic, self.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
-    def __call__(self, pixel_fullfield):
-        pixel_fullfield = self.whit.FTfilter(pixel_fullfield, self.K_whitening) #+ 128
-        fullfield = pixel_fullfield / 255 # Back to [0,1] interval
+    def __call__(self, fullfield):
+        fullfield = self.whit.FTfilter(fullfield, self.K_whitening) 
+        fullfield += 0.5
+        fullfield = np.clip(fullfield, 0, 1)
         return fullfield #pixel_fullfield.astype('B')
 
+class FullfieldRetinaWhiten:
+    def __init__(self, N_pic=128):
+        self.N_pic = N_pic
+        self.whit = SLIP.Image(pe=pe)
+        self.whit.set_size((self.N_pic, self.N_pic))
+        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
+        self.K_whitening = self.whit.whitening_filt()
+    def __call__(self, fullfield):
+        white_fullfield = self.whit.FTfilter(fullfield, self.K_whitening) 
+        white_fullfield += 0.5
+        white_fullfield = np.clip(white_fullfield, 0, 1)
+        return (white_fullfield, fullfield) #pixel_fullfield.astype('B')    
+    
 class RetinaTransform:
     def __init__(self, retina_transform_vector):
         self.retina_transform_vector = retina_transform_vector
@@ -247,10 +265,11 @@ class RetinaTransform:
 class FullfieldRetinaTransform:
     def __init__(self, retina_transform_vector):
         self.retina_transform_vector = retina_transform_vector
-    def __call__(self, fullfield):
-        retina_features = self.retina_transform_vector @ np.ravel(fullfield)
+    def __call__(self, data):
+        white_fullfield = data[0]
+        fullfield = data[1]
+        retina_features = self.retina_transform_vector @ np.ravel(white_fullfield)
         return (retina_features, fullfield)
-    
     
 class CollTransform:
     def __init__(self, colliculus_transform_vector):
@@ -392,7 +411,7 @@ class WhereTrainer:
             RetinaWhiten(N_pic=args.N_pic),
             RetinaTransform(self.retina.retina_transform_vector),
             ToFloatTensor(),
-            Normalize()
+            # Normalize()
             #transforms.Normalize((args.mean,), (args.std,))
         ])
         
@@ -404,10 +423,10 @@ class WhereTrainer:
                              sf_0=args.sf_0,
                              B_sf=args.B_sf),
             RetinaMask(N_pic=args.N_pic),
-            RetinaWhiten(N_pic=args.N_pic),
+            FullfieldRetinaWhiten(N_pic=args.N_pic),
             FullfieldRetinaTransform(self.retina.retina_transform_vector),
             FullfieldToFloatTensor(),
-            Normalize(fullfield=True)
+            # Normalize(fullfield=True)
             # transforms.Normalize((args.mean,), (args.std,))
         ])
         
