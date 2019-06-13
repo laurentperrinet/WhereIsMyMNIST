@@ -738,184 +738,20 @@ class Where():
         # https://pytorch.org/docs/stable/nn.html#torch.nn.BCEWithLogitsLoss
         self.loss_func = self.trainer.loss_func #torch.nn.BCEWithLogitsLoss()        
         
-        '''self.loader_train = self.data_loader(suffix, 
-                                             train=True, 
-                                             save=save, 
-                                             batch_load=batch_load)
-        self.loader_test = self.data_loader(suffix, 
-                                            train=False, 
-                                            save=save, 
-                                            batch_load=batch_load)'''
-        
         if train_loader:
             self.loader_train = train_loader
         else:
             self.loader_train = self.trainer.train_loader
+            
         if test_loader:
             self.loader_test = test_loader
         else:
             self.loader_test = self.trainer.test_loader
 
-        # MODEL
-        '''self.model = WhereNet(self.args).to(self.device)'''
         if not self.args.no_cuda:
             # print('doing cuda')
             torch.cuda.manual_seed(self.args.seed)
-            self.model.cuda()
-        
-            
-    def data_loader(self, suffix, train=True, what=False, save=False, batch_load=False):
-        """
-        Arguments
-        ---------
-        suffix:
-            temporary data file suffix (string)
-        train:
-            train/test dataset switch (boolean)
-        what:
-            what/where network switch (boolean)
-        save:
-            data save switch (boolean)
-        batch_load:
-            batch/unitary data read out switch (boolean)
-        Returns
-        -------
-        a pytorch data loader
-        """
-        fullfield = True
-        if train:
-            batch_size = self.args.train_batch_size
-            data_type = 'train'
-        else:
-            batch_size = self.args.test_batch_size
-            data_type = 'test'
-        if what:
-            net = 'WHAT'
-            do_extract = True
-        else:
-            net = ''
-            do_extract = False
-            if train:
-                fullfield = False
-        # filename_dataset = f'/tmp/{net}_dataset_{data_type}_{suffix}_{batch_size}.pt'
-        filename_dataset = '/tmp/{}_dataset_{}_{}_{}.pt'.format(net, data_type, suffix, batch_size)
-        if os.path.exists(filename_dataset):
-            # if self.args.verbose: print(f'Loading {net} {data_type}ing dataset')
-            if self.args.verbose: print('Loading {} {}ing dataset'.format(net, data_type))
-            data_loader  = torch.load(filename_dataset)
-        else:
-            # SAVING DATASET
-            # if self.args.verbose: print(f'Creating {net} {data_type}ing dataset')
-            if self.args.verbose: print('Creating {} {}ing dataset'.format(net, data_type))
-            retina_data, full_data, accuracy_maps, digit_labels = self.generate_data(batch_size, 
-                                                                  train=train, 
-                                                                  fullfield=True, 
-                                                                  batch_load=batch_load, 
-                                                                  do_extract=do_extract)
-            # print('data_extract.shape=', data_extract.shape)
-            # create your dataset, see dev/2019-03-18_precomputed dataset.ipynb
-            if what:
-                data_loader = DataLoader(TensorDataset(full_data, digit_labels), 
-                                         batch_size=self.args.minibatch_size)
-            else:
-                data_loader = DataLoader(TensorDataset(retina_data, full_data, accuracy_maps, digit_labels),
-                                         batch_size=self.args.minibatch_size)
-            if save:
-                torch.save(data_loader, filename_dataset)
-            if self.args.verbose: print('Done!')
-        return data_loader
-
-    def generate_data(self, batch_size, train=True, fullfield=True, batch_load=False, do_extract=False):
-        """
-        Arguments
-        ---------
-        train:
-            train/test dataset switch (boolean)
-        fullfield:
-            2D images return switch (boolean)
-        batch_load:
-            batch/unitary data read out switch (boolean)
-        do_extract:
-            central snippet extraction switch (boolean)
-        Returns
-        -------
-        retina_data:
-            a tensor of retina-encoded input vectors (torch FloatTensor)
-        data_fullfield (optional):
-            if not do_extract:
-                a tensor of full-resolution 2D images (torch FloatTensor)
-            else:
-                a tensor of 2D snippets around the target position
-        accuracy_colliculus:
-            a tensor of retina-encoded output vector (torch FloatTensor)
-        digit_labels:
-            a tensor of integer labels (torch LongTensor)
-        """
-        
-        # loading data
-        from display import get_data_loader
-        # loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
-
-        # init variables
-        if fullfield: # warning = this matrix may fill your memory :-)
-            if do_extract:
-                data_fullfield = np.zeros((batch_size, 1, self.args.w, self.args.w))
-            else:
-                data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
-        else:
-            data_fullfield = None
-        retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
-        accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
-        digit_labels = np.zeros(batch_size)
-        # cycling over digits
-        label = None
-        if batch_load:
-            if train:
-                size = self.args.train_batch_size
-                if self.args.verbose: print('train dataset, size = ', size)
-            else:
-                size = self.args.test_batch_size
-                if self.args.verbose: print('test dataset, size = ', size)
-            loader_full = get_data_loader(batch_size=size, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+1)
-            data, label = next(iter(loader_full))
-            for i in range(size):
-                if i%1000 == 0: print(i)
-                data_fullfield_, i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
-                if fullfield:
-                    if do_extract:
-                        data_fullfield[i, 0, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
-                    else:
-                        data_fullfield[i, :, :] =  data_fullfield_
-                if not do_extract:
-                    retina_data[i, :]  =  self.retina.retina(data_fullfield_)
-                    accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
-            digit_labels = label
-        else:
-            loader_full = get_data_loader(batch_size=1, train=train, mean=self.args.mean, std=self.args.std, seed=self.args.seed+train)
-            for i, (data, label) in enumerate(loader_full):
-                if i >= batch_size : break
-                data_fullfield_, i_offset, j_offset = self.display.draw(data[0, 0, :, :].numpy())
-                if fullfield:
-                    if do_extract:
-                        data_fullfield[i, 0, :, :] = self.extract(data_fullfield_, i_offset, j_offset)
-                    else:
-                        data_fullfield[i, :, :] =  data_fullfield_
-                if not do_extract:
-                    retina_data[i, :]  =  self.retina.retina(data_fullfield_)
-                    accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
-                digit_labels[i] = label#.detach.numpy()
-            digit_labels = Variable(torch.LongTensor(digit_labels))
-
-       # converting to torch format
-        retina_data = Variable(torch.FloatTensor(retina_data)).to(self.device)
-        if fullfield:
-            data_fullfield = Variable(torch.FloatTensor(data_fullfield)).to(self.device)
-        accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus)).to(self.device)
-        #digit_labels = Variable(torch.FloatTensor(digit_labels)).to(self.device)
-        digit_labels = digit_labels.to(self.device)
-        # returning
-        return retina_data, data_fullfield, accuracy_colliculus, digit_labels
-    
+            self.model.cuda()  
     
     def minibatch(self, data):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
@@ -976,10 +812,7 @@ class Where():
             indices_ij = np.where(test == max(test.flatten()))
             azimuth = indices_ij[0][0]
             eccentricity = indices_ij[1][0]
-            if True: #eccentricity < 5:
-                im_colliculus = self.retina.colliculus_transform[azimuth, eccentricity, :].reshape((self.args.N_pic, self.args.N_pic))
-            else:
-                im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
+            im_colliculus = self.retina.colliculus_transform[azimuth, eccentricity, :].reshape((self.args.N_pic, self.args.N_pic))
         else:
             im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
 
