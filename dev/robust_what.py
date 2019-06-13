@@ -56,8 +56,8 @@ class WhatShift(object):
         if j_offset != None :
             self.j_offset = int(j_offset)
         else : self.j_offset = j_offset
-        self.args.offset_std = 1
-        self.args.offset_max = 15
+        self.args.offset_std = args.what_offset_std
+        self.args.offset_max = args.what_offset_max
         
     def __call__(self, sample_index):
         # sample = np.array(sample)
@@ -163,7 +163,7 @@ class WhatNet(nn.Module):
         if self.args.p_dropout > 0:
             x = F.dropout(x, p=self.args.p_dropout)
         x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        return x #F.log_softmax(x, dim=1)
     
 class WhatTrainer:
     def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
@@ -177,7 +177,7 @@ class WhatTrainer:
                                               sf_0=args.sf_0, 
                                               B_sf=args.B_sf),
                                transforms.ToTensor(),
-                               #transforms.Normalize((args.mean,), (args.std,))
+                               # transforms.Normalize((args.mean,), (args.std,))
                            ])
         if not train_loader:
             dataset_train = MNIST('../data',
@@ -210,7 +210,7 @@ class WhatTrainer:
         else:
             self.model = model
             
-        self.loss_func = F.nll_loss
+        self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
         
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
@@ -245,7 +245,8 @@ def test(args, model, device, test_loader, loss_function):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += loss_function(output, target, reduction='sum').item() # sum up batch loss
+            # test_loss += loss_function(output, target, reduction='sum').item() # sum up batch loss
+            test_loss += loss_function(output, target).item()
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
