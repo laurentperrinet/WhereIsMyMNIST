@@ -10,6 +10,10 @@ import MotionClouds as mc
 import os
 from display import minmax
 from PIL import Image
+import datetime
+
+debut = datetime.datetime.now()
+date = str(debut)
 
 class MNIST(MNIST_dataset):
     def __getitem__(self, index):
@@ -257,6 +261,28 @@ def test(args, model, device, test_loader, loss_function):
         100. * correct / len(test_loader.dataset)))
     return correct / len(test_loader.dataset)
 
+def posteriorTest(args, model, device, test_loader, loss_function):
+    model.eval()
+    test_posterior = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            posterior = nn.softmax(output)
+            pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+            #!!
+            posterior_max = posterior[pred]
+            test_posterior += posterior_max.sum().item()
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_posterior /= len(test_loader.dataset)
+    correct /= len(test_loader.dataset)
+
+    print('\nTest set: Max posterior average: {:.4f}, Accuracy: {:.4f}\n'.format(
+        test_posterior, correct ))
+    return test_posterior 
+
 class What:
     def __init__(self, args, train_loader=None, test_loader=None, force=False):
         self.args = args
@@ -264,7 +290,7 @@ class What:
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        suffix = "robust_what_{}_{}_{}_{}_{}epoques".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast, self.args.epochs)
+        suffix = "robust_what_{}_{}_{}_{}_{}epoques_{}_{}h{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast, self.args.epochs, date[0:10], date[11:13], date[14:16])
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if os.path.exists(model_path) and not force:

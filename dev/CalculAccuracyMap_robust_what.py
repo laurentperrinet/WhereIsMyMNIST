@@ -43,7 +43,7 @@ for i_offset in range(-borne, borne + 1):
                                                   batch_size=args.minibatch_size,
                                                   shuffle=True)
         whatTrainer = WhatTrainer(args, model=model, test_loader=test_loader)
-        acc = whatTrainer.test()
+        acc = whatTrainer.posteriorTest()
 
         print("Avancement : ", float(int((compteur/(2*borne+1)**2*100)*100))/100, "%")
         compteur += 1

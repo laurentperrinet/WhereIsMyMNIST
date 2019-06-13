@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append("../figures")
 
-from robust_what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, train, test
+from robust_what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, train, test, MNIST
 
 from main import init
 args = init(filename='../data/2019-06-12')
@@ -18,6 +18,8 @@ args = init(filename='../data/2019-06-12')
 args.epochs = 60
 args.noise = 1
 args.save_model = True
+
+args.p_dropout = 0.5
 
 args.what_offset_std = 3.0
 what = What(args=args, force= True)
