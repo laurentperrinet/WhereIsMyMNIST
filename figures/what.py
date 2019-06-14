@@ -71,7 +71,7 @@ class WhatBackground(object):
         #plt.show()
 
         #im = np.add(data, im_noise)
-        im = np.max(data, im_noise)
+        im = np.max((data, im_noise))
         im /= 2  # back to [0, 1] range
         im += .5  # back to a .5 baseline
         im = np.clip(im, 0., 1.)
