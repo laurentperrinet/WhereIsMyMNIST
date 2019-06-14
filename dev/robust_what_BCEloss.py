@@ -218,7 +218,7 @@ class WhatTrainer:
         else:
             self.model = model
             
-        self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
+        self.loss_func = nn.BCEloss() # nn.CrossEntropyLoss()  # F.nll_loss
         
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)

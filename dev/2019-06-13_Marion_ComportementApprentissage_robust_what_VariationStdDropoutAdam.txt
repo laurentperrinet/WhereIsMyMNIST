@@ -45,5 +45,5 @@ Valeur what_offset_std          do_adam=False           Apprentissage commence ?
 3                               False                   oui~~                                                           le loss descend vraiment pas enormement (2.30 au debut de la 1ere epoque, 2.23 à la fin de la 2eme)
 3.5                             False                   oui~~                                                           idem
 4                               False                   oui~~                                                           2.30 à 2.28
-4.5                             False
-5                               False
+4.5                             False                   oui~~                                                           idem
+5                               False                   oui~~                                                           2.30 à 2.289
