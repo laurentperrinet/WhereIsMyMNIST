@@ -14,5 +14,6 @@ args.do_adam = False
 liste_std = [i/2 for i in range(4,11)]
 
 for std in liste_std :
+    print("En cours : std = ", std,"\n")
     args.what_offset_std = std
     what = What(args=args, force= True)
