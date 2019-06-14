@@ -56,9 +56,11 @@ class WhatBackground(object):
         N_pic = data.shape[0]
         if data.min() != data.max():
             data = (data - data.min()) / (data.max() - data.min())
+            data = 2 * data - 1 # go to [-1, 1] range
+            data *= self.contrast
+            data = data / 2 + 0.5 # back to [0, 1] range
         else:
             data = np.zeros((N_pic, N_pic))
-        data *= self.contrast
 
         seed = hash(tuple(data.flatten())) % (2**31 - 1)
         im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
