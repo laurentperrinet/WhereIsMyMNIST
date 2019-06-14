@@ -32,10 +32,10 @@ Valeur what_offset_std          Valeur p_dropout        Apprentissage commence ?
 #############################################################################################################################################
 
 Valeur what_offset_std          do_adam                 Apprentissage commence ?        Si non, quel output ?           Commentaire :
-0                               False
-0.5                             False
-1                               False
-1.5                             False
+0                               False                   oui                                                             mais le loss descend plutot lentement
+0.5                             False                   oui                                                             idem
+1                               False                   oui                                                             le loss descend vraiment lentement
+1.5                             False                   oui                                                             idem
 2                               False
 2.5                             False
 3                               False
