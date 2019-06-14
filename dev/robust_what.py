@@ -298,9 +298,10 @@ def posteriorTest(args, model, device, test_loader):
     return test_posterior, correct
 
 class What:
-    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0):
+    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0, model=None):
         self.args = args
         self.seed = seed
+        self.model = model
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
@@ -309,7 +310,7 @@ class What:
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
         if os.path.exists(model_path) and not force:
-            self.model  = torch.load(model_path)
+            self.model = torch.load(model_path)
             self.trainer = WhatTrainer(args, 
                                        model=self.model,
                                        train_loader=train_loader, 
@@ -317,7 +318,7 @@ class What:
                                        device=device,
                                        seed=self.seed)
         else:                                                       
-            self.trainer = WhatTrainer(args, 
+            self.trainer = WhatTrainer(args, model=self.model,
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
                                        device=device,
