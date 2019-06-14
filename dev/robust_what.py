@@ -113,11 +113,12 @@ class WhatShift(object):
 
 
 class WhatBackground(object):
-    def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1):
+    def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1, seed=0):
         self.contrast = contrast
         self.noise = noise
         self.sf_0 = sf_0
         self.B_sf = B_sf
+        self.seed = seed
 
     def __call__(self, sample):
 
@@ -130,7 +131,7 @@ class WhatBackground(object):
             data = np.zeros((N_pic, N_pic))
         data *= self.contrast
 
-        seed = hash(tuple(data.flatten())) % (2**31 - 1)
+        seed = self.seed + hash(tuple(data.flatten())) % (2**31 - 1)
         im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
                                          B_sf=self.B_sf,
                                          seed=seed)
@@ -170,16 +171,19 @@ class WhatNet(nn.Module):
         return x #F.log_softmax(x, dim=1)
     
 class WhatTrainer:
-    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
+    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu', seed=0):
         self.args = args
         self.device = device
+        self.seed = seed
+        torch.manual_seed(seed)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         transform=transforms.Compose([
                                WhatShift(args),
                                WhatBackground(contrast=args.contrast, 
                                               noise=args.noise, 
                                               sf_0=args.sf_0, 
-                                              B_sf=args.B_sf),
+                                              B_sf=args.B_sf,
+                                              seed=self.seed),
                                transforms.ToTensor(),
                                transforms.Normalize((args.mean,), (args.std,))
                            ])
@@ -294,8 +298,9 @@ def posteriorTest(args, model, device, test_loader):
     return test_posterior, correct
 
 class What:
-    def __init__(self, args, train_loader=None, test_loader=None, force=False):
+    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0):
         self.args = args
+        self.seed = seed
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
@@ -309,12 +314,14 @@ class What:
                                        model=self.model,
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
-                                       device=device)
+                                       device=device,
+                                       seed=self.seed)
         else:                                                       
             self.trainer = WhatTrainer(args, 
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
-                                       device=device)
+                                       device=device,
+                                       seed=self.seed)
             for epoch in range(1, args.epochs + 1):
                 self.trainer.train(epoch)
                 self.trainer.test()

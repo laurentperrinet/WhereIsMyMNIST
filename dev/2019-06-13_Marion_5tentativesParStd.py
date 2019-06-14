@@ -23,7 +23,7 @@ for std in liste_std :
     print("Pour std = " + str(std) + " :\n")
     for i in range(5):
         args.what_offset_std = std
-        what = What(args=args, force=True)
+        what = What(args=args, force=True, seed=i)
         print("\n")
 
 
