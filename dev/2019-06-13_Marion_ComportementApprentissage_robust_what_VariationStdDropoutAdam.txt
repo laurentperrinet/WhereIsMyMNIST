@@ -30,16 +30,20 @@ Valeur what_offset_std          Valeur p_dropout        Apprentissage commence ?
 5                               0.5                         NON                             1
 
 #############################################################################################################################################
+2019-06-14_Marion_Hydra_ApprentissageVariationStdAdamFalse.py
+2019-06-12_param
+2 epoques
+14.06.2019
 
-Valeur what_offset_std          do_adam                 Apprentissage commence ?        Si non, quel output ?           Commentaire :
+Valeur what_offset_std          do_adam=False           Apprentissage commence ?        Si non, quel output ?           Commentaire :
 0                               False                   oui                                                             mais le loss descend plutot lentement
 0.5                             False                   oui                                                             idem
 1                               False                   oui                                                             le loss descend vraiment lentement
 1.5                             False                   oui                                                             idem
-2                               False
-2.5                             False
-3                               False
-3.5                             False
-4                               False
+2                               False                   oui                                                             idem
+2.5                             False                   oui                                                             le loss descend ultra lentement
+3                               False                   oui~~                                                           le loss descend vraiment pas enormement (2.30 au debut de la 1ere epoque, 2.23 à la fin de la 2eme)
+3.5                             False                   oui~~                                                           idem
+4                               False                   oui~~                                                           2.30 à 2.28
 4.5                             False
 5                               False
