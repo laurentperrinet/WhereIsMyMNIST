@@ -197,10 +197,11 @@ class RetinaBackground:
         # plt.imshow(im_noise)
         # plt.show()
 
-        fullfield = np.add(fullfield, background_noise)
+        #fullfield = np.add(fullfield, background_noise)
+        fullfield = np.max(fullfield, background_noise)
         fullfield /= 2  # back to [0, 1] range
         fullfield += .5  # back to a .5 baseline
-        fullfield = np.clip(fullfield, 0, 1)
+        fullfield = np.clip(fullfield, 0., 1.)
         fullfield = fullfield.reshape((N_pic, N_pic))
         #pixel_fullfield = fullfield * 255 # Back to pixels
         return fullfield #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
