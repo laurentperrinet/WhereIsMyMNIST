@@ -7,13 +7,13 @@ from main import init
 
 args = init(filename='../data/2019-06-12')
 
-args.epochs = 1  # 10 plus tard
+args.epochs = 5  # 10 plus tard
 args.save_model = True
 
 debut = datetime.datetime.now()
 date = str(debut)
 
-liste_std = [i for i in range(0, 6)]  # pas de 1 de std
+liste_std = [i for i in range(0, 11)]  # pas de 1 de std
 
 
 args.what_offset_std = liste_std[0]
