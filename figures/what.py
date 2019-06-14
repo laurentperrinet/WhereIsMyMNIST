@@ -68,14 +68,14 @@ class WhatBackground(object):
                                          seed=seed)
         im_noise = 2 * im_noise - 1  # go to [-1, 1] range
         im_noise = self.noise * im_noise
-        
+        im_noise /= 2  # back to [0, 1] range
+        im_noise += .5  # back to a .5 baseline
         #plt.imshow(im_noise)
         #plt.show()
 
         #im = np.add(data, im_noise)
         im = np.max((data, im_noise), axis=0)
-        im /= 2  # back to [0, 1] range
-        im += .5  # back to a .5 baseline
+        
         im = np.clip(im, 0., 1.)
         im = im.reshape((28,28,1))
         im *= 255
