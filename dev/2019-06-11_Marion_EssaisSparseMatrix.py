@@ -57,6 +57,22 @@ indptr = [0,2,4,5] # en rajoutant 5 ça marche, mais je ne sais pas trop pourquo
 F = csr_matrix((data, indices, indptr), shape=(3,6)).toarray()
 print(F)
 
+print("\nMatrice pseudo diagonale 1 2 3 4 avec 6 colonnes")
+data = [1,2,3,4]
+indices = [0, 1, 2, 3]
+indptr = [0, 1, 2, 3, 4] # il faut le 4 sinon ça ne marche pas
+
+F2 = csr_matrix((data, indices, indptr), shape=(4,6)).toarray()
+print(F2)
+
+print("\nMatrice 5 lignes 3 colonnes avec des 5,6 dans les coins en haut, 7,8 dans ceux du bas")
+data = [5, 6, 0, 0, 0, 7, 8]
+indices = [0, 2, 0, 0, 0, 0, 2]
+indptr = [0, 2, 3, 4, 5, 7]
+F3 = csr_matrix((data, indices, indptr), shape=(5, 3)).toarray()
+print(F3)
+
+
 # 2) la methode avec les coordonnees
 
 row = [0,0,1,1,2]
@@ -65,5 +81,19 @@ data = [1,1,2,1,2]  # date dans l'ordre de lecture classique
 print("\n\nConstruction d'une matrice avec les coordonnees")
 G = csr_matrix((data,(row, column)), shape=(3,6)).toarray()
 print(G)
+
+print("\nMatrice pseudo diagonale 1 2 3 4 avec 6 colonnes")
+row = [0, 1, 2, 3]
+column = [0, 1, 2, 3]
+data = [1, 2, 3, 4]
+G2 = csr_matrix((data,(row,column)), shape=(4, 6)).toarray()
+print(G2)
+
+print("\nMatrice 5 lignes 3 colonnes avec des 5,6 dans les coins en haut, 7,8 dans ceux du bas")
+row = [0, 0, 4, 4]
+column = [0, 2, 0, 2]
+data = [5, 6, 7, 8]
+G3 = csr_matrix((data, (row, column)), shape=(5, 3)).toarray()
+print(G3)
 
 
