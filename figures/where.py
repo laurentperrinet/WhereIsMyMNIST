@@ -769,7 +769,7 @@ class Where():
             torch.cuda.manual_seed(self.args.seed)
             self.model.cuda()  
     
-    def minibatch(self, data):
+    def minibatch(self, data=None):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
         '''batch_size = data.shape[0]
         retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
@@ -790,7 +790,7 @@ class Where():
         retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)'''
         retina_data, data_fullfield, accuracy_colliculus, _, label, i_offset, j_offset = next(iter(self.loader_test))
         batch_size = retina_data.shape[0]
-        positions = [] * batch_size
+        positions = [None] * batch_size
         for idx in range(batch_size):
             positions[idx] = {}
             positions[idx]['i_offset'] = i_offset[idx]
@@ -817,11 +817,11 @@ class Where():
         with torch.no_grad():
             output = self.what_model(im)
 
-        return np.softmax(output)
+        return np.exp(output) #nn.softmax(output)
 
     def pred_accuracy(self, retina_data):
         # Predict classes using images from the train set
-        #retina_data = Variable(torch.FloatTensor(retina_data))
+        retina_data = Variable(torch.FloatTensor(retina_data))
         prediction = self.model(retina_data)
         # transform in a probability in collicular coordinates
         pred_accuracy_colliculus = F.sigmoid(prediction).detach().numpy()
@@ -842,8 +842,8 @@ class Where():
         i_pred = i - self.args.N_pic//2
         j_pred = j - self.args.N_pic//2
         return i_pred, j_pred
-
-    def test_what(self, data_fullfield, pred_accuracy_colliculus, digit_labels, do_control=False):
+    
+    def what_class(self, data_fullfield, pred_accuracy_colliculus, do_control=False):
         batch_size = pred_accuracy_colliculus.shape[0]
         # extract foveal images
         im = np.zeros((batch_size, self.args.w, self.args.w))
@@ -858,7 +858,10 @@ class Where():
             im[idx, :, :] = self.extract(data_fullfield[idx, :, :], i_pred, j_pred)
         # classify those images
         proba = self.classify_what(im).numpy()
-        pred = proba.argmax(axis=1) # get the index of the max log-probability
+        return proba.argmax(axis=1) # get the index of the max log-probability
+
+    def test_what(self, data_fullfield, pred_accuracy_colliculus, digit_labels, do_control=False):
+        pred = self.what_class(data_fullfield, pred_accuracy_colliculus, do_control=do_control)
         #print(im.shape, batch_size, proba.shape, pred.shape, label.shape)
         return (pred==digit_labels.numpy())*1.
 
@@ -929,7 +932,7 @@ class Where():
             dataloader = self.loader_test
         self.model.eval()
         accuracy = []
-        for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels in dataloader:
+        for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift in dataloader:
             #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
             pred_accuracy_colliculus = self.pred_accuracy(retina_data)
             # use that predicted map to extract the foveal patch and classify the image
@@ -942,32 +945,33 @@ class Where():
         if dataloader is None:
             dataloader = self.loader_test
         self.model.eval()
-        accuracy = []
-        for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels in dataloader:
-            #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
-            pred_accuracy_colliculus = self.pred_accuracy(retina_data)
-            # use that predicted map to extract the foveal patch and classify the image
-            if nb_saccades > 1:
-                for idx in range(self.args.minibatch_size):
-                    i_ref, j_ref = 0, 0
-                    pred_accuracy_trans = pred_accuracy_colliculus[idx, :]
-                    fullfield_ref = data_fullfield[idx, :, :]
-                    coll_ref = accuracy_colliculus[idx, :, :]
-                    for num_saccade in range(nb_saccades - 1):
-                        i_pred, j_pred = self.index_prediction(pred_accuracy_trans)
-                        i_ref += i_pred
-                        j_ref += j_pred
-                        fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.5)((fullfield_ref, 0))
-                        retina_shift = self.retina.retina(fullfield_shift)
-                        coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))
-                        pred_accuracy_trans = self.pred_accuracy(retina_shift)
-                    data_fullfield[idx, :, :] = fullfield_shift
-                    data_fullfield[idx, :, :] = coll_shift
-                    pred_accuracy_colliculus[idx, :] = pred_accuracy_trans
+        #accuracy = []
+        #for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift in dataloader:
+        retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift = next(iter(dataloader))
+        #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
+        pred_accuracy_colliculus = self.pred_accuracy(retina_data)
+        
+        # use that predicted map to extract the foveal patch and classify the image
+        if nb_saccades > 1:
+            for idx in range(self.args.minibatch_size):
+                i_ref, j_ref = 0, 0
+                pred_accuracy_trans = pred_accuracy_colliculus[idx, :]
+                fullfield_ref = data_fullfield[idx, :, :]
+                #coll_ref = accuracy_fullfield[idx, :, :]
+                for num_saccade in range(nb_saccades - 1):
+                    i_pred, j_pred = self.index_prediction(pred_accuracy_trans)
+                    i_ref += i_pred
+                    j_ref += j_pred
+                    fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.5)((fullfield_ref, 0))
+                    retina_shift = self.retina.retina(fullfield_shift)
+                    #coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))
+                    pred_accuracy_trans = self.pred_accuracy(retina_shift)
+                data_fullfield[idx, :, :] = Variable(torch.FloatTensor(fullfield_shift))
+                #accuracy_fullfield[idx, :, :] = coll_shift
+                pred_accuracy_colliculus[idx, :] = pred_accuracy_trans
 
-            correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
-            accuracy.append(correct.mean())
-        return np.mean(accuracy)
+        correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
+        return np.mean(correct)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
         for idx, (data, target) in enumerate(self.display.loader_test):
