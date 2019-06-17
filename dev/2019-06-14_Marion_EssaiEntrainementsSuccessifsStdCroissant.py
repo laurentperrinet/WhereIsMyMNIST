@@ -13,9 +13,9 @@ args.save_model = True
 debut = datetime.datetime.now()
 date = str(debut)
 
-liste_std = [i for i in range(0, 11)]  # pas de 1 de std
+liste_std = [i + 0.5 for i in range(0, 11)]  # pas de 1 de std en partant de 0.5 (essai)
 
-
+args.do_adam = 'adam'
 args.what_offset_std = liste_std[0]
 print("En cours : std = 0\n")
 what = What(args=args, force=True, seed=0)

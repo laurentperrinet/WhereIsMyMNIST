@@ -18,7 +18,8 @@ args = init(filename='../data/2019-06-12')
 args.epochs = 60
 args.save_model = True
 
-args.p_dropout = 0
+args.lr = 1
+args.do_adam = 'adadelta'
 
 args.what_offset_std = 3.0
 what = What(args=args, force=False)

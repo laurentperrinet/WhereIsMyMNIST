@@ -10,6 +10,8 @@ entraine le 07/06/2019 14h55
 2019-06-05_param
 Ce reseau marche
 S'est fait delete ?? cd screen pull
+Recréé le 17/06/2019 12h17
+Ce réseau fonctionne
 
 3)
 MNIST_cnn_robust_what_0.1_0.1_1_0.7.pt
@@ -32,6 +34,15 @@ entraine le 13/06/2019 10h47
 sur what_offset_std = 3, ie une valeur qui fonctionne
 et avec un p_dropout = 0.5
 => ne fonctionne pas (accuracy à 11%)
+
+6)
+MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_60epoques_2019-06-17_10h20.pt
+entrainé le 17-06-2019 à 10h20
+219-06-12_param
+avec args.what_offset_std = 3.0
+
+
+
 
 A)
 AccuracyMap_MNIST_cnn_0.1_0.1_0.75_0.7_2019-06-06_23h49.txt

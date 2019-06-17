@@ -220,10 +220,18 @@ class WhatTrainer:
             
         self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
         
-        if args.do_adam:
+        if args.do_adam == 'adam' :
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
-        else:
+        elif args.do_adam == 'sgd':
             self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+        elif args.do_adam == "adagrad":
+            #self.optimizer = optim.adagrad(self.args, lr=1e-2, lr_decay=0, weight_decay=0, initial_accumulator_value=0)
+            self.optimizer = optim.Adagrad(self.model.parameters(), lr=args.lr)
+        elif args.do_adam == "adadelta":
+            #self.optimizer = optim.adadelta(self.args, lr=1.0, rho=0.9, eps=1e-6, weight_decay=0)
+            self.optimizer = optim.Adadelta(self.model.parameters(), lr=args.lr)
+        else:
+            raise (bbbb)
 
     def train(self, epoch):
         train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
@@ -259,7 +267,7 @@ def test(args, model, device, test_loader, loss_function):
             # test_loss += loss_function(output, target, reduction='sum').item() # sum up batch loss
             test_loss += loss_function(output, target).item()
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
-            # print(pred)
+            # print(pred[0:10])
             # print(pred.size)
             correct += pred.eq(target.view_as(pred)).sum().item()
 
