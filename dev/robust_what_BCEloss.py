@@ -218,7 +218,7 @@ class WhatTrainer:
         else:
             self.model = model
             
-        self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
+        self.loss_func = nn.BCEloss() # nn.CrossEntropyLoss()  # F.nll_loss
         
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
@@ -327,8 +327,8 @@ class What:
                 self.trainer.train(epoch)
                 self.trainer.test()
             self.model = self.trainer.model
+            print(model_path)
             if (args.save_model):
-                print(model_path)
                 #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
                 torch.save(self.model, model_path)         
     

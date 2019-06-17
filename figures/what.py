@@ -56,9 +56,11 @@ class WhatBackground(object):
         N_pic = data.shape[0]
         if data.min() != data.max():
             data = (data - data.min()) / (data.max() - data.min())
+            data = 2 * data - 1 # go to [-1, 1] range
+            data *= self.contrast
+            data = data / 2 + 0.5 # back to [0, 1] range
         else:
             data = np.zeros((N_pic, N_pic))
-        data *= self.contrast
 
         seed = hash(tuple(data.flatten())) % (2**31 - 1)
         im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
@@ -66,14 +68,15 @@ class WhatBackground(object):
                                          seed=seed)
         im_noise = 2 * im_noise - 1  # go to [-1, 1] range
         im_noise = self.noise * im_noise
-        
+        im_noise /= 2  # back to [0, 1] range
+        im_noise += .5  # back to a .5 baseline
         #plt.imshow(im_noise)
         #plt.show()
 
-        im = np.add(data, im_noise)
-        im /= 2  # back to [0, 1] range
-        im += .5  # back to a .5 baseline
-        im = np.clip(im, 0, 1)
+        #im = np.add(data, im_noise)
+        im = np.max((data, im_noise), axis=0)
+        
+        im = np.clip(im, 0., 1.)
         im = im.reshape((28,28,1))
         im *= 255
         return im.astype('B') #Variable(torch.DoubleTensor(im)) #.to(self.device)

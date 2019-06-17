@@ -182,9 +182,11 @@ class RetinaBackground:
         # to [0,1] interval
         if pixel_fullfield.min() != pixel_fullfield.max():
             fullfield = (pixel_fullfield - pixel_fullfield.min()) / (pixel_fullfield.max() - pixel_fullfield.min())
+            fullfield = 2 * fullfield - 1  # go to [-1, 1] range
+            fullfield *= self.contrast
+            fullfield = fullfield / 2 + 0.5 # back to [0, 1] range
         else:
             fullfield = np.zeros((N_pic, N_pic))
-        fullfield *= self.contrast
 
         seed = hash(tuple(fullfield.flatten())) % (2 ** 31 - 1)
         background_noise, env = MotionCloudNoise(sf_0=self.sf_0,
@@ -193,14 +195,14 @@ class RetinaBackground:
                                          seed=seed)
         background_noise = 2 * background_noise - 1  # go to [-1, 1] range
         background_noise = self.noise * background_noise
-
+        background_noise = background_noise / 2  + .5 # back to [0, 1] range
         # plt.imshow(im_noise)
         # plt.show()
 
-        fullfield = np.add(fullfield, background_noise)
-        fullfield /= 2  # back to [0, 1] range
-        fullfield += .5  # back to a .5 baseline
-        fullfield = np.clip(fullfield, 0, 1)
+        #fullfield = np.add(fullfield, background_noise)
+        fullfield = np.max((fullfield, background_noise), axis=0)
+        
+        fullfield = np.clip(fullfield, 0., 1.)
         fullfield = fullfield.reshape((N_pic, N_pic))
         #pixel_fullfield = fullfield * 255 # Back to pixels
         return fullfield #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)

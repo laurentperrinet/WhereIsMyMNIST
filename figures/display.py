@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+#import SLIP for whitening and PIL for resizing
 import SLIP
 # copied from https://raw.githubusercontent.com/bicv/LogGabor/master/default_param.py
 pe = {
