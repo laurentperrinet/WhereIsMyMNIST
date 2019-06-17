@@ -818,7 +818,6 @@ class Where():
 
         return np.exp(output)
 
-
     def pred_accuracy(self, retina_data):
         # Predict classes using images from the train set
         #retina_data = Variable(torch.FloatTensor(retina_data))
@@ -861,6 +860,7 @@ class Where():
         pred = proba.argmax(axis=1) # get the index of the max log-probability
         #print(im.shape, batch_size, proba.shape, pred.shape, label.shape)
         return (pred==digit_labels.numpy())*1.
+
 
 
     def train(self, path=None, seed=None):
@@ -929,12 +929,43 @@ class Where():
         self.model.eval()
         accuracy = []
         for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels in dataloader:
-            retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
+            #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
             pred_accuracy_colliculus = self.pred_accuracy(retina_data)
             # use that predicted map to extract the foveal patch and classify the image
             correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
             accuracy.append(correct.mean())
+        return np.mean(accuracy)
 
+    def multi_test(self, nb_saccades, dataloader=None):
+        # multi-saccades
+        if dataloader is None:
+            dataloader = self.loader_test
+        self.model.eval()
+        accuracy = []
+        for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels in dataloader:
+            #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
+            pred_accuracy_colliculus = self.pred_accuracy(retina_data)
+            # use that predicted map to extract the foveal patch and classify the image
+            if nb_saccades > 1:
+                for idx in range(self.args.minibatch_size):
+                    i_ref, j_ref = 0, 0
+                    pred_accuracy_trans = pred_accuracy_colliculus[idx, :]
+                    fullfield_ref = data_fullfield[idx, :, :]
+                    coll_ref = accuracy_colliculus[idx, :, :]
+                    for num_saccade in range(nb_saccades - 1):
+                        i_pred, j_pred = self.index_prediction(pred_accuracy_trans)
+                        i_ref += i_pred
+                        j_ref += j_pred
+                        fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.5)((fullfield_ref, 0))
+                        retina_shift = self.retina.retina(fullfield_shift)
+                        coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))
+                        pred_accuracy_trans = self.pred_accuracy(retina_shift)
+                    data_fullfield[idx, :, :] = fullfield_shift
+                    data_fullfield[idx, :, :] = coll_shift
+                    pred_accuracy_colliculus[idx, :] = pred_accuracy_trans
+
+            correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
+            accuracy.append(correct.mean())
         return np.mean(accuracy)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
