@@ -200,6 +200,7 @@ class RetinaBackground:
         # plt.show()
 
         #fullfield = np.add(fullfield, background_noise)
+        fullfield[fullfield<=0.5] = -np.inf
         fullfield = np.max((fullfield, background_noise), axis=0)
         
         fullfield = np.clip(fullfield, 0., 1.)
@@ -810,7 +811,7 @@ class Where():
         with torch.no_grad():
             output = self.what_model(im)
 
-        return np.exp(output)
+        return np.softmax(output)
 
 
     def pred_accuracy(self, retina_data):
