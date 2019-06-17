@@ -327,8 +327,8 @@ class What:
                 self.trainer.train(epoch)
                 self.trainer.test()
             self.model = self.trainer.model
-            print(model_path)
             if (args.save_model):
+                print(model_path)
                 #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
                 torch.save(self.model, model_path)         
     
