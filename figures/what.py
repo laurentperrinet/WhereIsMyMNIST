@@ -74,6 +74,7 @@ class WhatBackground(object):
         #plt.show()
 
         #im = np.add(data, im_noise)
+        data[data<=0.5] = -np.inf
         im = np.max((data, im_noise), axis=0)
         
         im = np.clip(im, 0., 1.)
