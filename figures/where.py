@@ -785,7 +785,13 @@ class Where():
         retina_data = Variable(torch.FloatTensor(retina_data))
         accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
         retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)'''
-
+        retina_data, data_fullfield, accuracy_colliculus, _, label, i_offset, j_offset = next(iter(self.loader_test))
+        batch_size = retina_data.shape[0]
+        positions = [] * batch_size
+        for idx in range(batch_size):
+            positions[idx] = {}
+            positions[idx]['i_offset'] = i_offset[idx]
+            positions[idx]['j_offset'] = j_offset[idx]
         return positions, data_fullfield, retina_data, accuracy_colliculus
 
     def extract(self, data_fullfield, i_offset, j_offset):
