@@ -9,7 +9,7 @@ from robust_what import WhatShift, WhatBackground, WhatNet, WhatTrainer, What, t
 from main import init
 args = init(filename='../data/2019-06-12')
 
-args.epochs = 60
+args.epochs = 2
 args.save_model = True
 
 args.lr = 1
@@ -18,9 +18,12 @@ args.do_adam = 'adadelta'
 args.what_offset_std = 3.0
 what = What(args=args, force=False)
 
+
+
+
 model = what.model
 transform = transforms.Compose([
-    WhatShift(args, i_offset=0, j_offset=0),
+    WhatShift(args),
     WhatBackground(),
     transforms.ToTensor(),
     # transforms.Normalize((args.mean,), (args.std,))
@@ -34,5 +37,9 @@ test_loader = torch.utils.data.DataLoader(dataset_test,
                                           batch_size=args.minibatch_size,
                                           shuffle=True)
 if True :
+    print("test_loader")
     whatTrainer = WhatTrainer(args, model=model, test_loader=test_loader)
+    acc = whatTrainer.test()
+    print("what.test_loader")
+    whatTrainer = WhatTrainer(args, model=model, test_loader=what.test_loader)
     acc = whatTrainer.test()

@@ -28,6 +28,7 @@ entraine le 11/06/2019 17h13
 2019-06-12_param
 sur une valeur interdite de what_offset_std (5 de mémoire)
 => ne fonctionne pas (accuracy à 11%)
+18/06 : ne fait pas le calcul d'accuracy sans erreur
 
 4)
 MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques.pt
@@ -57,24 +58,16 @@ MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_60epoques_2019-06-17_16h54.pt
 entrainé le 17-06-2019 à 16h54 (duree = ~1h50)
 2019-06-12_param
 avec args.lr = 1 et args.do_adam = 'adadelta' et args.what_offset_std = 3.0
-Ce reseau fonctionne moyennement (42%)
+Ce reseau foncitonne (accuracy à 82%)
 
-8)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+8)
 MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55.pt
 entrainé le 17-06-2019 à 16h55 (duree = 1h44)
 2019-06-12_param
 avec liste_std = [i + 0.5 for i in range(0, 11)] et args.do_adam = 'adam'
 et seed incrémenté entre chaque std différent
-=> ne fonctionne pas (accuracy à 11%)
+Ce reseau fonctionne (accuracy à 81%)
 
-
-9)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-18_10h20.pt
-entrainé le 18-06-2019 à 10h20 (duree = 0h53)
-2019-06-12_param
-avec liste_std = [0, 1, 2, 3, 4, 5, 0, 5] et args.do_adam = 'adam'
-et seed incrémenté entre chaque std différent
-=> ne fonctionne pas (accuracy à 11%)
 
 
 A)
