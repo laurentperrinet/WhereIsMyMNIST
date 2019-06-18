@@ -16,7 +16,7 @@ date = str(debut)
 reseau = "MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55.pt"
 borne = 27
 
-f = open('AccuracyLign_({})_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
+f = open('AccuracyLign_--{}--K_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
 compteur = 0
 
 ligne_test_posterior = ''
