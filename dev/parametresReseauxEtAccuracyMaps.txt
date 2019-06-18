@@ -24,15 +24,15 @@ sur une valeur interdite de what_offset_std (5 de mémoire)
 MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques.pt
 entraine le 12/06/2019 15h22
 2019-06-12_param
-sur what_offset_std = 3, ie une valeur qui fonctionne
+sur args.what_offset_std = 3, ie une valeur qui fonctionne
 Ce reseau marche
 
 5)
 MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques_2019-06-13_10h47.pt
 entraine le 13/06/2019 10h47
 2019-06-12_param
-sur what_offset_std = 3, ie une valeur qui fonctionne
-et avec un p_dropout = 0.5
+sur args.what_offset_std = 3, ie une valeur qui fonctionne
+et avec un args.p_dropout = 0.5
 => ne fonctionne pas (accuracy à 11%)
 
 6)
@@ -40,6 +40,14 @@ MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_60epoques_2019-06-17_10h20.pt
 entrainé le 17-06-2019 à 10h20
 219-06-12_param
 avec args.what_offset_std = 3.0
+=> ne fonctionne pas (accuracy à 11%)
+(alors qu'il avait les mêmes paramètres d'apprentissage que le reseau 4)
+
+7)
+MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_60epoques_2019-06-17_16h54.pt
+entrainé le 17-06-2019 à 16h54 (duree = 1h50)
+2019-06-12_param
+
 
 
 

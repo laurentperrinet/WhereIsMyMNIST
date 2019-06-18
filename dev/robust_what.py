@@ -11,6 +11,7 @@ import os
 from display import minmax
 from PIL import Image
 import datetime
+import sys
 
 debut = datetime.datetime.now()
 date = str(debut)
@@ -219,19 +220,19 @@ class WhatTrainer:
             self.model = model
             
         self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
-        
-        if args.do_adam == 'adam' :
-            self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
-        elif args.do_adam == 'sgd':
-            self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
-        elif args.do_adam == "adagrad":
-            #self.optimizer = optim.adagrad(self.args, lr=1e-2, lr_decay=0, weight_decay=0, initial_accumulator_value=0)
-            self.optimizer = optim.Adagrad(self.model.parameters(), lr=args.lr)
-        elif args.do_adam == "adadelta":
-            #self.optimizer = optim.adadelta(self.args, lr=1.0, rho=0.9, eps=1e-6, weight_decay=0)
-            self.optimizer = optim.Adadelta(self.model.parameters(), lr=args.lr)
-        else:
-            raise (bbbb)
+        try:
+            if args.do_adam == 'adam':
+                self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
+            elif args.do_adam == 'sgd':
+                self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+            elif args.do_adam == "adagrad":
+                #self.optimizer = optim.adagrad(self.args, lr=1e-2, lr_decay=0, weight_decay=0, initial_accumulator_value=0)
+                self.optimizer = optim.Adagrad(self.model.parameters(), lr=args.lr)
+            elif args.do_adam == "adadelta":
+                #self.optimizer = optim.adadelta(self.args, lr=1.0, rho=0.9, eps=1e-6, weight_decay=0)
+                self.optimizer = optim.Adadelta(self.model.parameters(), lr=args.lr)
+        except ValueError:
+            print("L'optimiseur spécifié est mal orthographié ou inconnu. les choix possibles sont : 'adam', 'sgd', 'adagrad', 'adadelta'")
 
     def train(self, epoch):
         train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
