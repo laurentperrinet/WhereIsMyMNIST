@@ -13,8 +13,7 @@ from PIL import Image
 import datetime
 import sys
 
-debut = datetime.datetime.now()
-date = str(debut)
+
 
 class MNIST(MNIST_dataset):
     def __getitem__(self, index):
@@ -314,6 +313,7 @@ class What:
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
+        date = str(datetime.datetime.now())
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         suffix = "robust_what_{}_{}_{}_{}_{}epoques_{}_{}h{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast, self.args.epochs, date[0:10], date[11:13], date[14:16])
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"

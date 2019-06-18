@@ -18,14 +18,15 @@ liste_std = [i + 0.5 for i in range(0, 11)]  # pas de 1 de std en partant de 0.5
 args.do_adam = 'adam'
 args.what_offset_std = liste_std[0]
 print("En cours : std = 0\n")
-what = What(args=args, force=True, seed=0)
+what = What(args, force=True, seed=0)
 
 seed = 1
 for std in liste_std[1:]:
     print("En cours : std = " + str(std) + "\n")
 
     args.what_offset_std = std
-    what = What(args=args, model=what.model, force=True, seed=seed)
+    what_model = what.model
+    what = What(args, model=what_model, force=True, seed=seed)
     seed += 1
     print("\n")
 

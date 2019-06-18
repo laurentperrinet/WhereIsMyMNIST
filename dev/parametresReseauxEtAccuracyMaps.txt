@@ -1,3 +1,12 @@
+﻿Note : 
+*	jusqu'au 17 juin 2019 : do_adam = True signifie que l'optimisateur Adam est utilisé
+			do_adam = False signifie que l'optimiseur SGD est utilisé
+	à partir du 17 juin 2019 : l'optimiseur est explicité directement via une chaîne de caractères. Différents choix possibles : "adam", "sgd", "adagrad", "adadelta".
+*	jusqu'au 18 juin 2019 : date et heure réseau dans le nom de fichier représente date et heure de début d'exécution
+	à partir du 18 juin 2019 : date et heure réseau dans le nom de fichier représente heure de sauvegarde (= fin d'exécution)
+	(pour les accuracy maps ce sont toujours dat et heure de début d'exécution)
+
+
 1)
 MNIST_cnn_0.1_0.1_0.75_0.7.pt
 entraine le 06/06/2019 17h23
@@ -13,7 +22,7 @@ S'est fait delete ?? cd screen pull
 Recréé le 17/06/2019 12h17
 Ce réseau fonctionne
 
-3)
+3)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 MNIST_cnn_robust_what_0.1_0.1_1_0.7.pt
 entraine le 11/06/2019 17h13
 2019-06-12_param
@@ -27,7 +36,7 @@ entraine le 12/06/2019 15h22
 sur args.what_offset_std = 3, ie une valeur qui fonctionne
 Ce reseau marche
 
-5)
+5)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques_2019-06-13_10h47.pt
 entraine le 13/06/2019 10h47
 2019-06-12_param
@@ -35,7 +44,7 @@ sur args.what_offset_std = 3, ie une valeur qui fonctionne
 et avec un args.p_dropout = 0.5
 => ne fonctionne pas (accuracy à 11%)
 
-6)
+6)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_60epoques_2019-06-17_10h20.pt
 entrainé le 17-06-2019 à 10h20
 219-06-12_param
@@ -45,8 +54,16 @@ avec args.what_offset_std = 3.0
 
 7)
 MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_60epoques_2019-06-17_16h54.pt
-entrainé le 17-06-2019 à 16h54 (duree = 1h50)
+entrainé le 17-06-2019 à 16h54 (duree = ~1h50)
 2019-06-12_param
+avec args.lr = 1 et args.do_adam = 'adadelta' et args.what_offset_std = 3.0
+
+8)
+MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55.pt
+entrainé le 17-06-2019 à 16h55 (duree = 1h44)
+2019-06-12_param
+avec liste_std = [i + 0.5 for i in range(0, 11)] et args.do_adam = 'adam'
+et seed incrémenté entre chaque std différent
 
 
 
