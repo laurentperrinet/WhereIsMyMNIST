@@ -213,6 +213,8 @@ class What:
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
                                        device=device)
+            if self.args.verbose:
+                print("Training the What model")
             for epoch in range(1, args.epochs + 1):
                 self.trainer.train(epoch)
                 self.trainer.test()

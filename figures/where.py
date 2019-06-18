@@ -20,6 +20,7 @@ from PIL import Image
 import SLIP
 from what import What
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 
 class MNIST(MNIST_dataset):
@@ -947,7 +948,7 @@ class Where():
         self.model.eval()
         #accuracy = []
         #for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift in dataloader:
-        retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift = next(iter(dataloader))
+        (retina_data, data_fullfield), (accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift) = next(iter(dataloader))
         #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
         pred_accuracy_colliculus = self.pred_accuracy(retina_data)
         
@@ -966,11 +967,16 @@ class Where():
                     retina_shift = self.retina.retina(fullfield_shift)
                     #coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))
                     pred_accuracy_trans = self.pred_accuracy(retina_shift)
+                    if idx == 0:
+                        plt.imshow(fullfield_shift)
+                        plt.show()
+                        print(num_saccade, i_ref, j_ref)
                 data_fullfield[idx, :, :] = Variable(torch.FloatTensor(fullfield_shift))
                 #accuracy_fullfield[idx, :, :] = coll_shift
                 pred_accuracy_colliculus[idx, :] = pred_accuracy_trans
 
         correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
+        print(correct)
         return np.mean(correct)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
