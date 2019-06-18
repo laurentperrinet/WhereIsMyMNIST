@@ -11,9 +11,9 @@ import os
 from display import minmax
 from PIL import Image
 import datetime
+import sys
 
-debut = datetime.datetime.now()
-date = str(debut)
+
 
 class MNIST(MNIST_dataset):
     def __getitem__(self, index):
@@ -219,19 +219,19 @@ class WhatTrainer:
             self.model = model
             
         self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
-        
-        if args.do_adam == 'adam' :
-            self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
-        elif args.do_adam == 'sgd':
-            self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
-        elif args.do_adam == "adagrad":
-            #self.optimizer = optim.adagrad(self.args, lr=1e-2, lr_decay=0, weight_decay=0, initial_accumulator_value=0)
-            self.optimizer = optim.Adagrad(self.model.parameters(), lr=args.lr)
-        elif args.do_adam == "adadelta":
-            #self.optimizer = optim.adadelta(self.args, lr=1.0, rho=0.9, eps=1e-6, weight_decay=0)
-            self.optimizer = optim.Adadelta(self.model.parameters(), lr=args.lr)
-        else:
-            raise (bbbb)
+        try:
+            if args.do_adam == 'adam':
+                self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
+            elif args.do_adam == 'sgd':
+                self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+            elif args.do_adam == "adagrad":
+                #self.optimizer = optim.adagrad(self.args, lr=1e-2, lr_decay=0, weight_decay=0, initial_accumulator_value=0)
+                self.optimizer = optim.Adagrad(self.model.parameters(), lr=args.lr)
+            elif args.do_adam == "adadelta":
+                #self.optimizer = optim.adadelta(self.args, lr=1.0, rho=0.9, eps=1e-6, weight_decay=0)
+                self.optimizer = optim.Adadelta(self.model.parameters(), lr=args.lr)
+        except ValueError:
+            print("L'optimiseur spécifié est mal orthographié ou inconnu. les choix possibles sont : 'adam', 'sgd', 'adagrad', 'adadelta'")
 
     def train(self, epoch):
         train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
@@ -313,6 +313,7 @@ class What:
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
+        date = str(datetime.datetime.now())
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         suffix = "robust_what_{}_{}_{}_{}_{}epoques_{}_{}h{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast, self.args.epochs, date[0:10], date[11:13], date[14:16])
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"

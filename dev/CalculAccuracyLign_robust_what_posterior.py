@@ -13,23 +13,22 @@ args
 debut = datetime.datetime.now()
 date = str(debut)
 
-reseau = "MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques.pt"
+reseau = "MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55.pt"
 borne = 27
 
-f = open('AccuracyLign_{}_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
+f = open('AccuracyLign_--{}--K_{}_{}h{}.txt'.format(reseau[0:-3], date[0:10], date[11:13], date[14:16]), "w+")
 compteur = 0
 
 ligne_test_posterior = ''
 ligne_correct = ''
 
 model = torch.load("../data/" + reseau)
-accuracy_map = torch.zeros(55, 55)
 for i_offset in range(-borne, borne + 1):
     transform = transforms.Compose([
         WhatShift(args, i_offset=i_offset, j_offset=0),
-        WhatBackground(),
+        WhatBackground(contrast=args.contrast, noise=args.noise, sf_0=args.sf_0, B_sf=args.B_sf, seed=args.seed),
         transforms.ToTensor(),
-        # transforms.Normalize((args.mean,), (args.std,))
+        transforms.Normalize((args.mean,), (args.std,))
     ])
     dataset_test = MNIST('../data',
                          train=False,
