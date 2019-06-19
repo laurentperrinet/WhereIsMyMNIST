@@ -28,17 +28,17 @@ class Retina:
         self.N_phase = args.N_phase
         self.feature_vector_size = self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase
 
-        #self.init_grid()
+        self.init_grid()
         self.init_retina_transform()
         self.init_inverse_retina()
         self.init_colliculus_transform()
         self.init_colliculus_inverse()
 
-    #def init_grid(self):
-    #    delta = 1. / self.N_azimuth
-    #    self.log_r_grid, self.theta_grid = \
-    #    np.meshgrid(np.linspace(0, 1, self.N_eccentricity + 1),
-    #                np.linspace(-np.pi * (.5 + delta), np.pi * (1.5 - delta), self.N_azimuth + 1))
+    def init_grid(self):
+        delta = 1. / self.N_azimuth
+        self.log_r_grid, self.theta_grid = \
+        np.meshgrid(np.linspace(0, 1, self.N_eccentricity + 1),
+                    np.linspace(-np.pi * (.5 + delta), np.pi * (1.5 - delta), self.N_azimuth + 1))
 
     def get_suffix(self):
         # suffix = f'_{self.N_theta}_{self.N_azimuth}'
@@ -52,14 +52,16 @@ class Retina:
 
     def init_retina_transform(self):
         filename = '../tmp/retina' + self.get_suffix() + '_transform.npy'
+        print(filename)
         try:
             self.retina_transform = np.load(filename)
+            print("Fichier retina_transform charge avec succes")
         except:
             if self.args.verbose: print('Retina vectorizing...')
             self.retina_transform = self.vectorization()
             print("ok")
             np.save(filename, self.retina_transform)
-            print("success")
+            print("Fichier retina_transform ecrit et sauvegarde avec succes")
             if self.args.verbose: print('Done vectorizing...')
         self.retina_transform_vector = self.retina_transform.reshape((self.feature_vector_size, self.N_pic ** 2))
 
@@ -67,10 +69,13 @@ class Retina:
         filename = '../tmp/retina' + self.get_suffix() + '_inverse_transform.npy'
         try:
             self.retina_inverse_transform = np.load(filename)
+            print("Fichier retina_inverse_transform charge avec succes")
         except:
             if self.args.verbose: print('Inversing retina transform...')
             self.retina_inverse_transform = np.linalg.pinv(self.retina_transform_vector)
+            print("ok2")
             np.save(filename, self.retina_inverse_transform)
+            print("Fichier retina_inverse_transform ecrit et suavegarde avec succes")
             if self.args.verbose: print('Done Inversing retina transform...')
 
     def init_colliculus_transform(self):
@@ -124,6 +129,7 @@ class Retina:
         sf_0_r = 0.03 # self.args.sf_0_r
         B_theta = np.pi/self.N_theta/2 #self.args.B_theta
         B_sf = .4
+        sf_0_max = 0.45
         
         ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
@@ -131,12 +137,12 @@ class Retina:
         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
         theta_ref = i_theta * np.pi / self.N_theta
         sf_0 = 0.5 * sf_0_r / ecc
-        sf_0 = np.min((sf_0, .45))
+        sf_0 = np.min((sf_0, sf_0_max))
         # TODO : find the good ref for this                print(sf_0)
         x = N_X / 2 + r * np.cos(psi)
         y = N_Y / 2 + r * np.sin(psi)
         params = {'sf_0': sf_0,
-                  'B_sf': self.args.B_sf,
+                  'B_sf': B_sf,
                   'theta': theta_ref + psi,
                   'B_theta': B_theta}
         phase = i_phase * np.pi / 2
