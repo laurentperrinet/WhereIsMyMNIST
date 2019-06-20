@@ -17,7 +17,7 @@ import datetime
 debut = datetime.datetime.now()
 date = str(debut)
 
-reseau = "MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55.pt"
+reseau = "MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-19_11h50.pt"
 borne = 27
 
 

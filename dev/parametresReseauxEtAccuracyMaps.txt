@@ -64,10 +64,15 @@ Ce reseau foncitonne (accuracy à 82%)
 MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55.pt
 entrainé le 17-06-2019 à 16h55 (duree = 1h44)
 2019-06-12_param
-avec liste_std = [i + 0.5 for i in range(0, 11)] et args.do_adam = 'adam'
+avec liste_std = [i + 0.5 for i in range(0, 11)] 5 epoques par std et args.do_adam = 'adam'
 et seed incrémenté entre chaque std différent
 Ce reseau fonctionne (accuracy à 81%)
 
+9)
+MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-19_11h50.pt
+entraine le 19-06-2019 à 10h10 (duree = 1h40)
+2019-06-12_param
+avec liste_std = [i for i in range(0, 16)] 5 epoques par std args.what_offset_max = 25 et args.do_adam = 'adam'
 
 
 A)
@@ -204,3 +209,9 @@ correspond au reseau n.4
  'what_offset_std': 3.0,
 
  'what_offset_max': 15}
+
+D)
+AccuracyMap_--MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55--_2019-06-18_17h06.txt
+Correspond au réseau n.8
+
+
