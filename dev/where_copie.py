@@ -264,8 +264,16 @@ class RetinaTransform:
         self.retina_transform_vector = retina_transform_vector
     def __call__(self, fullfield):
         retina_features = self.retina_transform_vector @ np.ravel(fullfield)
+
         return retina_features
-    
+
+class OnlineRetinaTransform:
+    def __init__(self, retina):
+        self.retina = retina
+    def __call__(self, fullfield):
+        retina_features = self.retina.online_vectorization(fullfield)
+        return retina_features
+
 class FullfieldRetinaTransform:
     def __init__(self, retina_transform_vector):
         self.retina_transform_vector = retina_transform_vector
@@ -397,11 +405,15 @@ class WhereTrainer:
         
         ## DATASET TRANSFORMS     
         # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
-        accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix_what)
-        if not os.path.isfile(accuracy_path):
-            self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
-        else:
-            self.accuracy_map = np.load(accuracy_path)
+
+        self.accuracy_map = np.loadtxt("AccuracyMap_MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques_2019-06-12_16h11.txt",
+                                       max_rows=55)
+
+        #accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix_what)
+        #if not os.path.isfile(accuracy_path):
+        #    self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
+        #else:
+        #    self.accuracy_map = np.load(accuracy_path)
         
         ## DATASET TRANSFORMS     
         self.transform = transforms.Compose([

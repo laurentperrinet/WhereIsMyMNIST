@@ -118,6 +118,28 @@ class Retina:
 
         return retina
 
+    def online_vectorization(self, pixel_fullfield):   # pixel_fullfield = image
+        fullfield_dot_filters = np.zeros(self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase)
+
+        from LogGabor import LogGabor
+        lg = LogGabor(pe=pe)
+        lg.set_size((self.N_pic, self.N_pic))
+
+        for i_theta in range(self.N_theta):
+            for i_azimuth in range(self.N_azimuth):
+                for i_eccentricity in range(self.N_eccentricity):
+                    for i_phase in range(self.N_phase):
+                        filter = self.local_filter(i_theta, i_azimuth, i_eccentricity, i_phase, lg, N_X=self.N_pic,
+                                                  N_Y=self.N_pic)
+                        indice = i_theta + i_azimuth + i_eccentricity + i_phase
+                        fullfield_dot_filters[indice] = np.dot(np.ravel(filter), np.ravel(pixel_fullfield))
+
+        return fullfield_dot_filters
+
+
+
+
+
     def local_filter(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg,
                      N_X=128, N_Y=128):
                      #rho=1.41, ecc_max=.8,

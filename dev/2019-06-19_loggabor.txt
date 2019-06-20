@@ -1,0 +1,5 @@
+https://en.wikipedia.org/wiki/Log_Gabor_filter
+
+https://pypi.org/project/LogGabor/
+
+https://nbviewer.jupyter.org/github/bicv/LogGabor/blob/master/LogGabor.ipynb
