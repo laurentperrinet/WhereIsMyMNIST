@@ -214,4 +214,10 @@ D)
 AccuracyMap_--MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-17_16h55--_2019-06-18_17h06.txt
 Correspond au réseau n.8
 
+E)
+AccuracyMap_--MNIST_cnn_robust_what_0.1_0.1_1.0_0.7_5epoques_2019-06-19_11h50--_2019-06-19_12h23.npy
+Correspond au réseau n.9
+
+
+
 
