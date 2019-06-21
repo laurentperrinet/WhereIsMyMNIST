@@ -150,14 +150,29 @@ What/Where
 
 - Kruger, N., Janssen, P., Kalkan, S., Lappe, M., Leonardis, A., Piater, J., ... & Wiskott, L. (2012). Deep hierarchies in the primate visual cortex: What can we learn for computer vision?. IEEE transactions on pattern analysis and machine intelligence, 35(8), 1847-1871.
 
+- Kelvin Xu, Jimmy Ba, Ryan Kiros, Kyunghyun Cho, Aaron Courville, Ruslan Salakhutdinov, Richard Zemel, Yoshua Bengio (2015) Show, Attend and Tell: Neural Image Caption Generation with Visual Attention [https://arxiv.org/pdf/1502.03044]
 
 
 
 Saliency maps / Attention network
 -----------------
 
+General : https://towardsdatascience.com/visual-attention-model-in-deep-learning-708813c2912c
+
+* Mnih et al, Recurrent Models of Visual Attention, NIPS 2014 [https://papers.nips.cc/paper/5542-recurrent-models-of-visual-attention.pdf] 
+__Applying convolutional neural networks to large images is computationally ex-
+pensive because the amount of computation scales linearly with the number of
+image  pixels.   We  present  a  novel  recurrent  neural  network  model  that  is  ca-
+pable of extracting information from an image or video by adaptively selecting
+a  sequence  of  regions  or  locations  and  only  processing  the  selected  regions  at
+high resolution.__
+* Fu et al, Look Closer to See Better: Recurrent Attention Convolutional Network for Fine Grained Image Recognition, CVPR 2017 [http://openaccess.thecvf.com/content_cvpr_2017/papers/Fu_Look_Closer_to_CVPR_2017_paper.pdf] :
+--> a coarse full-scale image is treated first, providing both a category and a transformation (translation, zoom) for the next step of classification ==> sequential, "build-up" treatment.
+* Ren et Zemel, End-to-End Instance Segmentation with Recurrent Attention, CVPR 2017  [http://openaccess.thecvf.com/content_cvpr_2017/papers/Ren_End-To-End_Instance_Segmentation_CVPR_2017_paper.pdf]
+
+
 LEARNING  WHAT AND WHERE TO ATTEND
-Drew Linsley, Dan Shiebler, Sven Eberhardt and Thomas Serre (2019) ICLR
+Drew Linsley, Dan Shiebler, Sven Eberhardt and Thomas Serre (2019) ICLR [https://openreview.net/pdf?id=BJgLg3R9KQ]
 
 Benchmarking
 ------------
