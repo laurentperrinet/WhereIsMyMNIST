@@ -1,13 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+import sys
+sys.path.append("../figures")
+
 #import SLIP for whitening and PIL for resizing
 import SLIP
 from display import pe
+from LogGabor import LogGabor
 
 ##########################################################################################################@
 ##########################################################################################################@
 ##########################################################################################################@
+
+def affiche(donnees, titre, c_a, commentaire=None):
+    if c_a:
+        if commentaire:
+            print(commentaire)
+        plt.imshow(donnees)
+        plt.title(titre)
+        plt.show()
 
 class Retina:
     """ Class implementing the retina transform
@@ -28,7 +40,7 @@ class Retina:
         self.N_phase = args.N_phase
         self.feature_vector_size = self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase
 
-        self.init_retina_dico
+        self.init_retina_dico()
         self.init_grid()
         self.init_retina_transform()
         self.init_inverse_retina()
@@ -68,6 +80,7 @@ class Retina:
 
     def init_inverse_retina(self):
         filename = '../tmp/retina' + self.get_suffix() + '_inverse_transform.npy'
+        print(filename)
         try:
             self.retina_inverse_transform = np.load(filename)
             print("Fichier retina_inverse_transform charge avec succes")
@@ -89,22 +102,65 @@ class Retina:
     def init_colliculus_inverse(self):
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_transform_vector)
 
-    def init_retina_dico(self):
-        print("Creation du dictionnaire de filtres en cours")
-        from LogGabor import LogGabor
-        self.retina_dico = {}
-        lg = LogGabor(pe=pe)
-        for i_theta in range(self.N_theta):
-            self.retina_dico[i_theta] = {}
-            for i_phase in range(self.N_phase):
-                self.retina_dico[i_theta][i_phase] = {}
-                for i_eccentricity in range(self.N_eccentricity):
-                    self.retina_dico[i_theta][i_phase][i_eccentricity] = {}
-                    for i_azimuth in range(self.N_azimuth):
-                        self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth] = np.ravel(
-                            local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg, N_X=128, N_Y=128))
-        print("Dico cree")
+    def local_filter_dico(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg=LogGabor(pe=pe),
+                               N_X=128, N_Y=128):
+        # rho=1.41, ecc_max=.8,
+        # sf_0_max=0.45, sf_0_r=0.03,
+        # B_sf=.4, B_theta=np.pi / 12): # on enleve self pour l'instant
 
+        # !!?? Magic numbers !!??
+        ecc_max = .8  # self.args.ecc_max
+        sf_0_r = 0.03  # self.args.sf_0_r
+        B_theta = np.pi / self.N_theta / 2  # self.args.B_theta
+        B_sf = .4
+        sf_0_max = 0.45
+
+        ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
+        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
+        # print(r)
+        dimension_filtre = min(2 * int(2 * r),
+                               128)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
+        lg.set_size((dimension_filtre, dimension_filtre))
+        # psi = i_azimuth * np.pi * 2 / N_azimuth
+        psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
+        theta_ref = i_theta * np.pi / self.N_theta
+        sf_0 = 0.5 * sf_0_r / ecc
+        sf_0 = np.min((sf_0, sf_0_max))
+        # TODO : find the good ref for this                print(sf_0)
+        x = N_X / 2 + r * np.cos(psi)  # c'est bien le centre du filtre ?
+        y = N_Y / 2 + r * np.sin(psi)  # c'est bien le centre du filtre ?
+        params = {'sf_0': sf_0,
+                  'B_sf': B_sf,
+                  'theta': theta_ref + psi,
+                  'B_theta': B_theta}
+        phase = i_phase * np.pi / 2
+        # lg.show_loggabor(x, y, **params)
+        # print('taille sortie', lg.loggabor(x, y, **params).ravel().shape)
+        return lg.normalize(
+            lg.invert(lg.loggabor(dimension_filtre // 2, dimension_filtre // 2, **params) * np.exp(-1j * phase)))
+
+    def init_retina_dico(self):
+        filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
+        print(filename)
+        try:
+            self.retina_dico = np.load(filename).item()
+            print("Fichier retina_dico charge avec succes")
+        except:
+            if self.args.verbose: print('Creation du dictionnaire de filtres en cours...')
+            self.retina_dico = {}
+            lg = LogGabor(pe=pe)
+            for i_theta in range(self.N_theta):
+                self.retina_dico[i_theta] = {}
+                for i_phase in range(self.N_phase):
+                    self.retina_dico[i_theta][i_phase] = {}
+                    for i_eccentricity in range(self.N_eccentricity):
+                        self.retina_dico[i_theta][i_phase][i_eccentricity] = {}
+                        for i_azimuth in range(self.N_azimuth):
+                            self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth] = np.ravel(self.local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg))
+            print("Dico cree")
+            np.save(filename, self.retina_dico)
+            print("len finale", len(self.retina_dico),len(self.retina_dico[0]),len(self.retina_dico[0][0]),len(self.retina_dico[0][0][0]),len(self.retina_dico[0][0][0][0]))
+            if self.args.verbose: print("Fichier retina_dico ecrit et sauvegarde avec succes")
 
     def vectorization(self):
         #N_theta=6, N_azimuth=16, N_eccentricity=10, N_phase=2,
@@ -154,16 +210,7 @@ class Retina:
 
         return fullfield_dot_filters
 
-    def affiche(self, donnees, titre, c_a, commentaire=None):
-        if c_a:
-            if commentaire:
-                print(commentaire)
-            plt.imshow(donnees)
-            plt.title(titre)
-            plt.show()
-
-
-    def dico_transform(self, pixel_fullfield):
+    def transform_dico(self, pixel_fullfield):
         fullfield_dot_retina_dico = np.zeros(self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase)
 
         N_X, N_Y = self.N_pic, self.N_pic
@@ -174,24 +221,25 @@ class Retina:
                 for i_eccentricity in range(self.N_eccentricity):
                     for i_phase in range(self.N_phase):
 
+                        c_a = i_azimuth == 0 and i_theta == 0 and i_phase == 0  # conditions d'affichage
+                        c_a = False
+
+
                         fenetre_filtre = self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth]
                         dimension_filtre = int(fenetre_filtre.shape[0] ** (1 / 2))
                         fenetre_filtre = fenetre_filtre.reshape((dimension_filtre, dimension_filtre))
 
                         ecc_max = .8
-                        ecc = ecc_max * (1 / self.rho) ** (self.N_eccentricity - i_eccentricity)
+                        ecc = ecc_max * (1 / self.args.rho) ** (self.args.N_eccentricity - i_eccentricity)
                         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
-                        psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
+                        psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.args.N_azimuth
                         x = int(N_X / 2 + r * np.cos(psi))
                         y = int(N_Y / 2 + r * np.sin(psi))
                         r = int(r)
 
                         r = dimension_filtre // 2
 
-                        c_a = i_azimuth == 0 and i_theta == 0 and i_phase == 0  # conditions d'affichage
-                        c_a = False
-
-                        affiche(self, fenetre_filtre, "fenetre_filtre", c_a)
+                        affiche(fenetre_filtre, "fenetre_filtre", c_a)
 
                         fenetre_image = pixel_fullfield[int(x - r):int(x + r), int(y - r):int(y + r)]
 
@@ -205,18 +253,18 @@ class Retina:
                                 nb_lignes = morceau_externe_fullfield.shape[0]
                                 if nb_lignes == 2 * r:  # ce n'est pas un coin
                                     fenetre_image[0:2 * r, 0:r + self.N_pic - y] = morceau_interne_fullfield
-                                    affiche(self, fenetre_image, "Construction fenetre_image : ajout partie gauche", c_a)
+                                    affiche(fenetre_image, "Construction fenetre_image : ajout partie gauche", c_a)
                                     fenetre_image[0:2 * r, r + self.N_pic - y:2 * r] = morceau_externe_fullfield
-                                    affiche(self, fenetre_image, "Construction fenetre_image : ajout partie droite", c_a)
+                                    affiche(fenetre_image, "Construction fenetre_image : ajout partie droite", c_a)
 
                                 elif x - r < 0:  # contient le coin superieur droit
                                     morceau_externe_fullfield = pixel_fullfield[0:x + r, 0:r - self.N_pic + y]
                                     fenetre_image[r - x:2 * r, r + self.N_pic - y:2 * r] = morceau_externe_fullfield
-                                    affiche(self, fenetre_image, "Construction image : ajout bas droit", c_a)
+                                    affiche(fenetre_image, "Construction image : ajout bas droit", c_a)
                                     fenetre_image[0:r - x, r - y + self.N_pic:2 * r] = pixel_fullfield[
                                                                                        self.N_pic - r + x:self.N_pic,
                                                                                        0:y + r - self.N_pic]
-                                    affiche(self, fenetre_image, "Construction fenetre_image : ajout haut droit", c_a)
+                                    affiche(fenetre_image, "Construction fenetre_image : ajout haut droit", c_a)
 
                                 elif x + r > self.N_pic:  # contient le coin inferieur droit
                                     fenetre_image[0:nb_lignes, r + self.N_pic - y:2 * r] = morceau_externe_fullfield
@@ -312,8 +360,6 @@ class Retina:
 
         return fullfield_dot_retina_dico
 
-
-
     def local_filter(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg,
                      N_X=128, N_Y=128):
                      #rho=1.41, ecc_max=.8,
@@ -344,56 +390,22 @@ class Retina:
         phase = i_phase * np.pi / 2
         return lg.normalize(lg.invert(lg.loggabor(x, y, **params) * np.exp(-1j * phase))).ravel()
 
-def local_filter_dico(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg,
-                                       N_X=128, N_Y=128):
-    # rho=1.41, ecc_max=.8,
-    # sf_0_max=0.45, sf_0_r=0.03,
-    # B_sf=.4, B_theta=np.pi / 12): # on enleve self pour l'instant
 
-    # !!?? Magic numbers !!??
-    ecc_max = .8  # self.args.ecc_max
-    sf_0_r = 0.03  # self.args.sf_0_r
-    B_theta = np.pi / self.N_theta / 2  # self.args.B_theta
-    B_sf = .4
-    sf_0_max = 0.45
-
-    ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
-    r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
-    # print(r)
-    dimension_filtre = min(2 * int(2 * r), 128)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
-    lg.set_size((dimension_filtre, dimension_filtre))
-    # psi = i_azimuth * np.pi * 2 / N_azimuth
-    psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
-    theta_ref = i_theta * np.pi / self.N_theta
-    sf_0 = 0.5 * sf_0_r / ecc
-    sf_0 = np.min((sf_0, sf_0_max))
-    # TODO : find the good ref for this                print(sf_0)
-    x = N_X / 2 + r * np.cos(psi)  # c'est bien le centre du filtre ?
-    y = N_Y / 2 + r * np.sin(psi)  # c'est bien le centre du filtre ?
-    params = {'sf_0': sf_0,
-              'B_sf': B_sf,
-              'theta': theta_ref + psi,
-              'B_theta': B_theta}
-    phase = i_phase * np.pi / 2
-    # lg.show_loggabor(x, y, **params)
-    # print('taille sortie', lg.loggabor(x, y, **params).ravel().shape)
-    return lg.normalize(
-        lg.invert(lg.loggabor(dimension_filtre // 2, dimension_filtre // 2, **params) * np.exp(-1j * phase)))
-
-
-def retina(self, data_fullfield):
-        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L674
-        # data_fullfield = self.whit.whitening(data_fullfield)
-        # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L518
-        data_fullfield = self.whit.FTfilter(data_fullfield, self.K_whitening)
-        data_retina = self.retina_transform_vector @ np.ravel(data_fullfield)
-        return data_retina #retina(data_fullfield, self.retina_transform)     
+    def retina(self, data_fullfield):
+            # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L674
+            # data_fullfield = self.whit.whitening(data_fullfield)
+            # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L518
+            data_fullfield = self.whit.FTfilter(data_fullfield, self.K_whitening)
+            data_retina = self.retina_transform_vector @ np.ravel(data_fullfield)
+            return data_retina #retina(data_fullfield, self.retina_transform)
     
     def retina_invert(self, data_retina, do_dewhitening=False):
         im = self.retina_inverse_transform @ data_retina
         im = im.reshape((self.args.N_pic, self.args.N_pic))
-        if do_dewhitening: im = self.whit.dewhitening(im)
+        if do_dewhitening:
+            im = self.whit.dewhitening(im)
         return im
+
     
     def accuracy_fullfield(self, accuracy_map, i_offset, j_offset):
         #accuracy_colliculus, accuracy_fullfield_map = accuracy_fullfield(accuracy_map, i_offset, j_offset, self.args.N_pic, self.colliculus_transform_vector)

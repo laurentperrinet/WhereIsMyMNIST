@@ -111,18 +111,22 @@ class WhereShift:
         if self.i_offset is not None:
             i_offset = self.i_offset
             if self.j_offset is None:
-                j_offset_f = np.random.randn() * self.args.offset_std
-                j_offset_f = minmax(j_offset_f, self.args.offset_max)
-                j_offset = int(j_offset_f)
+                #j_offset_f = np.random.randn() * self.args.offset_std
+                #j_offset_f = minmax(j_offset_f, self.args.offset_max)
+                #j_offset = int(j_offset_f)
+                j_offset = np.random.randint(- self.args.N_pic //3, self.args.N_pic //3)
             else:
                 j_offset = int(self.j_offset)
         else: 
             if self.j_offset is not None:
-                j_offset = int(self.j_offset)
-                i_offset_f = np.random.randn() * self.args.offset_std
-                i_offset_f = minmax(i_offset_f, self.args.offset_max)
-                i_offset = int(i_offset_f)
+                #i_offset_f = np.random.randn() * self.args.offset_std
+                #i_offset_f = minmax(i_offset_f, self.args.offset_max)
+                #i_offset = int(i_offset_f)
+                i_offset = np.random.randint( - self.args.N_pic //3, self.args.N_pic //3)
             else: #self.i_offset is None and self.j_offset is None
+                i_offset = np.random.randint( - self.args.N_pic //3, self.args.N_pic //3)
+                j_offset = np.random.randint( - self.args.N_pic //3, self.args.N_pic //3)
+                """
                 if self.theta is None:
                     theta = np.random.rand() * 2 * np.pi
                     #print(theta)
@@ -136,6 +140,7 @@ class WhereShift:
                     radius = self.radius
                 i_offset = int(radius * np.cos(theta))
                 j_offset = int(radius * np.sin(theta))
+                """
                 
         N_pic = sample.shape[0]
         fullfield = np.ones((N_pic, N_pic)) * self.baseline
@@ -267,11 +272,19 @@ class RetinaTransform:
 
         return retina_features
 
+class TransformDico:
+    def __init__(self, retina):
+        self.retina = retina
+        #self.retina_dico = retina_dico
+    def __call__(self, fullfield):
+        retina_dico = self.retina.transform_dico(fullfield)
+        return retina_dico
+
 class OnlineRetinaTransform:
     def __init__(self, retina):
         self.retina = retina
     def __call__(self, fullfield):
-        retina_features = self.retina.online_vectorization(fullfield)
+        retina_features = retina.online_vectorization(fullfield)
         return retina_features
 
 class FullfieldRetinaTransform:
@@ -425,7 +438,8 @@ class WhereTrainer:
                              B_sf=args.B_sf),
             RetinaMask(N_pic=args.N_pic),
             RetinaWhiten(N_pic=args.N_pic),
-            RetinaTransform(self.retina.retina_transform_vector),
+            RetinaTransform(self.retina.transform_dico),
+            #RetinaTransform(self.retina.retina_transform_vector),
             ToFloatTensor(),
             # Normalize()
             #transforms.Normalize((args.mean,), (args.std,))
