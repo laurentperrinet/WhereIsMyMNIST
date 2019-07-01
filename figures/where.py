@@ -367,8 +367,11 @@ class WhereNet(torch.nn.Module):
         x = self.bn3(x)
         return x
 
-def where_suffix(args):
-    suffix = '_{}_{}'.format(args.sf_0, args.B_sf)
+def where_suffix(args, robust):
+    if robust:
+        suffix = '_robust_{}_{}'.format(args.sf_0, args.B_sf)
+    else:
+        suffix = '_{}_{}'.format(args.sf_0, args.B_sf)
     suffix += '_{}_{}'.format(args.noise, args.contrast)
     suffix += '_{}_{}'.format(args.offset_std, args.offset_max)
     suffix += '_{}_{}'.format(args.N_theta, args.N_azimuth)
@@ -383,7 +386,9 @@ class WhereTrainer:
                  test_loader=None, 
                  device='cpu', 
                  generate_data=True,
-                 retina=None):
+                 retina=None,
+                 acc_map=None,
+                 robust=False):
         self.args=args
         self.device=device
         if retina:
@@ -393,15 +398,21 @@ class WhereTrainer:
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         
         # suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
-        suffix_what = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
+        if robust:
+            suffix_what = "robust_{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
+        else:
+            suffix_what = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
         
         ## DATASET TRANSFORMS     
         # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
-        accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix_what)
-        if not os.path.isfile(accuracy_path):
-            self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
+        accuracy_path = "../data/MNIST_accuracy_{}.npy".format(suffix_what)
+        if acc_map is not None:
+            if not os.path.isfile(accuracy_path):
+                self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
+            else:
+                self.accuracy_map = np.load(accuracy_path)
         else:
-            self.accuracy_map = np.load(accuracy_path)
+            self.accuracy_map = acc_map
         
         ## DATASET TRANSFORMS     
         self.transform = transforms.Compose([
@@ -448,7 +459,7 @@ class WhereTrainer:
                                FullfieldToFloatTensor(keep_label=True)
                            ])
         
-        suffix = where_suffix(args)
+        suffix = where_suffix(args, robust)
         
         if not train_loader:
             self.init_data_loader(args, suffix, 
@@ -639,7 +650,9 @@ class Where():
                  what_model=None,
                  retina=None,
                  trainer=None,
-                 save_model = True):
+                 save_model=True,
+                 acc_map=None,
+                 robust=False):
         
         self.args = args
 
@@ -655,7 +668,7 @@ class Where():
         if what_model:
             self.what_model = what_model
         else:
-            what = What(args) # trains the what_model if needed
+            what = What(args, robust=robust) # trains the what_model if needed
             self.what_model = what.model.to(self.device)
             
                 
@@ -702,8 +715,9 @@ class Where():
         ######################
       
         
-        suffix = where_suffix(args)
+        suffix = where_suffix(args, robust)
         model_path = '/tmp/where_model_{}.pt'.format(suffix)
+        
         if model:
             self.model = model
             if trainer:
@@ -715,7 +729,9 @@ class Where():
                                        test_loader=test_loader, 
                                        device=self.device,
                                        generate_data=generate_data,
-                                       retina=retina)
+                                       retina=retina,
+                                       acc_map=acc_map,
+                                       robust=robust)
         elif trainer:
             self.model = trainer.model
             self.trainer = trainer
@@ -727,14 +743,18 @@ class Where():
                                        test_loader=test_loader, 
                                        device=self.device,
                                        generate_data=generate_data,
-                                       retina=retina)
+                                       retina=retina,
+                                       acc_map=acc_map,
+                                       robust=robust)
         else:                                                       
             self.trainer = WhereTrainer(args, 
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
                                        device=self.device,
                                        generate_data=generate_data,
-                                       retina=retina)
+                                       retina=retina,
+                                       acc_map=acc_map,
+                                       robust=robust)
             for epoch in range(1, args.epochs + 1):
                 self.trainer.train(epoch)
                 self.trainer.test()
@@ -805,12 +825,12 @@ class Where():
         im = data_fullfield[(mid+i_offset-rad):(mid+i_offset+rad),
                             (mid+j_offset-rad):(mid+j_offset+rad)]
 
-        im = np.clip(im, 0.5, 1)
-        im = (im-.5)*2
+        #im = np.clip(im, 0.5, 1)
+        #im = (im-.5)*2
         return im
 
     def classify_what(self, im):
-        im = (im-self.args.mean)/self.args.std
+        #im = (im-self.args.mean)/self.args.std
         if im.ndim ==2:
             im = Variable(torch.FloatTensor(im[None, None, ::]))
         else:
@@ -818,7 +838,7 @@ class Where():
         with torch.no_grad():
             output = self.what_model(im)
 
-        return np.exp(output) #nn.softmax(output)
+        return F.softmax(output, dim=1) #np.exp(output) #
 
     def pred_accuracy(self, retina_data):
         # Predict classes using images from the train set
