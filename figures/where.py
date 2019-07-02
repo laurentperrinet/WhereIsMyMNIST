@@ -984,7 +984,9 @@ class Where():
                 accuracy_fullfield_post = accuracy_fullfield[idx, :, :] # target accuracy fullfield (HACK!!)
                 accuracy_fullfield_shift = accuracy_fullfield_post
                 #coll_ref = accuracy_fullfield[idx, :, :]
-                for num_saccade in range(nb_saccades - 1):
+                num_max = nb_saccades
+                nb_saccades = 0
+                for num_saccade in range(num_max):
                     if idx == 0:
                         plt.imshow(fullfield_shift)
                         plt.show()
@@ -997,7 +999,7 @@ class Where():
                     posterior_what = proba[predicted_index]
                     
                     # ACTION SELECTION
-                    if idx = 0:
+                    if num_saccade == 0:
                         pred_accuracy_trans = pred_accuracy_colliculus[idx, :]
                     else:
                         pred_accuracy_trans = self.pred_accuracy(retina_shift)
@@ -1017,12 +1019,15 @@ class Where():
                     fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.5)((fullfield_ref, 0))
                     retina_shift = self.retina.retina(fullfield_shift)
                     accuracy_fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((accuracy_fullfield_post, 0))
+                    nb_saccades += 1
                     
                     #coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))                 
                     
+                # 
                 data_fullfield[idx, :, :] = Variable(torch.FloatTensor(fullfield_shift))
                 #accuracy_fullfield[idx, :, :] = coll_shift
                 pred_accuracy_colliculus[idx, :, :] = pred_accuracy_ref #pred_accuracy_trans
+                    
 
         correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
         print(correct)
