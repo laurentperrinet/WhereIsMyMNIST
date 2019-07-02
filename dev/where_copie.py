@@ -438,7 +438,8 @@ class WhereTrainer:
                              B_sf=args.B_sf),
             RetinaMask(N_pic=args.N_pic),
             RetinaWhiten(N_pic=args.N_pic),
-            RetinaTransform(self.retina.transform_dico),
+            TransformDico(self.retina),
+            #RetinaTransform(self.retina.transform_dico), commenter et remplacer par transform dico
             #RetinaTransform(self.retina.retina_transform_vector),
             ToFloatTensor(),
             # Normalize()
