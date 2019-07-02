@@ -157,7 +157,7 @@ What/Where
 Saliency maps / Attention network
 -----------------
 
-General : https://towardsdatascience.com/visual-attention-model-in-deep-learning-708813c2912c
+ * General Tutorial : https://towardsdatascience.com/visual-attention-model-in-deep-learning-708813c2912c
 
 * Mnih et al, Recurrent Models of Visual Attention, NIPS 2014 [https://papers.nips.cc/paper/5542-recurrent-models-of-visual-attention.pdf] 
 __Applying convolutional neural networks to large images is computationally ex-

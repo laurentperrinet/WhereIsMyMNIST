@@ -4,9 +4,40 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+from torchvision.datasets.mnist import MNIST as MNIST_dataset
 from torch.autograd import Variable
 import MotionClouds as mc
 import os
+from display import minmax
+from PIL import Image
+import datetime
+import sys
+
+class MNIST(MNIST_dataset):
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
+
+        Returns:
+            tuple: (image, target) where target is index of the target class.
+        """
+        if self.train:
+            img, target = self.train_data[index], self.train_labels[index]
+        else:
+            img, target = self.test_data[index], self.test_labels[index]
+
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(img.numpy(), mode='L')
+
+        if self.transform is not None:
+            img = self.transform((img, index))
+
+        if self.target_transform is not None:
+            target = self.target_transform((target, index))
+
+        return img, target
 
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
@@ -18,40 +49,74 @@ def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     return z, env
 
 class WhatShift(object):
-    def __init__(self, i_offset=0, j_offset=0):
-        self.i_offset = int(i_offset)
-        self.j_offset = int(j_offset)
+    def __init__(self, args, i_offset=None, j_offset=None):
+        if i_offset != None :
+            self.i_offset = int(i_offset)
+        else : self.i_offset = i_offset
+        if j_offset != None :
+            self.j_offset = int(j_offset)
+        else : self.j_offset = j_offset
+        self.args = args
         
-    def __call__(self, sample):
-        sample = np.array(sample)
+    def __call__(self, sample_index):
+        
+        sample = np.array(sample_index[0])
+        index = sample_index[1]
+
+        # print(index)
+        np.random.seed(index)        
+        
+        if self.i_offset is not None:
+            i_offset = self.i_offset
+            if self.j_offset is None:
+                j_offset_f = np.random.randn() * self.args.what_offset_std
+                j_offset_f = minmax(j_offset_f, self.args.what_offset_max)
+                j_offset = int(j_offset_f)
+            else:
+                j_offset = int(self.j_offset)
+        else:
+            if self.j_offset is not None:
+                j_offset = int(self.j_offset)
+                i_offset_f = np.random.randn() * self.args.what_offset_std
+                i_offset_f = minmax(i_offset_f, self.args.what_offset_max)
+                i_offset = int(i_offset_f)
+            else:  # self.i_offset is None and self.j_offset is None
+                i_offset_f = np.random.randn() * self.args.what_offset_std
+                i_offset_f = minmax(i_offset_f, self.args.what_offset_max)
+                i_offset = int(i_offset_f)
+                j_offset_f = np.random.randn() * self.args.what_offset_std
+                j_offset_f = minmax(j_offset_f, self.args.what_offset_max)
+                j_offset = int(j_offset_f)
+
+        
         N_pic = sample.shape[0]
         data = np.zeros((N_pic, N_pic))
-        i_binf_patch = max(0, -self.i_offset)
-        i_bsup_patch = min(N_pic, N_pic - self.i_offset)
-        j_binf_patch = max(0, -self.j_offset)
-        j_bsup_patch = min(N_pic, N_pic - self.j_offset)
+        i_binf_patch = max(0, -i_offset)
+        i_bsup_patch = min(N_pic, N_pic - i_offset)
+        j_binf_patch = max(0, -j_offset)
+        j_bsup_patch = min(N_pic, N_pic - j_offset)
         patch = sample[i_binf_patch:i_bsup_patch, 
                        j_binf_patch:j_bsup_patch]
         
-        i_binf_data = max(0, self.i_offset)
-        i_bsup_data = min(N_pic, N_pic + self.i_offset)
-        j_binf_data = max(0, self.j_offset)
-        j_bsup_data = min(N_pic, N_pic + self.j_offset)
+        i_binf_data = max(0, i_offset)
+        i_bsup_data = min(N_pic, N_pic + i_offset)
+        j_binf_data = max(0, j_offset)
+        j_bsup_data = min(N_pic, N_pic + j_offset)
         data[i_binf_data:i_bsup_data,
              j_binf_data:j_bsup_data] = patch
         return data.astype('B')
 
 
 class WhatBackground(object):
-    def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1):
+    def __init__(self, contrast=1., noise=1., sf_0=.1, B_sf=.1, seed = 0):
         self.contrast = contrast
         self.noise = noise
         self.sf_0 = sf_0
         self.B_sf = B_sf
+        self.seed = seed
 
     def __call__(self, sample):
 
-        # sample from the MNIST dataset
         data = np.array(sample)
         N_pic = data.shape[0]
         if data.min() != data.max():
@@ -62,7 +127,7 @@ class WhatBackground(object):
         else:
             data = np.zeros((N_pic, N_pic))
 
-        seed = hash(tuple(data.flatten())) % (2**31 - 1)
+        seed = self.seed + hash(tuple(data.flatten())) % (2**31 - 1)
         im_noise, env = MotionCloudNoise(sf_0=self.sf_0,
                                          B_sf=self.B_sf,
                                          seed=seed)
@@ -79,6 +144,7 @@ class WhatBackground(object):
         
         im = np.clip(im, 0., 1.)
         im = im.reshape((28,28,1))
+        
         im *= 255
         return im.astype('B') #Variable(torch.DoubleTensor(im)) #.to(self.device)
 
@@ -98,15 +164,17 @@ class WhatNet(nn.Module):
         x = x.view(-1, 4*4*50)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        return x #F.log_softmax(x, dim=1)
     
 class WhatTrainer:
-    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu'):
+    def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu', seed=0):
         self.args = args
         self.device = device
+        self.seed = seed
+        torch.manual_seed(seed)        
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         transform=transforms.Compose([
-                               WhatShift(),
+                               WhatShift(args),
                                WhatBackground(contrast=args.contrast, 
                                               noise=args.noise, 
                                               sf_0=args.sf_0, 
@@ -115,7 +183,7 @@ class WhatTrainer:
                                #transforms.Normalize((args.mean,), (args.std,))
                            ])
         if not train_loader:
-            dataset_train = datasets.MNIST('../data',
+            dataset_train = MNIST('../data',
                             train=True,
                             download=True,
                             transform=transform,
@@ -128,7 +196,7 @@ class WhatTrainer:
             self.train_loader = train_loader
 
         if not test_loader:
-            dataset_test = datasets.MNIST('../data',
+            dataset_test = MNIST('../data',
                             train=False,
                             download=True,
                             transform=transform,
@@ -145,7 +213,8 @@ class WhatTrainer:
         else:
             self.model = model
             
-        self.loss_func = F.nll_loss
+        #self.loss_func = F.nll_loss
+        self.loss_func = nn.CrossEntropyLoss() 
         
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
@@ -154,7 +223,7 @@ class WhatTrainer:
 
     def train(self, epoch):
         train(self.args, self.model, self.device, self.train_loader, self.loss_func, self.optimizer, epoch)
-        
+
     def test(self):
         return test(self.args, self.model, self.device, self.test_loader, self.loss_func)
     
@@ -180,7 +249,8 @@ def test(args, model, device, test_loader, loss_function):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += loss_function(output, target, reduction='sum').item() # sum up batch loss
+            #test_loss += loss_function(output, target, reduction='sum').item() # sum up batch loss
+            test_loss += loss_function(output, target).item()
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -192,27 +262,43 @@ def test(args, model, device, test_loader, loss_function):
     return correct / len(test_loader.dataset)
 
 class What:
-    def __init__(self, args, train_loader=None, test_loader=None, force=False):
+    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0, model=None, robust=False):
         self.args = args
+        self.seed = seed
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        if robust:
+            suffix = "robust_{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        else:
+            suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
-        if os.path.exists(model_path) and not force:
+            
+        if model is not None:
+            self.model = model
+            self.trainer = WhatTrainer(args, 
+                                       model=self.model,
+                                       train_loader=train_loader, 
+                                       test_loader=test_loader, 
+                                       device=device,
+                                       seed=self.seed)
+        elif os.path.exists(model_path) and not force:
             self.model  = torch.load(model_path)
             self.trainer = WhatTrainer(args, 
                                        model=self.model,
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
-                                       device=device)
+                                       device=device,
+                                       seed=self.seed)
         else:                                                       
             self.trainer = WhatTrainer(args, 
+                                       model=self.model,
                                        train_loader=train_loader, 
                                        test_loader=test_loader, 
-                                       device=device)
+                                       device=device,
+                                       seed=self.seed)
             if self.args.verbose:
                 print("Training the What model")
             for epoch in range(1, args.epochs + 1):
