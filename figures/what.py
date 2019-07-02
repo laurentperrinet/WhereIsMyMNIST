@@ -271,7 +271,11 @@ class What:
         device = torch.device("cuda" if use_cuda else "cpu")
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
         if robust:
-            suffix = "robust_{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+            suffix = "robust_{}_{}_{}_{}_{}".format(self.args.sf_0, 
+                                                    self.args.B_sf, 
+                                                    self.args.noise, 
+                                                    self.args.contrast, 
+                                                    self.args.what_offset_std)
         else:
             suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
