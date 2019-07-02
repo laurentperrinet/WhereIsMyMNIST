@@ -18,9 +18,12 @@ import MotionClouds as mc
 from display import pe, minmax
 from PIL import Image
 import SLIP
-from what import What
-from tqdm import tqdm
+#from what import What # l'entrainement du reseau what done 11% de reussite
+from robust_what import What # on va voir si ça donne la meme chose avec un robust_what
+# from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
+
+import datetime
 
 
 class MNIST(MNIST_dataset):
@@ -438,7 +441,8 @@ class WhereTrainer:
                              B_sf=args.B_sf),
             RetinaMask(N_pic=args.N_pic),
             RetinaWhiten(N_pic=args.N_pic),
-            RetinaTransform(self.retina.transform_dico),
+            TransformDico(self.retina),
+            #RetinaTransform(self.retina.transform_dico), commenter et remplacer par transform dico
             #RetinaTransform(self.retina.retina_transform_vector),
             ToFloatTensor(),
             # Normalize()
@@ -681,8 +685,10 @@ class Where():
         if what_model:
             self.what_model = what_model
         else:
+            print(datetime.datetime.now())
             what = What(args) # trains the what_model if needed
             self.what_model = what.model.to(self.device)
+            print(datetime.datetime.now())
             
                 
         '''from what import WhatNet
@@ -911,7 +917,7 @@ class Where():
                 #torch.save(self.model.state_dict(), path) #save the neural network state
                 print('Model saved at', path)
         else:
-            from tqdm import tqdm
+            # from tqdm import tqdm # commenter car ne sert pas et hydra ne veut pas sinon
             # setting up training
             if seed is None:
                 seed = self.args.seed
@@ -921,7 +927,7 @@ class Where():
                 self.trainer.test()
 
             '''self.model.train() # set training mode
-            for epoch in tqdm(range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
+            for epoch in (range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
                 loss = self.train_epoch(epoch, seed, rank=0)
                 # report classification results
                 if self.args.verbose and self.args.log_interval>0:

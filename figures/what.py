@@ -265,6 +265,7 @@ class What:
     def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0, model=None, robust=False):
         self.args = args
         self.seed = seed
+        self.model = model # sinon hydra ne veut pas lors de l'entrainement d'un reseau where
         use_cuda = not args.no_cuda and torch.cuda.is_available()
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
