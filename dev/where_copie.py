@@ -18,7 +18,8 @@ import MotionClouds as mc
 from display import pe, minmax
 from PIL import Image
 import SLIP
-from what import What
+#from what import What # l'entrainement du reseau what done 11% de reussite
+from robust_what import What # on va voir si ça donne la meme chose avec un robust_what
 # from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
 
