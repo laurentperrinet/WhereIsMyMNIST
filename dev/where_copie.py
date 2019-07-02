@@ -22,6 +22,8 @@ from what import What
 # from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
 
+import datetime
+
 
 class MNIST(MNIST_dataset):
     def __getitem__(self, index):
@@ -682,8 +684,10 @@ class Where():
         if what_model:
             self.what_model = what_model
         else:
+            print(datetime.datetime.now())
             what = What(args) # trains the what_model if needed
             self.what_model = what.model.to(self.device)
+            print(datetime.datetime.now())
             
                 
         '''from what import WhatNet
