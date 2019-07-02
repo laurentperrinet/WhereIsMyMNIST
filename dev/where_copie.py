@@ -912,7 +912,7 @@ class Where():
                 #torch.save(self.model.state_dict(), path) #save the neural network state
                 print('Model saved at', path)
         else:
-            from tqdm import tqdm
+            # from tqdm import tqdm # commenter car ne sert pas et hydra ne veut pas sinon
             # setting up training
             if seed is None:
                 seed = self.args.seed
