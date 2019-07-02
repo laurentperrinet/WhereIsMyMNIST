@@ -970,30 +970,59 @@ class Where():
         #for retina_data, data_fullfield, accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift in dataloader:
         (retina_data, data_fullfield), (accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift) = next(iter(dataloader))
         #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
-        pred_accuracy_colliculus = self.pred_accuracy(retina_data)
-        
+        pred_accuracy_colliculus = self.pred_accuracy(retina_data) # LogPolar
+        accuracy_fullfield_pre = CollFill(self.accuracy_map, N_pic=self.args.N_pic, baseline=0.1)((0, 0))
+        pred_accuracy_ref = CollTransform(self.retina.colliculus_transform_vector)(accuracy_fullfield_pre)
+        plt.imshow(fullfield_accuracy_ref)
+        plt.show()
         # use that predicted map to extract the foveal patch and classify the image
         if nb_saccades > 1:
             for idx in range(self.args.minibatch_size):
                 i_ref, j_ref = 0, 0
-                pred_accuracy_trans = pred_accuracy_colliculus[idx, :]
                 fullfield_ref = data_fullfield[idx, :, :]
+                fullfield_shift = fullfield_ref
+                accuracy_fullfield_post = accuracy_fullfield[idx, :, :] # target accuracy fullfield (HACK!!)
+                accuracy_fullfield_shift = accuracy_fullfield_post
                 #coll_ref = accuracy_fullfield[idx, :, :]
                 for num_saccade in range(nb_saccades - 1):
-                    i_pred, j_pred = self.index_prediction(pred_accuracy_trans)
-                    i_ref += i_pred
-                    j_ref += j_pred
-                    fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.5)((fullfield_ref, 0))
-                    retina_shift = self.retina.retina(fullfield_shift)
-                    #coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))
-                    pred_accuracy_trans = self.pred_accuracy(retina_shift)
                     if idx == 0:
                         plt.imshow(fullfield_shift)
                         plt.show()
-                        print(num_saccade, i_ref, j_ref)
+                        print(num_saccade, i_ref, j_ref)  
+                        
+                    # WHAT_POSTERIOR_TEST
+                    im = where.extract(data_fullfield[idx, :, :], i_ref, j_ref)
+                    proba = self.classify_what(im).numpy()
+                    predicted_index = proba.argmax(axis=1)
+                    posterior_what = proba[predicted_index]
+                    
+                    # ACTION SELECTION
+                    if idx = 0:
+                        pred_accuracy_trans = pred_accuracy_colliculus[idx, :]
+                    else:
+                        pred_accuracy_trans = self.pred_accuracy(retina_shift)
+                    
+                    i_pred, j_pred = self.index_prediction(pred_accuracy_trans)
+                    i_ref += i_pred
+                    j_ref += j_pred
+                    
+                    # WHERE_POSTERIOR_PREDICTION
+                    posterior_where = accuracy_fullfield_shift[i_ref, j_ref]
+                    
+                    # SWITCH TEST
+                    if posterior_what > posterior_where:
+                        break
+                    
+                    # SACCADE
+                    fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.5)((fullfield_ref, 0))
+                    retina_shift = self.retina.retina(fullfield_shift)
+                    accuracy_fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((accuracy_fullfield_post, 0))
+                    
+                    #coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))                 
+                    
                 data_fullfield[idx, :, :] = Variable(torch.FloatTensor(fullfield_shift))
                 #accuracy_fullfield[idx, :, :] = coll_shift
-                pred_accuracy_colliculus[idx, :] = pred_accuracy_trans
+                pred_accuracy_colliculus[idx, :, :] = pred_accuracy_ref #pred_accuracy_trans
 
         correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
         print(correct)
