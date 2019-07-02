@@ -8,6 +8,8 @@ import datetime
 from main import init
 args = init(filename='../data/2019-06-12')
 
+print(datetime.datetime.now())
+
 #args.epochs = 60
 args.save_model = False
 
