@@ -19,7 +19,7 @@ from display import pe, minmax
 from PIL import Image
 import SLIP
 from what import What
-from tqdm import tqdm
+# from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
 
 
@@ -922,7 +922,7 @@ class Where():
                 self.trainer.test()
 
             '''self.model.train() # set training mode
-            for epoch in tqdm(range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
+            for epoch in (range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
                 loss = self.train_epoch(epoch, seed, rank=0)
                 # report classification results
                 if self.args.verbose and self.args.log_interval>0:
