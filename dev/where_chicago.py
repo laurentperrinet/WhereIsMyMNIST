@@ -25,8 +25,8 @@ import matplotlib.pyplot as plt
 
 import datetime
 
-
-class MNIST(MNIST_dataset):
+'''
+NIST(MNIST_dataset):
     def __getitem__(self, index):
         """
         Args:
@@ -51,8 +51,49 @@ class MNIST(MNIST_dataset):
             target = self.target_transform((target, index))
 
         return img, target
+'''
 
 
+class ChicagoFacesDataset:
+    """Chicago Faces dataset."""
+
+    def __init__(self, csv_file, root_dir):
+        """
+        Args:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+        """
+        self.root_dir = root_dir
+        self.init_get_path_files()
+
+    def init_get_path_files(self):
+        self.list_files = []
+        self.dic_sample = {}
+        folder_directory = self.root_dir
+
+        for path, subdirs, files in os.walk(folder_directory):
+            for name in files:
+                if name[-4:] == '.jpg':
+                    # print(path, name)
+                    self.list_files.append(os.path.join(path, name))
+        # print(self.list_files)
+
+    def __len__(self):
+        return len(self.list_files)
+
+    def __getitem__(self, idx):
+        # img_name = os.path.join(self.root_dir, self.landmarks_frame.iloc[idx, 0])
+        img_name = os.path.join(self.list_files[idx])
+        image = io.imread(img_name, as_gray=True)
+        if self.transform is not None:
+            image = self.transform((image, index))
+        name_image = self.list_files[idx][-28:-4]
+        target = self.list_files[idx][-5:-4]
+        if target == 'C' or target == 'O':
+            target = self.list_files[idx][-6:-4]
+        self.dic_sample[idx] = [name_image, image, target]
+
+        return self.dic_sample[idx]
 
 
 class RetinaFill:
@@ -69,6 +110,7 @@ class RetinaFill:
         w_mid = w // 2
         pixel_fullfield[N_mid - w_mid: N_mid - w_mid + w,
                   N_mid - w_mid: N_mid - w_mid + w] = sample
+        print("RetinaFill ok")
         return (pixel_fullfield, seed)
 
 class CollFill:
@@ -165,10 +207,21 @@ class WhereShift:
         j_bsup_data = min(N_pic, N_pic + j_offset)
         fullfield[i_binf_data:i_bsup_data,
                   j_binf_data:j_bsup_data] = patch
+        print("WhereShift ok")
         if self.keep_label:
             return fullfield, label, i_offset, j_offset
         else:
             return fullfield #.astype('B')
+
+class WhereSquareCrop:
+    def __call__(self, image):
+        #print(image)
+        h, w = len(image), len(image[0])
+        dim = min(h, w)
+        self.args.N_pic = dim
+        image = image[h//2-dim//2:h//2+dim//2, w//2-dim//2:w//2+dim//2]
+        print("WhereSquareCrop ok")
+        return image
 
         
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
@@ -220,6 +273,7 @@ class RetinaBackground:
         fullfield = np.clip(fullfield, 0., 1.)
         fullfield = fullfield.reshape((N_pic, N_pic))
         #pixel_fullfield = fullfield * 255 # Back to pixels
+        print("RetinaBackground ok")
         return fullfield #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class RetinaMask:
@@ -244,6 +298,7 @@ class RetinaMask:
         fullfield += 0.5
         #data *= 255
         #data = np.clip(data, 0, 255)
+        print("RetinaMask ok")
         return fullfield #.astype('B')
     
 class RetinaWhiten:
@@ -257,6 +312,7 @@ class RetinaWhiten:
         fullfield = self.whit.FTfilter(fullfield, self.K_whitening) 
         fullfield += 0.5
         fullfield = np.clip(fullfield, 0, 1)
+        print("RetinaWhiten ok")
         return fullfield #pixel_fullfield.astype('B')
 
 class FullfieldRetinaWhiten:
@@ -277,7 +333,7 @@ class RetinaTransform:
         self.retina_transform_vector = retina_transform_vector
     def __call__(self, fullfield):
         retina_features = self.retina_transform_vector @ np.ravel(fullfield)
-
+        print("RetinaTransform ok")
         return retina_features
 
 class TransformDico:
@@ -440,6 +496,7 @@ class WhereTrainer:
         self.transform = transforms.Compose([
             RetinaFill(N_pic=args.N_pic),
             WhereShift(args),
+            WhereSquareCrop(),
             RetinaBackground(contrast=args.contrast,
                              noise=args.noise,
                              sf_0=args.sf_0,
@@ -524,12 +581,12 @@ class WhereTrainer:
         #                               lr=args.lr, 
         #                               momentum=args.momentum)
         
-    def init_data_loader(self, args, suffix, train=True, generate_data=True, fullfield = False, force_generate = False):
-        if train:
-            use = 'train'
-        else:
-            use = 'test'
-        data_loader_path = '/tmp/where_{}_dataset_{}_{}.pt'.format(use, suffix, args.minibatch_size)
+    def init_data_loader(self, args, suffix, generate_data=True, fullfield = False, force_generate = False): # train = True retire
+        #if train:
+            #use = 'train'
+        #else:
+            #use = 'test'
+        data_loader_path = '/tmp/where_chicago_dataset_{}_{}.pt'.format(suffix, args.minibatch_size) # use retire
         if os.path.isfile(data_loader_path) and generate_data and not force_generate:
             if self.args.verbose: 
                 print('Loading {}ing dataset'.format(use))
