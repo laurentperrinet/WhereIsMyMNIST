@@ -406,7 +406,7 @@ class WhereTrainer:
         ## DATASET TRANSFORMS     
         # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
         accuracy_path = "../data/MNIST_accuracy_{}.npy".format(suffix_what)
-        if acc_map is not None:
+        if acc_map is None:
             if not os.path.isfile(accuracy_path):
                 self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
             else:
@@ -961,7 +961,7 @@ class Where():
             accuracy.append(correct.mean())
         return np.mean(accuracy)
 
-    def multi_test(self, nb_saccades, dataloader=None):
+    def multi_test(self, nb_saccades, dataloader=None, batch_size=None):
         # multi-saccades
         if dataloader is None:
             dataloader = self.loader_test
@@ -971,31 +971,36 @@ class Where():
         (retina_data, data_fullfield), (accuracy_colliculus, accuracy_fullfield, digit_labels, i_shift, j_shift) = next(iter(dataloader))
         #retina_data = Variable(torch.FloatTensor(retina_data.float())).to(self.device)
         pred_accuracy_colliculus = self.pred_accuracy(retina_data) # LogPolar
-        accuracy_fullfield_pre = CollFill(self.accuracy_map, N_pic=self.args.N_pic, baseline=0.1)((0, 0))
-        pred_accuracy_ref = CollTransform(self.retina.colliculus_transform_vector)(accuracy_fullfield_pre)
-        plt.imshow(fullfield_accuracy_ref)
-        plt.show()
+        # Central prediction
+        accuracy_fullfield_center = CollFill(self.accuracy_map, N_pic=self.args.N_pic, baseline=0.1)((0, 0))
+        accuracy_fullfield_center = np.array(accuracy_fullfield_center[0])
+        pred_accuracy_center = CollTransform(self.retina.colliculus_transform_vector)(accuracy_fullfield_center)
+        #plt.imshow(accuracy_fullfield_center)
+        #plt.show()
         # use that predicted map to extract the foveal patch and classify the image
+        if batch_size is None:
+            batch_size = self.args.minibatch_size
         if nb_saccades > 1:
-            for idx in range(self.args.minibatch_size):
+            do_control = True
+            for idx in range(batch_size):
                 i_ref, j_ref = 0, 0
                 fullfield_ref = data_fullfield[idx, :, :]
                 fullfield_shift = fullfield_ref
-                accuracy_fullfield_post = accuracy_fullfield[idx, :, :] # target accuracy fullfield (HACK!!)
-                accuracy_fullfield_shift = accuracy_fullfield_post
+                #accuracy_fullfield_post = accuracy_fullfield[idx, :, :] # target accuracy fullfield (HACK!!)
+                #accuracy_fullfield_shift = accuracy_fullfield_post
                 #coll_ref = accuracy_fullfield[idx, :, :]
                 num_max = nb_saccades
-                nb_saccades = 0
+                cpt_saccades = 0
                 for num_saccade in range(num_max):
                     if idx == 0:
                         plt.imshow(fullfield_shift)
+                        plt.title(str(cpt_saccades))
                         plt.show()
-                        print(num_saccade, i_ref, j_ref)  
                         
                     # WHAT_POSTERIOR_TEST
-                    im = where.extract(data_fullfield[idx, :, :], i_ref, j_ref)
-                    proba = self.classify_what(im).numpy()
-                    predicted_index = proba.argmax(axis=1)
+                    im = self.extract(data_fullfield[idx, :, :], i_ref, j_ref).detach().numpy()
+                    proba = self.classify_what(im).numpy()[0]
+                    predicted_index = proba.argmax() #axis=1)
                     posterior_what = proba[predicted_index]
                     
                     # ACTION SELECTION
@@ -1007,29 +1012,40 @@ class Where():
                     i_pred, j_pred = self.index_prediction(pred_accuracy_trans)
                     i_ref += i_pred
                     j_ref += j_pred
+                    i_ref = minmax(i_ref, self.args.N_pic//2 - self.args.w//2)
+                    j_ref = minmax(j_ref, self.args.N_pic//2 - self.args.w//2)
                     
                     # WHERE_POSTERIOR_PREDICTION
-                    posterior_where = accuracy_fullfield_shift[i_ref, j_ref]
+                    mid = self.args.N_pic//2
+                    im_colliculus = self.retina.accuracy_invert(pred_accuracy_trans)
+                    posterior_where = im_colliculus[mid + i_pred, mid + j_pred] 
+                    #posterior_where = accuracy_fullfield_post[mid + i_pred, mid + j_pred].detach().numpy()
                     
                     # SWITCH TEST
-                    if posterior_what > posterior_where:
+                    if posterior_what > posterior_where and posterior_what > 0.9:
                         break
                     
                     # SACCADE
                     fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.5)((fullfield_ref, 0))
                     retina_shift = self.retina.retina(fullfield_shift)
-                    accuracy_fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((accuracy_fullfield_post, 0))
-                    nb_saccades += 1
+                    #accuracy_fullfield_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((accuracy_fullfield_post, 0))
+                    cpt_saccades += 1
                     
                     #coll_shift = WhereShift(self.args, i_offset=-i_ref, j_offset=-j_ref, baseline=0.1)((coll_ref, 0))                 
                     
                 # 
                 data_fullfield[idx, :, :] = Variable(torch.FloatTensor(fullfield_shift))
                 #accuracy_fullfield[idx, :, :] = coll_shift
-                pred_accuracy_colliculus[idx, :, :] = pred_accuracy_ref #pred_accuracy_trans
-                    
+                pred_accuracy_colliculus[idx, :] = pred_accuracy_center # (LogPolar) central prediction 
+                #pred_accuracy_trans
+                if idx == 0:
+                    plt.imshow(fullfield_shift)
+                    plt.title(str(cpt_saccades))
+                    plt.show()
+        else:
+            do_control= False               
 
-        correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze())
+        correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze(), do_control=do_control)
         print(correct)
         return np.mean(correct)
 
