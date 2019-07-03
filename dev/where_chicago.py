@@ -22,6 +22,7 @@ import SLIP
 from what import What # on va voir si ça donne la meme chose avec un robust_what
 # from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
+from skimage import io
 
 import datetime
 
@@ -57,7 +58,7 @@ NIST(MNIST_dataset):
 class ChicagoFacesDataset:
     """Chicago Faces dataset."""
 
-    def __init__(self, csv_file, root_dir):
+    def __init__(self, csv_file, root_dir, transform):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -65,6 +66,7 @@ class ChicagoFacesDataset:
         """
         self.root_dir = root_dir
         self.init_get_path_files()
+        self.transform = transform
 
     def init_get_path_files(self):
         self.list_files = []
@@ -86,7 +88,7 @@ class ChicagoFacesDataset:
         img_name = os.path.join(self.list_files[idx])
         image = io.imread(img_name, as_gray=True)
         if self.transform is not None:
-            image = self.transform((image, index))
+            image = self.transform(image)
         name_image = self.list_files[idx][-28:-4]
         target = self.list_files[idx][-5:-4]
         if target == 'C' or target == 'O':
@@ -214,8 +216,11 @@ class WhereShift:
             return fullfield #.astype('B')
 
 class WhereSquareCrop:
-    def __call__(self, image):
-        #print(image)
+    def __init__(self, args):
+        self.args = args
+
+    def __call__(self, data3):
+        image = data3        #print(image)
         h, w = len(image), len(image[0])
         dim = min(h, w)
         self.args.N_pic = dim
@@ -496,7 +501,7 @@ class WhereTrainer:
         self.transform = transforms.Compose([
             RetinaFill(N_pic=args.N_pic),
             WhereShift(args),
-            WhereSquareCrop(),
+            WhereSquareCrop(args),
             RetinaBackground(contrast=args.contrast,
                              noise=args.noise,
                              sf_0=args.sf_0,
