@@ -961,7 +961,7 @@ class Where():
             accuracy.append(correct.mean())
         return np.mean(accuracy)
 
-    def multi_test(self, nb_saccades, dataloader=None, batch_size=None):
+    def multi_test(self, nb_saccades, dataloader=None, batch_size=None, dynamic=False):
         # multi-saccades
         if dataloader is None:
             dataloader = self.loader_test
@@ -1022,7 +1022,7 @@ class Where():
                     #posterior_where = accuracy_fullfield_post[mid + i_pred, mid + j_pred].detach().numpy()
                     
                     # SWITCH TEST
-                    if posterior_what > posterior_where and posterior_what > 0.9:
+                    if posterior_what > posterior_where and dynamic: #posterior_what > 0.9:
                         break
                     
                     # SACCADE
