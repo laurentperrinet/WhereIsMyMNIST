@@ -122,7 +122,11 @@ class WhatBackground(object):
         if data.min() != data.max():
             data = (data - data.min()) / (data.max() - data.min())
             data = 2 * data - 1 # go to [-1, 1] range
-            data *= self.contrast
+            if self.contrast is not None:
+                data *= self.contrast
+            else:
+                contrast = np.random.uniform(low=0.3, high=0.7)
+                data *= contrast
             data = data / 2 + 0.5 # back to [0, 1] range
         else:
             data = np.zeros((N_pic, N_pic))
@@ -182,7 +186,7 @@ class WhatTrainer:
                                transforms.ToTensor(),
                                #transforms.Normalize((args.mean,), (args.std,))
                            ])
-        if not train_loader:
+        if train_loader is None:
             dataset_train = MNIST('../data',
                             train=True,
                             download=True,
@@ -195,7 +199,7 @@ class WhatTrainer:
         else:
             self.train_loader = train_loader
 
-        if not test_loader:
+        if test_loader is None:
             dataset_test = MNIST('../data',
                             train=False,
                             download=True,
@@ -281,7 +285,7 @@ class What:
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
             
-        if model is not None:
+        if model is not None and not force:
             self.model = model
             self.trainer = WhatTrainer(args, 
                                        model=self.model,
