@@ -43,8 +43,8 @@ class Retina:
         self.init_retina_dico()
         self.init_colliculus_transform_dico()
         self.init_grid()
-        self.init_retina_transform()
-        self.init_inverse_retina() # il faudra le decommenter plus tard
+        #self.init_retina_transform()
+        #self.init_inverse_retina() # il faudra le decommenter plus tard
         #self.init_colliculus_transform()
         #self.init_colliculus_inverse()
 
@@ -95,7 +95,7 @@ class Retina:
 
     def init_colliculus_transform(self):
         # TODO : make a different transformation for the clliculus (more eccentricties?)
-        print(self.retina_transform)
+        #print(self.retina_transform)
         self.colliculus_transform = (self.retina_transform ** 2).sum(axis=(0, 3))
         # colliculus = colliculus**.5
         self.colliculus_transform /= self.colliculus_transform.sum(axis=-1)[:, :, None]  # normalization as a probability
@@ -106,7 +106,7 @@ class Retina:
         if self.args.verbose: print(filename)
         try:
             self.colliculus_transform_dico = np.load(filename).item()
-            if self.args.verbose: print("Fichier retina_dico charge avec succes")
+            if self.args.verbose: print("Fichier colliculus_transform_dico charge avec succes")
         except:
             if self.args.verbose: print("Creation de colliculus_transform_dico en cours")
             self.colliculus_transform_dico = {}
@@ -405,7 +405,7 @@ class Retina:
 
                         indice += 1
 
-        return fullfield_dot_retina_dico
+        return pixel_fullfield, fullfield_dot_retina_dico
 
     def inverse_transform_dico(self, retina_features):
         rebuild_pixel_fullfield = np.zeros((self.N_pic, self.N_pic))
