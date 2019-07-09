@@ -993,7 +993,11 @@ class Where():
                 cpt_saccades = 0
                 for num_saccade in range(num_max):
                     if idx == 0:
-                        plt.imshow(fullfield_shift)
+                        fig = plt.figure(figsize = (5, 5))
+                        ax = fig.add_subplot(111)
+                        data_retina = self.retina.retina(fullfield_shift)
+                        ax = self.retina.show(ax, self.retina.retina_invert(data_retina))
+                        #plt.imshow(fullfield_shift)
                         plt.title(str(cpt_saccades))
                         plt.show()
                         
@@ -1039,14 +1043,18 @@ class Where():
                 pred_accuracy_colliculus[idx, :] = pred_accuracy_center # (LogPolar) central prediction 
                 #pred_accuracy_trans
                 if idx == 0:
-                    plt.imshow(fullfield_shift)
+                    fig = plt.figure(figsize = (5, 5))
+                    ax = fig.add_subplot(111)
+                    data_retina = self.retina.retina(fullfield_shift)
+                    ax = self.retina.show(ax, self.retina.retina_invert(data_retina))
+                    #plt.imshow(fullfield_shift)
                     plt.title(str(cpt_saccades))
                     plt.show()
         else:
             do_control= False               
 
         correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze(), do_control=do_control)
-        print(correct)
+        #print(correct)
         return np.mean(correct)
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
