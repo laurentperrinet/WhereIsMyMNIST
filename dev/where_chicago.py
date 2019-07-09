@@ -23,6 +23,7 @@ from what import What # on va voir si ça donne la meme chose avec un robust_wha
 # from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
 from skimage import io
+from PIL import Image
 
 import datetime
 
@@ -86,7 +87,8 @@ class ChicagoFacesDataset:
     def __getitem__(self, idx):
         # img_name = os.path.join(self.root_dir, self.landmarks_frame.iloc[idx, 0])
         img_name = os.path.join(self.list_files[idx])
-        image = io.imread(img_name, as_gray=True)
+        #image = io.imread(img_name, as_gray=True) # commente le 08/07/2019 le gris sera fait dans
+        image = io.imread(img_name)
         if self.transform is not None:
             image = self.transform(image)
         name_image = self.list_files[idx][-28:-4]
@@ -104,8 +106,7 @@ class RetinaFill:
         self.baseline = baseline
 
     def __call__(self, sample_index):
-        sample = np.array(sample_index[0])
-        seed = sample_index[1]
+        sample = np.array(sample_index)
         w = sample.shape[0]
         pixel_fullfield = np.ones((self.N_pic, self.N_pic)) * self.baseline
         N_mid = self.N_pic//2
@@ -113,7 +114,8 @@ class RetinaFill:
         pixel_fullfield[N_mid - w_mid: N_mid - w_mid + w,
                   N_mid - w_mid: N_mid - w_mid + w] = sample
         print("RetinaFill ok")
-        return (pixel_fullfield, seed)
+        #print(pixel_fullfield)
+        return pixel_fullfield
 
 class CollFill:
     def __init__(self, accuracy_map, N_pic=128, keep_label = False, baseline=0.):
@@ -150,15 +152,13 @@ class WhereShift:
     def __call__(self, data):
         #sample = np.array(sample)
         
-        sample = data[0]
-        seed = data[1]
+        sample = data
         #print("WhereShift data :", data)
         #print(data[0].shape)
         if self.keep_label:
             label = data[2]
         
         #print(index)
-        np.random.seed(seed)
         
         if self.i_offset is not None:
             i_offset = self.i_offset
@@ -194,12 +194,13 @@ class WhereShift:
                 j_offset = int(radius * np.sin(theta))
                 """
                 
-        N_pic = sample.shape[0]
+        N_pic = sample[0].shape[0]
         fullfield = np.ones((N_pic, N_pic)) * self.baseline
         i_binf_patch = max(0, -i_offset)
         i_bsup_patch = min(N_pic, N_pic - i_offset)
         j_binf_patch = max(0, -j_offset)
         j_bsup_patch = min(N_pic, N_pic - j_offset)
+        print(N_pic, i_binf_patch, i_bsup_patch, j_binf_patch, j_bsup_patch)
         patch = sample[i_binf_patch:i_bsup_patch,
                        j_binf_patch:j_bsup_patch]
 
@@ -213,6 +214,7 @@ class WhereShift:
         if self.keep_label:
             return fullfield, label, i_offset, j_offset
         else:
+            #print(fullfield)
             return fullfield #.astype('B')
 
 class WhereSquareCrop:
@@ -226,6 +228,7 @@ class WhereSquareCrop:
         self.args.N_pic = dim
         image = image[h//2-dim//2:h//2+dim//2, w//2-dim//2:w//2+dim//2]
         print("WhereSquareCrop ok")
+        #print(image)
         return image
 
         
@@ -278,7 +281,8 @@ class RetinaBackground:
         fullfield = np.clip(fullfield, 0., 1.)
         fullfield = fullfield.reshape((N_pic, N_pic))
         #pixel_fullfield = fullfield * 255 # Back to pixels
-        print("RetinaBackground ok")
+        #print("RetinaBackground ok")
+        #print(fullfield)
         return fullfield #.astype('B')  # Variable(torch.DoubleTensor(im)) #.to(self.device)
 
 class RetinaMask:
@@ -304,6 +308,8 @@ class RetinaMask:
         #data *= 255
         #data = np.clip(data, 0, 255)
         print("RetinaMask ok")
+        #print(type(fullfield))
+        #print(fullfield)
         return fullfield #.astype('B')
     
 class RetinaWhiten:
@@ -318,7 +324,60 @@ class RetinaWhiten:
         fullfield += 0.5
         fullfield = np.clip(fullfield, 0, 1)
         print("RetinaWhiten ok")
+        #print(fullfield)
+        #print(type(fullfield))
         return fullfield #pixel_fullfield.astype('B')
+
+class WhereZoom:
+    def __init__(self, args):
+        self.args = args
+    def __call__(self, fullfield):
+        #print(fullfield)
+        #plt.imshow(fullfield)
+        fullfield_PIL = Image.fromarray(fullfield)
+        #print("fullfield", type(fullfield))
+        #print("fullfield_PIL", type(fullfield_PIL))
+        taille_zoom = self.args.zoom # taille en pixels de l'image reduite
+        #fullfield_PIL.show()
+        image_reduite = fullfield_PIL.resize((taille_zoom, taille_zoom))
+        #image_reduite.show()
+        WHITE = (255, 255, 255, 0)
+        image_totale = Image.new('RGBA', (self.args.N_pic,self.args.N_pic), WHITE)
+        box = (int(self.args.N_pic//2 - taille_zoom//2), int(self.args.N_pic//2 - taille_zoom//2), int(self.args.N_pic//2 + taille_zoom//2), int(self.args.N_pic//2 + taille_zoom//2))
+        image_totale.paste(image_reduite, box)
+        #image_totale.show()
+        #print("image_totale", type(image_totale))
+        image_totale = np.array(image_totale)
+        #plt.imshow(image_totale)
+        #print("image_totale", type(image_totale))
+        if self.args.verbose: print("WhereZoom ok")
+        return image_totale
+
+class WhereGrey:
+    def __init__(self, args):
+        self.args = args
+    def __call__(self, fullfield):
+        #plt.imshow(fullfield)
+        fullfield_PIL = Image.fromarray(fullfield)
+        #fullfield_PIL.show()
+        fullfield_PIL = fullfield_PIL.convert('LA')
+        #fullfield_PIL.show()
+        fullfield = np.array(fullfield_PIL)
+        #plt.imshow(fullfield[:,:,0])
+        if self.args.verbose : print("WhereGrey ok")
+        return fullfield[:,:,0]
+
+class WhereRotate:
+    def __init__(self, args):
+        self.args = args
+    def __call__(self, fullfield):
+        fullfield_PIL = Image.fromarray(fullfield).convert("RGBA")
+        fullfield_PIL = fullfield_PIL.rotate(self.args.rotation)
+        white_background = Image.new('RGBA', fullfield_PIL.size, (255,) * 4)
+        fullfield_PIL = Image.composite(fullfield_PIL, white_background, fullfield_PIL)
+        fullfield = np.array(fullfield_PIL)
+        if self.args.verbose : print("WhereRotate ok")
+        return fullfield
 
 class FullfieldRetinaWhiten:
     def __init__(self, N_pic=128):

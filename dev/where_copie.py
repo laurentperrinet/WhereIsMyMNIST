@@ -285,8 +285,8 @@ class TransformDico:
         self.retina = retina
         #self.retina_dico = retina_dico
     def __call__(self, fullfield):
-        retina_dico = self.retina.transform_dico(fullfield)
-        return retina_dico
+        retina_features = self.retina.transform_dico(fullfield)
+        return retina_features
 
 class OnlineRetinaTransform:
     def __init__(self, retina):

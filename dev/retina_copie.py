@@ -95,49 +95,57 @@ class Retina:
 
     def init_colliculus_transform(self):
         # TODO : make a different transformation for the clliculus (more eccentricties?)
-        print(self.retina_transform)
+        #print(self.retina_transform)
         self.colliculus_transform = (self.retina_transform ** 2).sum(axis=(0, 3))
         # colliculus = colliculus**.5
         self.colliculus_transform /= self.colliculus_transform.sum(axis=-1)[:, :, None]  # normalization as a probability
         self.colliculus_transform_vector = self.colliculus_transform.reshape((self.N_azimuth * self.N_eccentricity, self.N_pic ** 2))
 
     def init_colliculus_transform_dico(self):
-        print("Debut colliculus_transform_dico")
-        self.colliculus_transform_dico = {}
-        for i_azimuth in range(self.N_azimuth):
-            self.colliculus_transform_dico[i_azimuth] = {}
-            for i_eccentricity in range(self.N_eccentricity):
-                self.colliculus_transform_dico[i_azimuth][i_eccentricity] = {}
-                dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
-                for pixel in range(dimension_filtres ** 2):
-                    self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel] = 0
-                    for i_theta in range(self.N_theta):
-                        for i_phase in range(self.N_phase):
-                            #print(pixel)
-                            self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel] += (self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth][pixel])**2
-        somme_valeurs_pixels = {}
-        for i_azimuth in range(self.N_azimuth):
-            somme_valeurs_pixels[i_azimuth] = {}
-            for i_eccentricity in range(self.N_eccentricity):
-                somme_valeurs_pixels[i_azimuth][i_eccentricity] = 0
-                dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
-                for pixel in range(dimension_filtres ** 2):
-                    somme_valeurs_pixels[i_azimuth][i_eccentricity] += self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel]
-        for i_azimuth in range(self.N_azimuth):
-            for i_eccentricity in range(self.N_eccentricity):
-                dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
-                for pixel in range(dimension_filtres ** 2):
-                    self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel] /= somme_valeurs_pixels[i_azimuth][i_eccentricity] # normalization as a probability
-        final_colliculus_transform_dico = {}
-        for i_azimuth in range(self.N_azimuth):
-            final_colliculus_transform_dico[i_azimuth] = {}
-            for i_eccentricity in range(self.N_eccentricity):
-                final_colliculus_transform_dico[i_azimuth][i_eccentricity] = []
-                dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
-                for pixel in range(dimension_filtres ** 2):
-                    final_colliculus_transform_dico[i_azimuth][i_eccentricity].append(self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel])
-        self.colliculus_transform_dico = final_colliculus_transform_dico
-        print("Colliculus_transform_dico cree")
+        filename = '../tmp/colliculus_transform' + self.get_suffix() + '_dico.npy'
+        if self.args.verbose: print(filename)
+        try:
+            self.colliculus_transform_dico = np.load(filename).item()
+            if self.args.verbose: print("Fichier colliculus_transform_dico charge avec succes")
+        except:
+            if self.args.verbose: print("Creation de colliculus_transform_dico en cours")
+            self.colliculus_transform_dico = {}
+            for i_azimuth in range(self.N_azimuth):
+                self.colliculus_transform_dico[i_azimuth] = {}
+                for i_eccentricity in range(self.N_eccentricity):
+                    self.colliculus_transform_dico[i_azimuth][i_eccentricity] = {}
+                    dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
+                    for pixel in range(dimension_filtres ** 2):
+                        self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel] = 0
+                        for i_theta in range(self.N_theta):
+                            for i_phase in range(self.N_phase):
+                                #print(pixel)
+                                self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel] += (self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth][pixel])**2
+            somme_valeurs_pixels = {}
+            for i_azimuth in range(self.N_azimuth):
+                somme_valeurs_pixels[i_azimuth] = {}
+                for i_eccentricity in range(self.N_eccentricity):
+                    somme_valeurs_pixels[i_azimuth][i_eccentricity] = 0
+                    dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
+                    for pixel in range(dimension_filtres ** 2):
+                        somme_valeurs_pixels[i_azimuth][i_eccentricity] += self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel]
+            for i_azimuth in range(self.N_azimuth):
+                for i_eccentricity in range(self.N_eccentricity):
+                    dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
+                    for pixel in range(dimension_filtres ** 2):
+                        self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel] /= somme_valeurs_pixels[i_azimuth][i_eccentricity] # normalization as a probability
+            final_colliculus_transform_dico = {}
+            for i_azimuth in range(self.N_azimuth):
+                final_colliculus_transform_dico[i_azimuth] = {}
+                for i_eccentricity in range(self.N_eccentricity):
+                    final_colliculus_transform_dico[i_azimuth][i_eccentricity] = []
+                    dimension_filtres = int(self.retina_dico[0][0][i_eccentricity][i_azimuth].shape[0] ** (1 / 2))
+                    for pixel in range(dimension_filtres ** 2):
+                        final_colliculus_transform_dico[i_azimuth][i_eccentricity].append(self.colliculus_transform_dico[i_azimuth][i_eccentricity][pixel])
+            self.colliculus_transform_dico = final_colliculus_transform_dico
+            if self.args.verbose : print("Colliculus_transform_dico cree")
+            np.save(filename, self.retina_dico)
+            if self.args.verbose: print("Colliculus_transform_dico sauvegarde")
 
     def init_colliculus_inverse(self):
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_transform_vector)
@@ -181,10 +189,10 @@ class Retina:
 
     def init_retina_dico(self):
         filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
-        print(filename)
+        if self.args.verbose: print(filename)
         try:
             self.retina_dico = np.load(filename).item()
-            print("Fichier retina_dico charge avec succes")
+            if self.args.verbose: print("Fichier retina_dico charge avec succes")
         except:
             if self.args.verbose: print('Creation du dictionnaire de filtres en cours...')
             self.retina_dico = {}
@@ -197,9 +205,9 @@ class Retina:
                         self.retina_dico[i_theta][i_phase][i_eccentricity] = {}
                         for i_azimuth in range(self.N_azimuth):
                             self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth] = np.ravel(self.local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg))
-            print("Dico cree")
+            if self.args.verbose: print("Dico cree")
             np.save(filename, self.retina_dico)
-            print("len finale", len(self.retina_dico),len(self.retina_dico[0]),len(self.retina_dico[0][0]),len(self.retina_dico[0][0][0]),len(self.retina_dico[0][0][0][0]))
+            if self.args.verbose: print("len finale", len(self.retina_dico),len(self.retina_dico[0]),len(self.retina_dico[0][0]),len(self.retina_dico[0][0][0]),len(self.retina_dico[0][0][0][0]))
             if self.args.verbose: print("Fichier retina_dico ecrit et sauvegarde avec succes")
 
     def vectorization(self):
@@ -263,7 +271,6 @@ class Retina:
 
                         c_a = i_azimuth == 0 and i_theta == 0 and i_phase == 0  # conditions d'affichage
                         c_a = False
-
 
                         fenetre_filtre = self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth]
                         dimension_filtre = int(fenetre_filtre.shape[0] ** (1 / 2))
@@ -398,7 +405,28 @@ class Retina:
 
                         indice += 1
 
-        return fullfield_dot_retina_dico
+        return pixel_fullfield, fullfield_dot_retina_dico
+
+    def inverse_transform_dico(self, retina_features):
+        rebuild_pixel_fullfield = np.zeros((self.N_pic, self.N_pic))
+        indice_coefficient = 0
+        for i_theta in range(self.N_theta):
+            for i_azimuth in range(self.N_azimuth):
+                for i_eccentricity in range(self.N_eccentricity):
+                    for i_phase in range(self.N_phase):
+                        filtre = self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth]
+                        coefficient = retina_features[indice_coefficient]
+                        morceau_image_reconstituee = coefficient * filtre
+
+                        #il faut a present placer le morceau au bon endroit de l'image
+
+
+
+
+                        indice_coefficient +=1
+
+
+
 
     def local_filter(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg,
                      N_X=128, N_Y=128):
