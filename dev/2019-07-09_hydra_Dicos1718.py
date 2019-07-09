@@ -10,5 +10,7 @@ args.N_azimuth = 24
 args.N_eccentricity = 12
 args
 
+print("N_pic", args.N_pic)
 from retina_copie import Retina
 retina = Retina(args)
+
