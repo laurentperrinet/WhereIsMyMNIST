@@ -18,7 +18,9 @@ i_phase = 0
 i_azimuth = 0
 
 for i_eccentricity in range(args.N_eccentricity):
-    plt.imshow(retina.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth])
+    filtre = retina.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth]
+    dimensions_filtre = filtre.shape[0]**(1/2)
+    plt.imshow(filtre.reshape((dimensions_filtre, dimensions_filtre)))
     plt.title("filtre d'eccentricite " + str(i_eccentricity))
     plt.savefig("filtre_eccentricity_" + str(i_eccentricity) + ".jpg")
 
