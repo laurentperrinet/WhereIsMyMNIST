@@ -28,7 +28,7 @@ transform=transforms.Compose([
 
 dataset = ChicagoFacesDataset(csv_file='../data/ChicagoFacesData/CFD_2.0.3_Norming_Data_and_Codebook.csv',
                                     root_dir='../data/ChicagoFacesData/', transform=transform)
-
+print(len(dataset))
 index_liste = 2
 donnees = dataset[index_liste]
 filename, images, target = donnees[0], donnees[1], donnees[2]
