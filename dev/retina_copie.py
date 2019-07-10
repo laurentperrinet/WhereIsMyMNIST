@@ -41,7 +41,7 @@ class Retina:
         self.feature_vector_size = self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase
 
         self.init_retina_dico()
-        self.init_colliculus_transform_dico()
+        #self.init_colliculus_transform_dico()
         self.init_grid()
         #self.init_retina_transform()
         #self.init_inverse_retina() # il faudra le decommenter plus tard
