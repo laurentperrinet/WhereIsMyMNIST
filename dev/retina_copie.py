@@ -191,7 +191,7 @@ class Retina:
         filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
         if self.args.verbose: print(filename)
         try:
-            self.retina_dico = np.load(filename).item()
+            self.retina_dico = np.load(filename, allow_pickle=True).item()
             if self.args.verbose: print("Fichier retina_dico charge avec succes")
         except:
             if self.args.verbose: print('Creation du dictionnaire de filtres en cours...')
