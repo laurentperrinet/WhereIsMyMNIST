@@ -424,7 +424,9 @@ class Retina:
                         fenetre_filtre = fenetre_filtre.reshape((dimension_filtre, dimension_filtre))
                         coefficient = float(retina_features[indice_coefficient])
 
-                        type_affichage = 3 # 1 affichage habituel, 2 affichage graduel, 3 affichage par azimuth croissant
+                        print(indice_coefficient, i_theta, i_azimuth, i_eccentricity, i_phase)
+
+                        type_affichage = 0 # 1 affichage habituel, 2 affichage graduel, 3 affichage par azimuth croissant
 
                         if type_affichage == 1:
                             c_a = i_azimuth == 16 and i_theta == 0 and i_phase == 0  # conditions d'affichage
