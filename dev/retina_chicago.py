@@ -424,7 +424,7 @@ class Retina:
                         fenetre_filtre = fenetre_filtre.reshape((dimension_filtre, dimension_filtre))
                         coefficient = float(retina_features[indice_coefficient])
 
-                        print(indice_coefficient, i_theta, i_azimuth, i_eccentricity, i_phase)
+                        #print(indice_coefficient, i_theta, i_azimuth, i_eccentricity, i_phase)
 
                         type_affichage = 0 # 1 affichage habituel, 2 affichage graduel, 3 affichage par azimuth croissant
 

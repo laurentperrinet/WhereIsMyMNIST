@@ -28,7 +28,7 @@ from PIL import Image
 import datetime
 
 '''
-NIST(MNIST_dataset):
+MNIST(MNIST_dataset):
     def __getitem__(self, index):
         """
         Args:
