@@ -153,7 +153,7 @@ class Retina:
     def init_colliculus_inverse(self):
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_transform_vector)
 
-    def local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg=LogGabor(pe=pe),
+    def local_filter_dico(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg=LogGabor(pe=pe),
                           N_X=1718, N_Y=1718):
         # rho=1.41, ecc_max=.8,
         # sf_0_max=0.45, sf_0_r=0.03,
