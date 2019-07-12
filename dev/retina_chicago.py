@@ -169,14 +169,14 @@ class Retina:
         ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
         # sinon on obtenait exactement les memes coordonnees x et y pour environ la moitie des filtres calcules 12/07
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
-        print(r)
+        #print(r)
 
         dimension_filtre = min(2 * int(2 * r),
                                self.N_pic)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
-        print("dimension_filtre", dimension_filtre)
+       # print("dimension_filtre", dimension_filtre)
         if dimension_filtre < 200:
             dimension_filtre = 200
-        print("dimension_filtre", dimension_filtre)
+        #print("dimension_filtre", dimension_filtre)
         lg.set_size((dimension_filtre, dimension_filtre))
 
         # lg.set_size((N_X, N_Y))
@@ -189,7 +189,7 @@ class Retina:
         # TODO : find the good ref for this                print(sf_0)
         x = N_X / 2 + r * np.cos(psi)  # c'est bien le centre du filtre ?
         y = N_Y / 2 + r * np.sin(psi)  # c'est bien le centre du filtre ?
-        print("Pour i_eccentricity =", i_eccentricity, ' : x, y = ', int(x), int(y))
+        #print("Pour i_eccentricity =", i_eccentricity, ' : x, y = ', int(x), int(y))
         params = {'sf_0': sf_0,
                   'B_sf': B_sf,
                   'theta': theta_ref + psi,
