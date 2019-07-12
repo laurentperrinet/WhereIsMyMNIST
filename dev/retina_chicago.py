@@ -166,7 +166,7 @@ class Retina:
         B_sf = 0.4  # initialement 0.4 # gross. le nombre de lobes
         sf_0_max = 0.02  # 0.05 # initialement 0.45 # gross. taille initiale
 
-        ecc = ecc_max * (1 / self.rho) ** ((self.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
+        ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
         # sinon on obtenait exactement les memes coordonnees x et y pour environ la moitie des filtres calcules 12/07
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
         print(r)
