@@ -153,6 +153,56 @@ class Retina:
     def init_colliculus_inverse(self):
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_transform_vector)
 
+    def local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg=LogGabor(pe=pe),
+                          N_X=1718, N_Y=1718):
+        # rho=1.41, ecc_max=.8,
+        # sf_0_max=0.45, sf_0_r=0.03,
+        # B_sf=.4, B_theta=np.pi / 12): # on enleve self pour l'instant
+
+        # !!?? Magic numbers !!??
+        ecc_max = 0.6  # 0.6  # initialement 0.8 # self.args.ecc_max  # gross. aptitude a grandir
+        sf_0_r = 0.0015  # initialement 0.03 # self.args.sf_0_r # gross. la "diminution" de taille pour les ecc moyennes
+        B_theta = np.pi / args.N_theta / 2  # self.args.B_theta
+        B_sf = 0.4  # initialement 0.4 # gross. le nombre de lobes
+        sf_0_max = 0.02  # 0.05 # initialement 0.45 # gross. taille initiale
+
+        ecc = ecc_max * (1 / args.rho) ** ((args.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
+        # sinon on obtenait exactement les memes coordonnees x et y pour environ la moitie des filtres calcules 12/07
+        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
+        print(r)
+
+        dimension_filtre = min(2 * int(2 * r),
+                               args.N_pic)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
+        print("dimension_filtre", dimension_filtre)
+        if dimension_filtre < 200:
+            dimension_filtre = 200
+        print("dimension_filtre", dimension_filtre)
+        lg.set_size((dimension_filtre, dimension_filtre))
+
+        # lg.set_size((N_X, N_Y))
+
+        # psi = i_azimuth * np.pi * 2 / N_azimuth
+        psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / args.N_azimuth
+        theta_ref = i_theta * np.pi / args.N_theta
+        sf_0 = 0.5 * sf_0_r / ecc
+        sf_0 = np.min((sf_0, sf_0_max))
+        # TODO : find the good ref for this                print(sf_0)
+        x = N_X / 2 + r * np.cos(psi)  # c'est bien le centre du filtre ?
+        y = N_Y / 2 + r * np.sin(psi)  # c'est bien le centre du filtre ?
+        print("Pour i_eccentricity =", i_eccentricity, ' : x, y = ', int(x), int(y))
+        params = {'sf_0': sf_0,
+                  'B_sf': B_sf,
+                  'theta': theta_ref + psi,
+                  'B_theta': B_theta}
+        phase = i_phase * np.pi / 2
+        # lg.show_loggabor(x, y, **params)
+        # print('taille sortie', lg.loggabor(x, y, **params).ravel().shape)
+
+        # return lg.normalize(lg.invert(lg.loggabor(N_X // 2, N_Y // 2, **params) * np.exp(-1j * phase))), r
+        return lg.normalize(
+            lg.invert(lg.loggabor(dimension_filtre // 2, dimension_filtre // 2, **params) * np.exp(-1j * phase)))
+
+    """
     def local_filter_dico(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg=LogGabor(pe=pe),
                                N_X=128, N_Y=128):
         # rho=1.41, ecc_max=.8,
@@ -164,7 +214,7 @@ class Retina:
         sf_0_r = 0.0015  # 0.03  # self.args.sf_0_r
         B_theta = np.pi / self.N_theta / 2  # self.args.B_theta
         B_sf = .4
-        sf_0_max = 0.05  # 0.45
+        sf_0_max = 0.02  # 0.45
 
         ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
@@ -189,6 +239,8 @@ class Retina:
         # print('taille sortie', lg.loggabor(x, y, **params).ravel().shape)
         return lg.normalize(
             lg.invert(lg.loggabor(dimension_filtre // 2, dimension_filtre // 2, **params) * np.exp(-1j * phase)))
+    """
+
 
     def init_retina_dico(self):
         filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
@@ -280,7 +332,8 @@ class Retina:
                         fenetre_filtre = fenetre_filtre.reshape((dimension_filtre, dimension_filtre))
 
                         ecc_max = .8
-                        ecc = ecc_max * (1 / self.args.rho) ** (self.args.N_eccentricity - i_eccentricity)
+                        ecc = ecc_max * (1 / self.args.rho) ** ((self.args.N_eccentricity - i_eccentricity)/5)
+                        # /5 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
                         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.args.N_azimuth
                         x = int(N_X / 2 + r * np.cos(psi))
@@ -440,7 +493,8 @@ class Retina:
                         # il faut a present placer le morceau au bon endroit de l'image
 
                         ecc_max = .8
-                        ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
+                        ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity)/5)
+                        # /5 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
                         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
                         x = int(N_X / 2 + r * np.cos(psi))
