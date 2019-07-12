@@ -162,7 +162,7 @@ class Retina:
         # !!?? Magic numbers !!??
         ecc_max = 0.6  # 0.6  # initialement 0.8 # self.args.ecc_max  # gross. aptitude a grandir
         sf_0_r = 0.0015  # initialement 0.03 # self.args.sf_0_r # gross. la "diminution" de taille pour les ecc moyennes
-        B_theta = np.pi / args.N_theta / 2  # self.self.B_theta
+        B_theta = np.pi / self.N_theta / 2  # self.self.B_theta
         B_sf = 0.4  # initialement 0.4 # gross. le nombre de lobes
         sf_0_max = 0.02  # 0.05 # initialement 0.45 # gross. taille initiale
 
