@@ -494,6 +494,29 @@ class Normalize:
             data /= data.std() #dim=1, keepdim=True)
             return data
 
+
+class WhereNet(torch.nn.Module):
+    def __init__(self, args):
+        super(WhereNet, self).__init__()
+        self.args = args
+        self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
+        #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
+        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
+        self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
+        self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
+        self.bn3 = torch.nn.Linear(args.dim2, 5, bias=args.bias_deconv)
+        # 5 classes : Happy mouth closed HC, happy mouth open HO, neutral N, angry A, fearful F
+
+    def forward(self, image):
+        x = F.relu(self.bn1(image))
+        if self.args.bn1_bn_momentum>0: x = self.bn1_bn(x)
+        x = F.relu(self.bn2(x))
+        if self.args.p_dropout>0: x = F.dropout(x, p=self.args.p_dropout)
+        if self.args.bn2_bn_momentum>0: x = self.bn2_bn(x)
+        x = self.bn3(x)
+        return x
+
+"""
 class WhereNet(torch.nn.Module):
     
     def __init__(self, args):
@@ -523,6 +546,7 @@ class WhereNet(torch.nn.Module):
             x = F.dropout(x, p=self.args.p_dropout)
         x = self.bn3(x)
         return x
+"""
 
 def where_suffix(args):
     suffix += '_{}_{}'.format(args.N_theta, args.N_azimuth)
