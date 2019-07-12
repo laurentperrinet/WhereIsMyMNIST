@@ -162,17 +162,17 @@ class Retina:
         # !!?? Magic numbers !!??
         ecc_max = 0.6  # 0.6  # initialement 0.8 # self.args.ecc_max  # gross. aptitude a grandir
         sf_0_r = 0.0015  # initialement 0.03 # self.args.sf_0_r # gross. la "diminution" de taille pour les ecc moyennes
-        B_theta = np.pi / args.N_theta / 2  # self.args.B_theta
+        B_theta = np.pi / args.N_theta / 2  # self.self.B_theta
         B_sf = 0.4  # initialement 0.4 # gross. le nombre de lobes
         sf_0_max = 0.02  # 0.05 # initialement 0.45 # gross. taille initiale
 
-        ecc = ecc_max * (1 / args.rho) ** ((args.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
+        ecc = ecc_max * (1 / self.rho) ** ((self.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
         # sinon on obtenait exactement les memes coordonnees x et y pour environ la moitie des filtres calcules 12/07
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
         print(r)
 
         dimension_filtre = min(2 * int(2 * r),
-                               args.N_pic)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
+                               self.N_pic)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
         print("dimension_filtre", dimension_filtre)
         if dimension_filtre < 200:
             dimension_filtre = 200
@@ -182,8 +182,8 @@ class Retina:
         # lg.set_size((N_X, N_Y))
 
         # psi = i_azimuth * np.pi * 2 / N_azimuth
-        psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / args.N_azimuth
-        theta_ref = i_theta * np.pi / args.N_theta
+        psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
+        theta_ref = i_theta * np.pi / self.N_theta
         sf_0 = 0.5 * sf_0_r / ecc
         sf_0 = np.min((sf_0, sf_0_max))
         # TODO : find the good ref for this                print(sf_0)
