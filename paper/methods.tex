@@ -62,16 +62,14 @@ If this experiment is repeated many times over many visual scenes, the probabili
 % when issuing a saccade $a$ after seeing $\boldsymbol{x}$ (the initial visual field).
 It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
 In a biological setting, this would be acchieved for instance by catch-up saccades that would scan the area neighboring the saccade that was actually issued. To sum up, a main assumption here is that instead of trying to detect the actual position of the target, it is better for the agent to estimate how accurate the categorical classifier will be after moving the eye. This forms an accuracy map that may be learned through trials and errors, by actuating saccades %after processing the visual input,
-and taking the final classification success or failure as a teaching signal.}\fi
+and taking the final classification success or failure as a teaching signal.
 Such a \emph{predictive accuracy map} is assumed to be the core of a realistic saccade-based vision system.
 
-\if 0\ICANN {\color{blue} Note that compared to a brute force approach which would scan for all possible positions in an image, this map should compress the information, as exemplified by a retinotopic map. The map should be mostly organized radially, preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
-}\fi
+Note that compared to a brute force approach which would scan for all possible positions in an image, this map should compress the information, as exemplified by a retinotopic map. The map should be mostly organized radially, preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
 The operations that transform the initial primary visual data should preserve the initial retinotopic organization, so as to form a final retinotopic accuracy map (see figure \ref{fig:methods}). Accordingly with the initial data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery.
 %and telling how accurate the categorical classifier will be after the saccade is carried out~\citep{Dauce18}. %The set of all possible saccade predictions should
 Finally, each different initial visual field may bring out a different accuracy map, indirectly conveying information about the target retinotopic position.
-A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculo-motor control\if 0\ICANN .
-{\color{blue} {\bf [ref needed]}.
+A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculo-motor control [TODO:ref needed].
 
 \subsection{Information gain and the inhibition of return}
 From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by an \emph{information gain}, namely:
@@ -82,20 +80,12 @@ From the information theory standpoint, each saccade comes with fresh visual inf
 with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the 'what' pathway. The accuracy gain may be averaged over many saccades and many initial eccentricities (so that the information gain may be close to zero when the initial $u$ is very central).
 
 For the saccade is subject to predictions errors and execution noise, the actual $u'$ may be different from the initial prediction. The final accuracy, as instantiated in the accuracy map, contains this intrinsic imprecision, and is thus necessary lower than the optimal one. The consequence is that in some cases, the approximate information gain may become negative, when the future accuracy is actually lower than the current one. This is for instance the case when the target is centered on the fovea. This should encourage the agent to select a saccade ``away'' from the central position, which is reminiscent of a well-known phenomenon in vision known as the ``inhibition of return''~\citep{Itti01}. Combining accuracy predictions from each pathway may thus allow to refine saccades selection in a way that complies with biological vision.
-
 %Our main argument is that such an accuracy map is trainable in a rather straightforward way,
-}
-\fi
 
 \section{Implementation}
 \label{sec:implementation}
-To test the validity of our hypothesis, let us find a %it is necessary to find at least one
-function implementing the ``where'' network. This function should be able to find the position of an object knowing only the degraded retinal image. Here, we describe the methods that we will follow to find that function, from the generative models (first external and then internal) to the actual implementation of the ``where'' pathway. %
+To test the validity of our hypothesis, let us find a function implementing the ``where'' network. This function should be able to find the position of an object knowing only the degraded retinal image. Here, we describe the methods that we will follow to find that function, from the generative models (first external and then internal) to the actual implementation of the ``where'' pathway. %
 
-%Second, we %start as in~\citep{Friston12} by a probabilistic formulation, and
-
-
-%
 \subsection{Exteroceptive Generative model}
 %=================================================================
 We define here the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and as implemented in Figure~\ref{fig:methods}-A.
