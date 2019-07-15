@@ -28,7 +28,7 @@ from PIL import Image
 import datetime
 
 '''
-NIST(MNIST_dataset):
+MNIST(MNIST_dataset):
     def __getitem__(self, index):
         """
         Args:
@@ -200,7 +200,7 @@ class WhereShift:
         i_bsup_patch = min(N_pic, N_pic - i_offset)
         j_binf_patch = max(0, -j_offset)
         j_bsup_patch = min(N_pic, N_pic - j_offset)
-        print(N_pic, i_binf_patch, i_bsup_patch, j_binf_patch, j_bsup_patch)
+        #print(N_pic, i_binf_patch, i_bsup_patch, j_binf_patch, j_bsup_patch)
         patch = sample[i_binf_patch:i_bsup_patch,
                        j_binf_patch:j_bsup_patch]
 
@@ -319,10 +319,11 @@ class RetinaWhiten:
         self.whit.set_size((self.N_pic, self.N_pic))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
-    def __call__(self, fullfield):
+    def __call__(self, pixel_fullfield):
+        fullfield = (pixel_fullfield - pixel_fullfield.min()) / (pixel_fullfield.max() - pixel_fullfield.min())
         fullfield = self.whit.FTfilter(fullfield, self.K_whitening) 
-        fullfield += 0.5
-        fullfield = np.clip(fullfield, 0, 1)
+        #fullfield += 0.5
+        #fullfield = np.clip(fullfield, 0, 1)
         print("RetinaWhiten ok")
         #print(fullfield)
         #print(type(fullfield))
@@ -388,8 +389,8 @@ class FullfieldRetinaWhiten:
         self.K_whitening = self.whit.whitening_filt()
     def __call__(self, fullfield):
         white_fullfield = self.whit.FTfilter(fullfield, self.K_whitening) 
-        white_fullfield += 0.5
-        white_fullfield = np.clip(white_fullfield, 0, 1)
+        #white_fullfield += 0.5
+        #white_fullfield = np.clip(white_fullfield, 0, 1)
         return (white_fullfield, fullfield) #pixel_fullfield.astype('B')    
     
 class RetinaTransform:
@@ -405,8 +406,15 @@ class TransformDico:
         self.retina = retina
         #self.retina_dico = retina_dico
     def __call__(self, fullfield):
-        retina_dico = self.retina.transform_dico(fullfield)
-        return retina_dico
+        pixel_fullfield, retina_features = self.retina.transform_dico(fullfield)
+        return [pixel_fullfield, retina_features]
+
+class InverseTransformDico:
+    def __init__(self, retina):
+        self.retina = retina
+    def __call__(self, list_pixel_fullfield_retina_features):
+        rebuild_pixel_fullfield = self.retina.inverse_transform_dico(list_pixel_fullfield_retina_features[1])
+        return [list_pixel_fullfield_retina_features[0], rebuild_pixel_fullfield]
 
 class OnlineRetinaTransform:
     def __init__(self, retina):
@@ -486,6 +494,29 @@ class Normalize:
             data /= data.std() #dim=1, keepdim=True)
             return data
 
+
+class WhereNet(torch.nn.Module):
+    def __init__(self, args):
+        super(WhereNet, self).__init__()
+        self.args = args
+        self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
+        #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
+        self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
+        self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
+        self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
+        self.bn3 = torch.nn.Linear(args.dim2, 5, bias=args.bias_deconv)
+        # 5 classes : Happy mouth closed HC, happy mouth open HO, neutral N, angry A, fearful F
+
+    def forward(self, image):
+        x = F.relu(self.bn1(image))
+        if self.args.bn1_bn_momentum>0: x = self.bn1_bn(x)
+        x = F.relu(self.bn2(x))
+        if self.args.p_dropout>0: x = F.dropout(x, p=self.args.p_dropout)
+        if self.args.bn2_bn_momentum>0: x = self.bn2_bn(x)
+        x = self.bn3(x)
+        return x
+
+"""
 class WhereNet(torch.nn.Module):
     
     def __init__(self, args):
@@ -515,11 +546,9 @@ class WhereNet(torch.nn.Module):
             x = F.dropout(x, p=self.args.p_dropout)
         x = self.bn3(x)
         return x
+"""
 
 def where_suffix(args):
-    suffix = '_{}_{}'.format(args.sf_0, args.B_sf)
-    suffix += '_{}_{}'.format(args.noise, args.contrast)
-    suffix += '_{}_{}'.format(args.offset_std, args.offset_max)
     suffix += '_{}_{}'.format(args.N_theta, args.N_azimuth)
     suffix += '_{}_{}'.format(args.N_eccentricity, args.N_phase)
     suffix += '_{}_{}'.format(args.rho, args.N_pic)
@@ -541,68 +570,19 @@ class WhereTrainer:
             self.retina = Retina(args)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         
-        # suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
-        suffix_what = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
-        
-        ## DATASET TRANSFORMS     
-        # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
-
-        self.accuracy_map = np.loadtxt("AccuracyMap_MNIST_cnn_robust_what_0.1_0.1_1_0.7_60epoques_2019-06-12_16h11.txt",
-                                       max_rows=55)
-
-        #accuracy_path = "../data/MNIST_accuracy_{}.pt".format(suffix_what)
-        #if not os.path.isfile(accuracy_path):
-        #    self.accuracy_map = np.load('../data/MNIST_accuracy.npy')
-        #else:
-        #    self.accuracy_map = np.load(accuracy_path)
-        
         ## DATASET TRANSFORMS     
         self.transform = transforms.Compose([
-            RetinaFill(N_pic=args.N_pic),
-            WhereShift(args),
             WhereSquareCrop(args),
-            RetinaBackground(contrast=args.contrast,
-                             noise=args.noise,
-                             sf_0=args.sf_0,
-                             B_sf=args.B_sf),
-            RetinaMask(N_pic=args.N_pic),
+            # gray
             RetinaWhiten(N_pic=args.N_pic),
             TransformDico(self.retina),
-            #RetinaTransform(self.retina.transform_dico), commenter et remplacer par transform dico
-            #RetinaTransform(self.retina.retina_transform_vector),
             ToFloatTensor(),
-            # Normalize()
-            #transforms.Normalize((args.mean,), (args.std,))
-        ])
-        
-        self.fullfield_transform = transforms.Compose([
-            RetinaFill(N_pic=args.N_pic),
-            WhereShift(args),
-            RetinaBackground(contrast=args.contrast,
-                             noise=args.noise,
-                             sf_0=args.sf_0,
-                             B_sf=args.B_sf),
-            RetinaMask(N_pic=args.N_pic),
-            FullfieldRetinaWhiten(N_pic=args.N_pic),
-            FullfieldRetinaTransform(self.retina.retina_transform_vector),
-            FullfieldToFloatTensor(),
-            # Normalize(fullfield=True)
-            # transforms.Normalize((args.mean,), (args.std,))
         ])
         
         self.target_transform=transforms.Compose([
-                               CollFill(self.accuracy_map, N_pic=args.N_pic, baseline=0.1),
-                               WhereShift(args, baseline = 0.1),
-                               CollTransform(self.retina.colliculus_transform_vector),
                                ToFloatTensor()
                            ])
-        
-        self.fullfield_target_transform=transforms.Compose([
-                               CollFill(self.accuracy_map, keep_label=True, N_pic=args.N_pic, baseline=0.1),
-                               WhereShift(args, baseline = 0.1, keep_label=True),
-                               FullfieldCollTransform(self.retina.colliculus_transform_vector, keep_label=True),
-                               FullfieldToFloatTensor(keep_label=True)
-                           ])
+
         
         suffix = where_suffix(args)
         
@@ -645,81 +625,46 @@ class WhereTrainer:
         #                               lr=args.lr, 
         #                               momentum=args.momentum)
         
-    def init_data_loader(self, args, suffix, generate_data=True, fullfield = False, force_generate = False): # train = True retire
-        #if train:
-            #use = 'train'
-        #else:
-            #use = 'test'
+    def init_data_loader(self, args, suffix, force_generate = False, train=True):
+        if train:
+            use = 'train'
+        else:
+            use = 'test'
         data_loader_path = '/tmp/where_chicago_dataset_{}_{}.pt'.format(suffix, args.minibatch_size) # use retire
-        if os.path.isfile(data_loader_path) and generate_data and not force_generate:
+        if os.path.isfile(data_loader_path) and not force_generate:
             if self.args.verbose: 
                 print('Loading {}ing dataset'.format(use))
             data_loader = torch.load(data_loader_path)
         else:
-            if fullfield:
-                dataset = MNIST('../data',
-                        train=train,
-                        download=True,
-                        transform=self.fullfield_transform,
-                        target_transform=self.fullfield_target_transform,
-                        )
-            else:
-                dataset = MNIST('../data',
-                        train=train,
-                        download=True,
-                        transform=self.transform,
-                        target_transform=self.target_transform,
-                        )
-            data_loader = DataLoader(dataset,
-                                     batch_size=args.minibatch_size,
-                                     shuffle=True)
-            if generate_data:
-                if self.args.verbose: 
-                    print('Generating {}ing dataset'.format(use))
-                for i, (data, acc) in enumerate(data_loader):
-                    if self.args.verbose: 
-                        print(i, (i+1) * args.minibatch_size)
-                    if i == 0:
-                        if fullfield:
-                            full_data_features = data[0]
-                            full_acc_features = acc[0]
-                            full_data_fullfield = data[1]
-                            full_acc_fullfield = acc[1]
-                            full_label = acc[2]
-                            full_i_shift = acc[3]
-                            full_j_shift = acc[4]
-                        else:
-                            full_data = data
-                            full_acc = acc
-                    else:
-                        if fullfield:
-                            full_data_features = torch.cat((full_data_features, data[0]), 0)
-                            full_acc_features = torch.cat((full_acc_features, acc[0]), 0)
-                            full_data_fullfield = torch.cat((full_data_fullfield, data[1]), 0)
-                            full_acc_fullfield = torch.cat((full_acc_fullfield, acc[1]), 0)
-                            full_label = torch.cat((full_label, acc[2]), 0)
-                            full_i_shift = torch.cat((full_i_shift, acc[3]), 0)
-                            full_j_shift = torch.cat((full_j_shift, acc[4]), 0)
-                        else:
-                            full_data = torch.cat((full_data, data), 0)
-                            full_acc = torch.cat((full_acc, acc), 0)
-                if fullfield:
-                    dataset = TensorDataset(full_data_features, 
-                                            full_data_fullfield, 
-                                            full_acc_features,
-                                            full_acc_fullfield,
-                                            full_label,
-                                            full_i_shift,
-                                            full_j_shift)
+            if self.args.verbose:
+                print('Generating {}ing dataset'.format(use))
+
+            data_loader = ChicagoFacesDataset()
+
+            """
+            for i in range(len(dataset))# lire les images # i, (data, acc) in enumerate(data_loader):
+                if self.args.verbose:
+                    print(i, (i+1) * args.minibatch_size)
+
+                if i == 0:
+                    full_data = data
+                    full_label = label
                 else:
-                    dataset = TensorDataset(full_data, full_acc)
+                    full_data = torch.cat((full_data, data), 0)
+                    full_label = torch.cat((full_label, label), 0)
+            
+            
+            dataset = TensorDataset(full_data, full_label)
                 
-                data_loader = DataLoader(dataset,
+
+            data_loader = DataLoader(dataset,
                                          batch_size=args.minibatch_size,
                                          shuffle=True)
-                torch.save(data_loader, data_loader_path)
-                if self.args.verbose: 
-                    print('Done!')
+            """
+
+            torch.save(data_loader, data_loader_path)
+            if self.args.verbose:
+                print('Done!')
         if train:
             self.train_loader = data_loader
         else:

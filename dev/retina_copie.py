@@ -41,7 +41,7 @@ class Retina:
         self.feature_vector_size = self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase
 
         self.init_retina_dico()
-        self.init_colliculus_transform_dico()
+        #self.init_colliculus_transform_dico()
         self.init_grid()
         #self.init_retina_transform()
         #self.init_inverse_retina() # il faudra le decommenter plus tard
@@ -167,7 +167,7 @@ class Retina:
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
         # print(r)
         dimension_filtre = min(2 * int(2 * r),
-                               128)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
+                               self.args.N_pic)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
         lg.set_size((dimension_filtre, dimension_filtre))
         # psi = i_azimuth * np.pi * 2 / N_azimuth
         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
@@ -191,7 +191,7 @@ class Retina:
         filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
         if self.args.verbose: print(filename)
         try:
-            self.retina_dico = np.load(filename).item()
+            self.retina_dico = np.load(filename, allow_pickle=True).item()
             if self.args.verbose: print("Fichier retina_dico charge avec succes")
         except:
             if self.args.verbose: print('Creation du dictionnaire de filtres en cours...')
@@ -204,7 +204,7 @@ class Retina:
                     for i_eccentricity in range(self.N_eccentricity):
                         self.retina_dico[i_theta][i_phase][i_eccentricity] = {}
                         for i_azimuth in range(self.N_azimuth):
-                            self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth] = np.ravel(self.local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg))
+                            self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth] = np.ravel(self.local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg, N_X=self.args.N_pic, N_Y=self.args.N_pic))
             if self.args.verbose: print("Dico cree")
             np.save(filename, self.retina_dico)
             if self.args.verbose: print("len finale", len(self.retina_dico),len(self.retina_dico[0]),len(self.retina_dico[0][0]),len(self.retina_dico[0][0][0]),len(self.retina_dico[0][0][0][0]))
@@ -408,22 +408,236 @@ class Retina:
         return pixel_fullfield, fullfield_dot_retina_dico
 
     def inverse_transform_dico(self, retina_features):
-        rebuild_pixel_fullfield = np.zeros((self.N_pic, self.N_pic))
+        N_X, N_Y = self.N_pic, self.N_pic
+        rebuild_pixel_fullfield = np.zeros((N_X, N_Y))
         indice_coefficient = 0
         for i_theta in range(self.N_theta):
             for i_azimuth in range(self.N_azimuth):
+                inter_rebuild_pixel_fullfield = np.zeros((N_X, N_Y))
                 for i_eccentricity in range(self.N_eccentricity):
                     for i_phase in range(self.N_phase):
-                        filtre = self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth]
-                        coefficient = retina_features[indice_coefficient]
-                        morceau_image_reconstituee = coefficient * filtre
+                        fenetre_filtre = self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth]
+                        dimension_filtre = int(fenetre_filtre.shape[0] ** (1 / 2))
+                        fenetre_filtre = fenetre_filtre.reshape((dimension_filtre, dimension_filtre))
+                        coefficient = float(retina_features[indice_coefficient])
 
-                        #il faut a present placer le morceau au bon endroit de l'image
+                        type_affichage = 3 # 1 affichage habituel, 2 affichage graduel, 3 affichage par azimuth croissant
+
+                        if type_affichage == 1:
+                            c_a = i_azimuth == 16 and i_theta == 0 and i_phase == 0  # conditions d'affichage
+                        else:
+                            c_a = False
+
+                        # print("coeff", type(coefficient))
+                        # print("filtre", type(fenetre_filtre))
+                        morceau_image_reconstituee = coefficient * fenetre_filtre
+
+                        # il faut a present placer le morceau au bon endroit de l'image
+
+                        ecc_max = .8
+                        ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
+                        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
+                        psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
+                        x = int(N_X / 2 + r * np.cos(psi))
+                        y = int(N_Y / 2 + r * np.sin(psi))
+
+                        r = dimension_filtre // 2
+
+                        # if c_a :
+                        #    print("x, y, r", x,y,r)
+
+                        # print(c_a)
+                        # if c_a :
+                        #    print(coefficient)
+
+                        affiche(fenetre_filtre, "fenetre_filtre", c_a)
+                        affiche(morceau_image_reconstituee, "morceau_image_reconstituee", c_a)
+
+                        if type_affichage == 3 and i_theta == 0 and i_phase == 0 and i_azimuth == 12:
+                            c_a = True
+                            affiche(fenetre_filtre, "fenetre_filtre", c_a)
+                            c_a = False
+
+                        fenetre_image = inter_rebuild_pixel_fullfield[int(x - r):int(x + r), int(y - r):int(y + r)]
+
+                        # if c_a :
+                        #    print(np.ravel(fenetre_image).shape, np.ravel(fenetre_filtre).shape)
+
+                        if np.ravel(fenetre_image).shape == np.ravel(fenetre_filtre).shape:
+                            inter_rebuild_pixel_fullfield[int(x - r):int(x + r),
+                            int(y - r):int(y + r)] += morceau_image_reconstituee
+
+                        if np.ravel(fenetre_image).shape != np.ravel(fenetre_filtre).shape:
+                            fenetre_image = np.zeros((dimension_filtre, dimension_filtre))
+
+                            if y + r > self.N_pic:  # ca depasse à droite
+                                morceau_interne_fullfield = inter_rebuild_pixel_fullfield[x - r:x + r, y - r:self.N_pic]
+                                morceau_externe_fullfield = inter_rebuild_pixel_fullfield[x - r:x + r,
+                                                            0:y + r - self.N_pic]  # qu'on est donc alle chercher ailleurs dans l'image
+                                nb_lignes = morceau_externe_fullfield.shape[0]
+                                if nb_lignes == 2 * r:  # ce n'est pas un coin
+                                    # print("rebuild1", rebuild_pixel_fullfield[0:x + r, 0:r - self.N_pic + y].shape)
+                                    # print("reconstit1", morceau_image_reconstituee[r - x:2 * r, r + self.N_pic - y:2 * r].shape)
+                                    inter_rebuild_pixel_fullfield[x - r:x + r,
+                                    y - r:self.N_pic] += morceau_image_reconstituee[0:2 * r, 0:r + self.N_pic - y]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout partie gauche", c_a)
+                                    inter_rebuild_pixel_fullfield[x - r:x + r,
+                                    0:y + r - self.N_pic] += morceau_image_reconstituee[0:2 * r,
+                                                             r + self.N_pic - y:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout partie droite", c_a)
 
 
+                                elif x - r < 0:  # contient le coin superieur droit
+                                    # print("rebuild2", rebuild_pixel_fullfield[0:x + r, 0:r - self.N_pic + y].shape)
+                                    # print("reconstit2", morceau_image_reconstituee[r - x:2 * r, r + self.N_pic - y:2 * r].shape)
+                                    inter_rebuild_pixel_fullfield[0:x + r,
+                                    0:r - self.N_pic + y] += morceau_image_reconstituee[r - x:2 * r,
+                                                             r + self.N_pic - y:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout bas droit", c_a)
+                                    inter_rebuild_pixel_fullfield[self.N_pic - r + x:self.N_pic,
+                                    0:y + r - self.N_pic] += morceau_image_reconstituee[0:r - x,
+                                                             r - y + self.N_pic:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout haut droit", c_a)
 
 
-                        indice_coefficient +=1
+                                elif x + r > self.N_pic:  # contient le coin inferieur droit
+
+                                    inter_rebuild_pixel_fullfield[x - r:x + r,
+                                    0:y + r - self.N_pic] += morceau_image_reconstituee[0:nb_lignes,
+                                                             r + self.N_pic - y:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout haut droit", c_a)
+                                    # print("rebuild3", rebuild_pixel_fullfield[0:x + r - self.N_pic, 0:y + r - self.N_pic].shape)
+                                    # print("reconstit3", morceau_image_reconstituee[0:nb_lignes, r + self.N_pic - y:2 * r].shape)
+                                    inter_rebuild_pixel_fullfield[0:x + r - self.N_pic,
+                                    0:y + r - self.N_pic] += morceau_image_reconstituee[r - x + self.N_pic:2 * r,
+                                                             r - y + self.N_pic:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout bas droit", c_a)
+
+
+                            elif y - r < 0:  # ca depasse a gauche
+                                morceau_externe_fullfield = inter_rebuild_pixel_fullfield[x - r:x + r,
+                                                            self.N_pic - r + y:self.N_pic]
+                                morceau_interne_fullfield = inter_rebuild_pixel_fullfield[x - r:x + r, 0:y + r]
+                                nb_lignes = morceau_externe_fullfield.shape[0]
+                                if nb_lignes == 2 * r:  # ce n'est pas un coin
+                                    inter_rebuild_pixel_fullfield[x - r:x + r,
+                                    self.N_pic - r + y:self.N_pic] += morceau_image_reconstituee[0:2 * r, 0:r - y]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout partie gauche", c_a)
+                                    inter_rebuild_pixel_fullfield[x - r:x + r, 0:y + r] += morceau_image_reconstituee[
+                                                                                           0:2 * r, r - y:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout partie droite", c_a)
+
+                                elif x - r < 0:  # contient le coin superieur gauche
+                                    inter_rebuild_pixel_fullfield[0:x + r,
+                                    self.N_pic - r + y:self.N_pic] += morceau_image_reconstituee[r - x:2 * r, 0:r - y]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout bas gauche", c_a)
+                                    inter_rebuild_pixel_fullfield[self.N_pic - r + x:self.N_pic,
+                                    self.N_pic - r + y:self.N_pic] += morceau_image_reconstituee[0:r - x, 0:r - y]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout haut gauche", c_a)
+
+                                elif x + r > self.N_pic:  # contient le coin inferieur gauche
+                                    inter_rebuild_pixel_fullfield[0:x + r - self.N_pic,
+                                    self.N_pic - r + y:self.N_pic] += morceau_image_reconstituee[
+                                                                      r + self.N_pic - x:2 * r, 0:r - y]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout bas gauche", c_a)
+                                    inter_rebuild_pixel_fullfield[x - r:x + r,
+                                    self.N_pic - r + y:self.N_pic] += morceau_image_reconstituee[0:r + self.N_pic - x,
+                                                                      0:r - y]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout haut gauche", c_a)
+
+                            if x - r < 0:  # ca depasse en haut
+                                morceau_externe_fullfield = inter_rebuild_pixel_fullfield[self.N_pic - r + x:self.N_pic,
+                                                            y - r:y + r]
+                                morceau_interne_fullfield = inter_rebuild_pixel_fullfield[0:r + x, y - r:y + r]
+                                nb_colonnes = morceau_externe_fullfield.shape[1]
+                                if nb_colonnes == 2 * r:  # ce n'est pas un coin
+                                    inter_rebuild_pixel_fullfield[0:r + x, y - r:y + r] += morceau_image_reconstituee[
+                                                                                           r - x:2 * r, 0:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout partie basse", c_a)
+                                    inter_rebuild_pixel_fullfield[self.N_pic - r + x:self.N_pic,
+                                    y - r:y + r] += morceau_image_reconstituee[0:r - x, 0:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout partie haute", c_a)
+
+                                elif y - r < 0:  # contient le coin superieur gauche
+                                    inter_rebuild_pixel_fullfield[self.N_pic - r + x:self.N_pic,
+                                    0:y + r] += morceau_image_reconstituee[0:r - x, r - y:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout haut droit", c_a)
+                                    inter_rebuild_pixel_fullfield[0:r + x, 0:y + r] += morceau_image_reconstituee[
+                                                                                       r - x:2 * r, r - y:2 * r]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout bas droit", c_a)
+
+                                elif y + r > self.N_pic:  # contient le coin superieur droit
+                                    inter_rebuild_pixel_fullfield[self.N_pic - r + x:self.N_pic,
+                                    y - r:y + r] += morceau_image_reconstituee[0:r - x, 0:r + self.N_pic - y]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout haut gauche", c_a)
+                                    inter_rebuild_pixel_fullfield[0:r + x, y - r:y + r] += morceau_image_reconstituee[
+                                                                                           r - x:2 * r, 0:nb_colonnes]
+                                    # affiche(inter_rebuild_pixel_fullfield, "Construction rebuild_pixel_fullfield : ajout bas gauche", c_a)
+
+
+                            elif x + r > self.N_pic:  # ca depasse en bas
+                                morceau_interne_fullfield = inter_rebuild_pixel_fullfield[x - r:self.N_pic, y - r:y + r]
+                                morceau_externe_fullfield = inter_rebuild_pixel_fullfield[0:r - self.N_pic + x,
+                                                            y - r:y + r]
+                                nb_colonnes = morceau_externe_fullfield.shape[1]
+                                if nb_colonnes == 2 * r:  # ce n'est pas un coin
+                                    inter_rebuild_pixel_fullfield[x - r:self.N_pic,
+                                    y - r:y + r] += morceau_image_reconstituee[0:self.N_pic - x + r, 0:2 * r]
+                                    affiche(inter_rebuild_pixel_fullfield,
+                                            "Construction rebuild_pixel_fullfield : ajout partie gauche", c_a)
+                                    inter_rebuild_pixel_fullfield[0:r - self.N_pic + x,
+                                    y - r:y + r] += morceau_image_reconstituee[self.N_pic - x + r:2 * r, 0:2 * r]
+                                    affiche(inter_rebuild_pixel_fullfield,
+                                            "Construction rebuild_pixel_fullfield : ajout partie droite", c_a)
+
+                                elif y - r < 0:  # contient le coin inferieur gauche
+                                    inter_rebuild_pixel_fullfield[x - r:self.N_pic,
+                                    0:r + y] += morceau_image_reconstituee[0:self.N_pic - x + r, r - y:2 * r]
+                                    affiche(inter_rebuild_pixel_fullfield,
+                                            "Construction rebuild_pixel_fullfield : ajout haut droit", c_a)
+                                    inter_rebuild_pixel_fullfield[0:r - self.N_pic + x,
+                                    0:r + y] += morceau_image_reconstituee[self.N_pic - x + r:2 * r, r - y:2 * r]
+                                    affiche(inter_rebuild_pixel_fullfield,
+                                            "Construction rebuild_pixel_fullfield : ajout bas droit", c_a)
+
+                                elif y + r > self.N_pic:  # contient le coin inferieur droit
+                                    inter_rebuild_pixel_fullfield[x - r:self.N_pic,
+                                    y - r:y + r] += morceau_image_reconstituee[0:self.N_pic - x + r, 0:nb_colonnes]
+                                    affiche(inter_rebuild_pixel_fullfield,
+                                            "Construction rebuild_pixel_fullfield : ajout haut gauche", c_a)
+                                    inter_rebuild_pixel_fullfield[0:r - self.N_pic + x,
+                                    y - r:y + r] += morceau_image_reconstituee[self.N_pic - x + r:2 * r, 0:nb_colonnes]
+                                    affiche(inter_rebuild_pixel_fullfield,
+                                            "Construction rebuild_pixel_fullfield : ajout bas gauche", c_a)
+
+                        affiche(inter_rebuild_pixel_fullfield,
+                                "Image reconstituee apres l'application de ce filtre (et de tous les precedents de même azimuth)",
+                                c_a)
+                        c_a = False
+
+                        if type_affichage == 2:
+                            if indice_coefficient % 100 == 0:
+                                print("coefficient numero", indice_coefficient)
+                                c_a = True
+
+                        affiche(rebuild_pixel_fullfield + inter_rebuild_pixel_fullfield,
+                                "rebuild_pixel_fullfield en cours de construction", c_a)
+                        c_a = False
+
+                        indice_coefficient += 1
+
+                if type_affichage == 3 and i_theta == 0:
+                    print("coefficient numero", indice_coefficient)
+                    c_a = True
+                affiche(inter_rebuild_pixel_fullfield,
+                        "rebuild_pixel_fullfield après application des filtre d'azimuth =" + str(i_azimuth), c_a)
+                c_a = False
+                rebuild_pixel_fullfield += inter_rebuild_pixel_fullfield
+
+        if type_affichage != 0 : c_a = True
+        affiche(rebuild_pixel_fullfield, "image finale", c_a)
+
+        return rebuild_pixel_fullfield
 
 
 

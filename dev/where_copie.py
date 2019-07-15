@@ -285,8 +285,15 @@ class TransformDico:
         self.retina = retina
         #self.retina_dico = retina_dico
     def __call__(self, fullfield):
-        retina_features = self.retina.transform_dico(fullfield)
-        return retina_features
+        pixel_fullfield, retina_features = self.retina.transform_dico(fullfield)
+        return [pixel_fullfield, retina_features]
+
+class InverseTransformDico:
+    def __init__(self, retina):
+        self.retina = retina
+    def __call__(self, list_pixel_fullfield_retina_features):
+        rebuild_pixel_fullfield = self.retina.inverse_transform_dico(list_pixel_fullfield_retina_features[1])
+        return [list_pixel_fullfield_retina_features[0], rebuild_pixel_fullfield]
 
 class OnlineRetinaTransform:
     def __init__(self, retina):
