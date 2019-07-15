@@ -6,13 +6,48 @@
 \section{Discussion}
 \label{sec:discussion}
 \subsection{Summary}
-The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning. However, it also owns a probabilistic interpretation that may be combined with other accuracy predictions (such as the one done through the ``what'' pathway) which potentially explains more elaborate decision making, such as inhibition of return. The approach is also energy-efficient as it includes the strong compression rate performed by retina and V1 encoding, which is preserved up to the action selection level. When energy and computing power are at stake, as it is the case in bio-inspired robotics, it may thus be relevant to envision our implementation. By preserving a probabilistic interpretation in bio-realistic action selection, we also allow for a principled use of human visual scan path over images, such as is generally modeled as low-level feature-based saliency maps~\citep{Itti01}. It may indeed be possible to consider the actual action selection as implementing focal accuracy-seeking policy across the image, and learn the actual saccade path as the response of a pre-trained accuracy prediction. Identified regions of interest may then be compared with the baseline bottom-up approaches.
+%## Main results:
+
+In summary,  our model provides center/surround interpretation of the Information Gain metric in the case of visuo-motor action selection, that amounts to select to generate a saccade versus keeping the eye focused on a visual target (visual pursuit).
+The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning. However, it also owns a probabilistic interpretation that may be combined with other accuracy predictions (such as the one done through the ``what'' pathway) which potentially explains more elaborate decision making, such as inhibition of return. 
+
+%- interpretation
+%- An effective decoding scheme with strong bandwidth reduction
+%- Information-gain based selection of action 
+
+%- A sub-linear object detection for image processing:
+%- A full log-polar processing pathway (from early vision toward action selection)
+%- Sequential info gain converges to zero: in practice 2-3 saccades are enough
+%- Ready for up-scaling
+
+%- Object identity-based monitoring of action
+%- Dorsal = ''actor'' (where to look next?)
+%- Ventral = ''critic'' (for what to see?)
+
+The approach is also energy-efficient, with a full log-polar processing pathway which preserves the strong compression rate performed by retina and V1 encoding up to the action selection level. It finally provides an effective sub-linear decoding scheme. When energy and computing power are at stake, as it is the case in bio-inspired robotics, it may thus be relevant to envision our implementation, with more elaborate image categorization such as the ones performed on the Imagenet dataset by deep convolutional nets.
+
+By preserving a probabilistic interpretation in bio-realistic action selection, we also allow for a principled use of human visual scan path over images, such as is generally modeled as low-level feature-based saliency maps~\citep{Itti01}. It may indeed be possible to consider the actual action selection as implementing focal accuracy-seeking policy across the image, and learn the actual saccade path as the response of a pre-trained accuracy prediction. Identified regions of interest may then be compared with the baseline bottom-up approaches.
 
 \subsection{Limits}
 
 % deep learning proves that one solution exists, but what is the visual substrate actually used? 
 
-From the modeling side, our model still relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. Similarly, how the brain may combine and integrate various probabilities is still an open question, that resorts to the classical binding problem. %: How is it possible to meaningfully combine independently extracted features.
-At last, the presence of many targets in a scene should also be addressed by the model, which resorts to sequentially select targets, in combination with a concrete implementation of an inhibition of return mechanism.
+%## Limits and Open questions
+%- Importance of centering objects:
+%- Central object referential
+%- log polar scale/rotation invariance
+%- (feedback) prediction
+%- Information Gain-based décision :
+%- Sequential info gain converges to zero: in practice 2-3 saccades are enough
+%- Pursuit vs. saccade.
+%- Maximizing info gain on multiple targets/ddls.
+%- Overt/covert attention
+%- Inhibition of return
 
+One crucial aspect of vision highlighted by our model is the importance of centering objects in recognition. Even with a specific translation invariance training on the ``What'' pathway, there is small radius of 2-3 pixels around the target center that needs to be verified to maximize the classification accuracy. This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is the same, the logpolar encoding of the same objects shows invariance to both rotation and scale \cite{Traver10}, which should be implemented in the future.
+
+
+From the modeling side, our model relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. 
+The presence of many targets in a scene should be addressed, which amounts to sequentially select targets, in combination with implementing an inhibition of return mechanism. Maximizing the Information Gain over multiple targets needs to be envisaged with a more refined probabilistic framework, including mutual exclusion over overt and covert targets.
+How the brain may combine and integrate various probabilities is still an open question, that resorts to the classical binding problem. %: How is it possible to meaningfully combine independently extracted features.
 %\subsection{Perspectives}
