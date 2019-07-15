@@ -4,14 +4,12 @@
 %!BIB TS-program = bibtex
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
-\def\ICANN{0}%
 %: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %: notes
 %  journals = https://en.wikipedia.org/wiki/List_of_academic_journals_by_preprint_policy
 %
 %: METADATA
 %: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\newcommand{\ICANN}{0}
 \newcommand{\AuthorPA}{Pierre Albiges}
 \newcommand{\AuthorED}{Emmanuel Dauc\'e}%
 \newcommand{\AuthorLP}{Laurent Perrinet}%
@@ -83,13 +81,10 @@ style=authoryear-comp,
 %giveninits=true,
 %uniquename=init,
 %sorting=none,
-\if 1\ICANN
 doi=true,
 url=false,
 isbn=false,
 eprint=true,
-\else
-\fi
 texencoding=utf8,
 bibencoding=utf8,
 autocite=superscript,
@@ -118,48 +113,43 @@ backend=bibtex,
 \newcommand{\E}{\textbf{(E)~}}%
 \newcommand{\F}{\textbf{(F)~}}%
 
-\if 1\ICANN
+%	% \usepackage{times}
+%	%\inner 0.5in
+%	% \oddsidemargin -0.5in		% margin, in addition to 1" standard
+%	% \textwidth 17cm		% 8.5" - 2*(1+\oddsidemargin)
+%
+%	% \topmargin -1in		% in addition to 1.5" standard margin
+%	% \textheight 10.69in 		% 11 - ( 1.5 + \topmargin + <bottom-margin> )
+%
+%	% \columnsep 0.25in
+%	%
+%	\parindent 0pt
+%	\parskip 0pt
+%
+%\setlength{\parskip}{0pt}
+%\setlength{\parsep}{0pt}
+%\setlength{\headsep}{0pt}
+%\setlength{\topskip}{0pt}
+%\setlength{\topmargin}{0pt}
+%\setlength{\topsep}{0pt}
+%\setlength{\partopsep}{0pt}
+%
+%%\usepackage[compact]{titlesec}
+%%\titlespacing{\section}{0pt}{*0}{*0}
+%%\titlespacing{\subsection}{0pt}{*0}{*0}
+%%\titlespacing{\subsubsection}{0pt}{*0}{*0}
+%	% \usepackage{titlesec}
+%    %
+%	% \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+%	%\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+%	%\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+%
+%%\flushbottom \sloppy
+%%\pagestyle{empty} % No page numbers
+%
+%
+%\renewcommand{\paragraph}{\emph}%
 
-	% \usepackage{times}
-	%\inner 0.5in
-	% \oddsidemargin -0.5in		% margin, in addition to 1" standard
-	% \textwidth 17cm		% 8.5" - 2*(1+\oddsidemargin)
-
-	% \topmargin -1in		% in addition to 1.5" standard margin
-	% \textheight 10.69in 		% 11 - ( 1.5 + \topmargin + <bottom-margin> )
-
-	% \columnsep 0.25in
-	%
-	\parindent 0pt
-	\parskip 0pt
-
-\setlength{\parskip}{0pt}
-\setlength{\parsep}{0pt}
-\setlength{\headsep}{0pt}
-\setlength{\topskip}{0pt}
-\setlength{\topmargin}{0pt}
-\setlength{\topsep}{0pt}
-\setlength{\partopsep}{0pt}
-
-%\usepackage[compact]{titlesec}
-%\titlespacing{\section}{0pt}{*0}{*0}
-%\titlespacing{\subsection}{0pt}{*0}{*0}
-%\titlespacing{\subsubsection}{0pt}{*0}{*0}
-	% \usepackage{titlesec}
-    %
-	% \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
-	%\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
-	%\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
-
-%\flushbottom \sloppy
-%\pagestyle{empty} % No page numbers
-
-
-\renewcommand{\paragraph}{\emph}%
-
-\else
-
-\fi
 
 \begin{document}
 
@@ -190,10 +180,7 @@ backend=bibtex,
 \input{discussion}
 %
 %\newpage
-\if 1\ICANN
-\else
-\input{appendix}
-\fi
+% \input{appendix}
 
 
 %%%-----------------------------------------------------------------
