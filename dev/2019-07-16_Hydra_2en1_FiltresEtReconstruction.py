@@ -14,6 +14,7 @@ args.train_batch_size = 1000
 args.test_batch_size = 207
 args.N_eccentricity = 12
 args.contrast = 0.5
+nom = "_24_10"
 
 from retina_chicago import Retina
 retina = Retina(args)
@@ -40,12 +41,12 @@ rebuild_pixel_fullfield = images[1]
 plt.figure(figsize=(20,20))
 plt.imshow(pixel_fullfield[:,:].reshape((1718, 1718)))
 plt.title('target : '+ target)
-plt.savefig("pixel_fullfield_20_20.jpg")
+plt.savefig("pixel_fullfield" + nom + ".jpg")
 
 plt.figure(figsize=(20,20))
 plt.imshow(rebuild_pixel_fullfield[:,:].reshape((1718, 1718)))
 plt.title("rebuild_pixel_fullfield")
-plt.savefig("rebuild_pixel_fullfield_20_20.jpg")
+plt.savefig("rebuild_pixel_fullfield" + nom + ".jpg")
 
 
 i_theta = 0
@@ -67,6 +68,6 @@ for i_eccentricity in range(args.N_eccentricity):
     x = int(N_X / 2 + r * np.cos(psi))
     y = int(N_Y / 2 + r * np.sin(psi))
     plt.imshow(filtre.reshape((dimensions_filtre, dimensions_filtre)))
-    plt.title("filtre d'eccentricite " + str(i_eccentricity) + " x,y=" + str(x) + str(y))
-    plt.savefig("filtre_eccentricity_" + str(i_eccentricity) + "_20_20.jpg")
+    plt.title("filtre d'eccentricite " + str(i_eccentricity) + " x, y=" + str(x) + ", "+ str(y))
+    plt.savefig("filtre_eccentricity_" + str(i_eccentricity) + nom + ".jpg")
 
