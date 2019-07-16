@@ -243,8 +243,7 @@ class Retina:
 
 
     def init_retina_dico(self):
-        # filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
-        filename = '../tmp/retina' + self.get_suffix() + '_dicoXXX_filtres_20_20.npy'
+        filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
         if self.args.verbose: print(filename)
         try:
             self.retina_dico = np.load(filename, allow_pickle=True).item()
