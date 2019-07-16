@@ -166,7 +166,8 @@ class Retina:
         B_sf = 0.4  # initialement 0.4 # gross. le nombre de lobes
         sf_0_max = 0.02  # 0.05 # initialement 0.45 # gross. taille initiale
 
-        ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
+        ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
+        #ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity) / 5)  # /5 ajouté
         # sinon on obtenait exactement les memes coordonnees x et y pour environ la moitie des filtres calcules 12/07
         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
         #print(r)
@@ -243,7 +244,7 @@ class Retina:
 
 
     def init_retina_dico(self):
-        filename = '../tmp/retina' + self.get_suffix() + '_dico.npy'
+        filename = '../tmp/retina' + self.get_suffix() + '_dicoXXX_filtres_20_20.npy'
         if self.args.verbose: print(filename)
         try:
             self.retina_dico = np.load(filename, allow_pickle=True).item()
@@ -332,7 +333,8 @@ class Retina:
                         fenetre_filtre = fenetre_filtre.reshape((dimension_filtre, dimension_filtre))
 
                         ecc_max = .8
-                        ecc = ecc_max * (1 / self.args.rho) ** ((self.args.N_eccentricity - i_eccentricity)/5)
+                        ecc = ecc_max * (1 / self.args.rho) ** (self.args.N_eccentricity - i_eccentricity)
+                        #ecc = ecc_max * (1 / self.args.rho) ** ((self.args.N_eccentricity - i_eccentricity)/5)
                         # /5 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
                         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.args.N_azimuth
@@ -493,7 +495,8 @@ class Retina:
                         # il faut a present placer le morceau au bon endroit de l'image
 
                         ecc_max = .8
-                        ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity)/5)
+                        ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
+                        # ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity)/5)
                         # /5 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
                         r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
