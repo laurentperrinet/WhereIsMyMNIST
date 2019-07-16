@@ -10,7 +10,7 @@ args.contrast = 0.5
 args.N_eccentricity = 12
 
 
-from retina_copie import Retina
+from retina_chicago import Retina
 retina = Retina(args)
 
 i_theta = 0
