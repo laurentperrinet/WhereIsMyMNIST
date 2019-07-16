@@ -11,7 +11,7 @@ from main import init
 args = init(filename='../data/2019-07-08')
 args.train_batch_size = 1000
 args.test_batch_size = 207
-args.N_eccentricity = 10
+args.N_eccentricity = 12
 args.contrast = 0.5
 
 from retina_chicago import Retina
@@ -39,9 +39,9 @@ rebuild_pixel_fullfield = images[1]
 plt.figure(figsize=(20,20))
 plt.imshow(pixel_fullfield[:,:].reshape((1718, 1718)))
 plt.title('target : '+ target)
-plt.savefig("pixel_fullfield_24_10.jpg")
+plt.savefig("pixel_fullfield_24_12.jpg")
 
 plt.figure(figsize=(20,20))
 plt.imshow(rebuild_pixel_fullfield[:,:].reshape((1718, 1718)))
 plt.title("rebuild_pixel_fullfield")
-plt.savefig("rebuild_pixel_fullfield_24_10.jpg")
+plt.savefig("rebuild_pixel_fullfield_24_12.jpg")

@@ -10,7 +10,7 @@ from display import pe
 from LogGabor import LogGabor
 
 
-# les valeurs ecc_max, sf_0_r, B_sf, sf_0_max de local_filter_dico sont differents de retina_copie.py
+# les valeurs ecc_max, sf_0_r, B_sf, sf_0_max de local_filter_dico sont differentes de retina_copie.py
 
 ##########################################################################################################@
 ##########################################################################################################@
