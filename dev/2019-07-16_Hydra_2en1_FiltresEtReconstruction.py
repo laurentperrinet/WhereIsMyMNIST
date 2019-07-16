@@ -14,7 +14,7 @@ args.train_batch_size = 1000
 args.test_batch_size = 207
 args.N_eccentricity = 12
 args.contrast = 0.5
-nom = "_24_10"
+nom = "_24_12"
 
 from retina_chicago import Retina
 retina = Retina(args)
