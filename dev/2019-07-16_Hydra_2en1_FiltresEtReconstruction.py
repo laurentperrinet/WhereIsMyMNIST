@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from torchvision import transforms
+import numpy as np
 
 import sys
 sys.path.append("../figures")
@@ -50,17 +51,19 @@ plt.savefig("rebuild_pixel_fullfield_20_20.jpg")
 i_theta = 0
 i_phase = 0
 i_azimuth = 0
+N_X = args.N_pic
+N_Y = args.N_pic
 
 for i_eccentricity in range(args.N_eccentricity):
     filtre = retina.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth]
     #print(filtre.shape[0]**(1/2) - int(filtre.shape[0]**(1/2)))
     dimensions_filtre = int(filtre.shape[0]**(1/2))
     ecc_max = .8
-    ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
+    ecc = ecc_max * (1 / args.rho) ** (args.N_eccentricity - i_eccentricity)
     # ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity)/5)
     # /5 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
     r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
-    psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
+    psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / args.N_azimuth
     x = int(N_X / 2 + r * np.cos(psi))
     y = int(N_Y / 2 + r * np.sin(psi))
     plt.imshow(filtre.reshape((dimensions_filtre, dimensions_filtre)))
