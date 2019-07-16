@@ -43,5 +43,5 @@ plt.savefig("pixel_fullfield.jpg")
 
 plt.figure(figsize=(20,20))
 plt.imshow(rebuild_pixel_fullfield[:,:].reshape((1718, 1718)))
-plt.title("rebuild_pixel_fullfield")
-plt.savefig("rebuild_pixel_fullfield.jpg")
+plt.title("rebuild_pixel_fullfield_20_20")
+plt.savefig("rebuild_pixel_fullfield_20_20.jpg")
