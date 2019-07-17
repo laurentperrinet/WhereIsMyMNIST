@@ -87,7 +87,8 @@ class ChicagoFacesDataset:
         # img_name = os.path.join(self.root_dir, self.landmarks_frame.iloc[idx, 0])
         img_name = os.path.join(self.list_files[idx])
         #image = io.imread(img_name, as_gray=True) # commente le 08/07/2019 le gris sera fait dans
-        image = io.imread(img_name)
+        #image = io.imread(img_name)
+        image = np.array(Image.open(img_name))
         if self.transform is not None:
             image = self.transform(image)
         name_image = self.list_files[idx][-28:-4]
