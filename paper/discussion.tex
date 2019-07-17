@@ -43,16 +43,17 @@ The approach is also energy-efficient. It encompasses a full log-polar processin
 %- Overt/covert attention
 %- Inhibition of return
 
-One crucial aspect of vision highlighted by our model is the importance of centering objects in recognition. Despite the robust translation invariance observed on the ``What'' pathway, there is small radius of 2-3 pixels around the target center that needs to be respected to maximize the classification accuracy. This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is fixed, the logpolar encoding of an object class shows invariance to both rotation and scale \citep{Traver10}. Incorporating this scale and rotation invariance may thus extend the recognition capabilities of the model.
+One crucial aspect of vision highlighted by our model is the importance of centering objects in recognition. Despite the robust translation invariance observed on the ``What'' pathway, there is small radius of 2-3 pixels around the target center that needs to be respected to maximize the classification accuracy. This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is fixed, the logpolar encoding of an object class shows invariance to both rotation and scale \citep{Traver10}. Incorporating this scale and rotation invariance may thus be considered to extend the recognition capabilities of the model.
 
-More elaborate image categorization, such as the ones performed on the Imagenet dataset by deep convolutional nets, should be envisaged in the model.
+More elaborate image categorization, such as the ones performed on the Imagenet dataset by deep convolutional nets [REF], should also be envisioned.
 %By preserving a probabilistic interpretation in bio-realistic action selection, 
-Real visual scan path over images should also be used in that case to provide realistic priors over action selection maps.  %
+Real visual scan path over images may then be used to provide realistic priors over action selection maps.  %
 %It may indeed be possible to consider , and 
 Identified regions of interest may then be compared with the baseline bottom-up approaches, such as the low-level feature-based saliency maps~\citep{Itti01}. 
 
 
-From the modeling side, our model relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. 
-The presence of many targets in a scene should be addressed, which amounts to sequentially select targets, in combination with implementing an inhibition of return mechanism. Maximizing the Information Gain over multiple targets needs to be envisaged with a more refined probabilistic framework, including mutual exclusion over overt and covert targets.
-How the brain may combine and integrate various probabilities is still an open question, that resorts to the classical binding problem. %: How is it possible to meaningfully combine independently extracted features.
+Finally, our model relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. 
+The presence of many targets in a scene may be addressed %which amounts to sequentially select targets, in combination with implementing an inhibition of return mechanism. 
+through maximizing the Information Gain over concurrent future accuracies. %needs to be envisioned with a more refined probabilistic framework, including mutual exclusion over overt and covert targets.
+Still, how the brain may combine and integrate those various probabilities is an open question, that resorts to the classical binding problem. %: How is it possible to meaningfully combine independently extracted features.
 %\subsection{Perspectives}
