@@ -5,10 +5,10 @@
 % !TEX spellcheck = en-US
 \section{Discussion}
 \label{sec:discussion}
-\subsection{Summary}
+%\subsection{Summary}
 %## Main results:
 
-In summary,  our model provides center/surround interpretation of the Information Gain metric in the case of visuo-motor action selection, that amounts to select to generate a saccade versus keeping the eye focused on a visual target (visual pursuit).
+In summary, our model provides a center/surround interpretation of the Information Gain metric in the case of visuo-motor action selection. Action selection amounts either to select  a saccade or to keep the eye focused at the center (so as to identify the label).
 The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning. However, it also owns a probabilistic interpretation that may be combined with other accuracy predictions (such as the one done through the ``what'' pathway) which potentially explains more elaborate decision making, such as inhibition of return. 
 
 %- interpretation
@@ -28,7 +28,7 @@ The approach is also energy-efficient, with a full log-polar processing pathway 
 
 By preserving a probabilistic interpretation in bio-realistic action selection, we also allow for a principled use of human visual scan path over images, such as is generally modeled as low-level feature-based saliency maps~\citep{Itti01}. It may indeed be possible to consider the actual action selection as implementing focal accuracy-seeking policy across the image, and learn the actual saccade path as the response of a pre-trained accuracy prediction. Identified regions of interest may then be compared with the baseline bottom-up approaches.
 
-\subsection{Limits}
+%\subsection{Limits}
 
 % deep learning proves that one solution exists, but what is the visual substrate actually used? 
 
@@ -44,7 +44,7 @@ By preserving a probabilistic interpretation in bio-realistic action selection, 
 %- Overt/covert attention
 %- Inhibition of return
 
-One crucial aspect of vision highlighted by our model is the importance of centering objects in recognition. Even with a specific translation invariance training on the ``What'' pathway, there is small radius of 2-3 pixels around the target center that needs to be verified to maximize the classification accuracy. This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is the same, the logpolar encoding of the same objects shows invariance to both rotation and scale \citep{Traver10}, which should be implemented in the future.
+One crucial aspect of vision highlighted by our model is the importance of centering objects in recognition. Even with a specific translation invariance training on the ``What'' pathway, there is small radius of 2-3 pixels around the target center that needs to be respected to maximize the classification accuracy. This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is the same, the logpolar encoding of the same objects shows invariance to both rotation and scale \citep{Traver10}, which should be implemented in the future.
 
 
 From the modeling side, our model relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. 
