@@ -5,7 +5,6 @@ import torch
 torch.set_default_tensor_type('torch.FloatTensor')
 from torchvision import datasets, transforms
 from torchvision.datasets import ImageFolder
-from torchvision.datasets.mnist import MNIST as MNIST_dataset
 from torch.utils.data import TensorDataset, DataLoader
 from torch.autograd import Variable
 import torchvision
@@ -573,7 +572,7 @@ class WhereTrainer:
         ## DATASET TRANSFORMS     
         self.transform = transforms.Compose([
             WhereSquareCrop(args),
-            # gray
+            WhereGrey(args),
             RetinaWhiten(N_pic=args.N_pic),
             TransformDico(self.retina),
             ToFloatTensor(),
