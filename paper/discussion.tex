@@ -8,7 +8,8 @@
 %\subsection{Summary}
 %## Main results:
 
-In summary, we propose a visuo-motor action-selection model that implements a focal accuracy-seeking policy across the image. It relies on an interpretation of the Information Gain metric as a difference between central and peripheric accuracy processing.  The comparison of each accuracies amounts either to select  a saccade or to keep the eye focused at the center (so as to identify the label).
+In summary, we propose a visuo-motor action-selection model that implements a focal accuracy-seeking policy across the image. It relies on an interpretation of the Information Gain metric as a difference between central and peripheric accuracy processing.
+Each accuracy is predicted through separate processing pathways, namely the ``What'' pathway for the central pixels and the ``Where'' pathway for the periphery. The comparison of each accuracies amounts either to select a saccade or to keep the eye focused at the center (so as to identify the label).
 The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning. However, it also owns a probabilistic interpretation that may be combined with concurrent accuracy predictions (such as the one done through the ``what'' pathway) to bring out more elaborate decision making, such as for instance the inhibition of return. 
 
 %- interpretation
@@ -24,7 +25,7 @@ The predicted accuracy map has, in our case, the role of a value-based action se
 %- Dorsal = ''actor'' (where to look next?)
 %- Ventral = ''critic'' (for what to see?)
 
-The approach is also energy-efficient. It encompasses a full log-polar processing pathway which preserves the strong compression rate performed by retina and V1 encoding up to the action selection level. It finally provides an effective sub-linear decoding scheme, that may allow to detect object in large visual environments at little cost. This should be envisaged when the computing resources are under constraint, such as for drones or mobile robots. 
+The approach is also energy-efficient. It encompasses a full log-polar processing pathway which preserves the strong compression rate performed by retina and V1 encoding up to the action selection level. It finally provides an effective sub-linear decoding scheme, that may allow to detect object in large visual environments at little cost. This should be envisioned when the computing resources are under constraint, such as for drones or mobile robots. 
 
 
 %\subsection{Limits}
@@ -47,10 +48,9 @@ One crucial aspect of vision highlighted by our model is the importance of cente
 
 More elaborate image categorization, such as the ones performed on the Imagenet dataset by deep convolutional nets [REF], should also be envisioned.
 %By preserving a probabilistic interpretation in bio-realistic action selection, 
-Real visual scan path over images may then be used to provide realistic priors over action selection maps.  %
+Real visual scan path over images could then be used to provide realistic priors over action selection maps.  %
 %It may indeed be possible to consider , and 
 Identified regions of interest may then be compared with the baseline bottom-up approaches, such as the low-level feature-based saliency maps~\citep{Itti01}. 
-
 
 Finally, our model relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. 
 The presence of many targets in a scene may be addressed %which amounts to sequentially select targets, in combination with implementing an inhibition of return mechanism. 
