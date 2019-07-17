@@ -21,7 +21,6 @@ import SLIP
 from what import What # on va voir si ça donne la meme chose avec un robust_what
 # from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
-from skimage import io
 from PIL import Image
 
 import datetime
@@ -661,6 +660,7 @@ class WhereTrainer:
             """
             print("type", type(data_loader))
             print(data_loader)
+            print("chemin", data_loader_path)
             torch.save(data_loader, data_loader_path)
             if self.args.verbose:
                 print('Done!')
