@@ -8,24 +8,11 @@
 %\subsection{Summary}
 %## Main results:
 
-In summary, we propose a visuo-motor action-selection model that implements a focal accuracy-seeking policy across the image. It relies on an interpretation of the Information Gain metric as a difference between central and peripheric accuracy processing.  The comparison of each accuracies amounts either to select  a saccade or to keep the eye focused at the center (so as to identify the label).
-The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning. However, it also owns a probabilistic interpretation that may be combined with concurrent accuracy predictions (such as the one done through the ``what'' pathway) to bring out more elaborate decision making, such as for instance the inhibition of return. 
+In summary, we have proposed a visuo-motor action-selection model that implements a focal accuracy-seeking policy across the image. It relies on an interpretation of the Information Gain metric as a difference between central and peripheral accuracy processing.  The comparison of both accuracies amounts either to select a saccade or to keep the eye focused at the center, so as to identify the label. The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning. However, it also owns a probabilistic interpretation that may be combined with concurrent accuracy predictions (such as the one done through the ``what'' pathway) to bring out more elaborate decision making which are relevant for visual search, such as inhibition of return for instance. 
 
-%- interpretation
-%- An effective decoding scheme with strong bandwidth reduction
-%- Information-gain based selection of action 
+One crucial aspect of vision highlighted by our model is the importance of centering objects in recognition. Despite the robust translation invariance observed on the ``What'' pathway, there is small radius of 2-3 pixels around the target's center that needs to be respected to maximize the classification accuracy. This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is fixed, the log-polar encoding of an object class shows invariance to both rotation and scale~\citep{Traver10}. Incorporating this scale and rotation invariance may thus extend the recognition capabilities of the model.
 
-%- A sub-linear object detection for image processing:
-%- A full log-polar processing pathway (from early vision toward action selection)
-%- Sequential info gain converges to zero: in practice 2-3 saccades are enough
-%- Ready for up-scaling
-
-%- Object identity-based monitoring of action
-%- Dorsal = ''actor'' (where to look next?)
-%- Ventral = ''critic'' (for what to see?)
-
-The approach is also energy-efficient. It encompasses a full log-polar processing pathway which preserves the strong compression rate performed by retina and V1 encoding up to the action selection level. It finally provides an effective sub-linear decoding scheme, that may allow to detect object in large visual environments at little cost. This should be envisaged when the computing resources are under constraint, such as for drones or mobile robots. 
-
+Compared to classical architectures, this approach is energy-efficient. It encompasses a full log-polar processing pathway which induces a high compression rate similar to that performed by retina and V1 encoding up to the action selection level. This finally provides an effective sub-linear visual search scheme (compared to the linear time necessary to scan all positions on a regular grid), that may allow to detect an object in large visual environments at little cost. This should be particularly beneficial when the computing resources are under constraint, such as for drones or mobile robots. 
 
 %\subsection{Limits}
 
@@ -43,16 +30,10 @@ The approach is also energy-efficient. It encompasses a full log-polar processin
 %- Overt/covert attention
 %- Inhibition of return
 
-One crucial aspect of vision highlighted by our model is the importance of centering objects in recognition. Despite the robust translation invariance observed on the ``What'' pathway, there is small radius of 2-3 pixels around the target center that needs to be respected to maximize the classification accuracy. This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is fixed, the logpolar encoding of an object class shows invariance to both rotation and scale \citep{Traver10}. Incorporating this scale and rotation invariance may thus extend the recognition capabilities of the model.
-
-More elaborate image categorization, such as the ones performed on the Imagenet dataset by deep convolutional nets, should be envisaged in the model.
-%By preserving a probabilistic interpretation in bio-realistic action selection, 
-Real visual scan path over images should also be used in that case to provide realistic priors over action selection maps.  %
-%It may indeed be possible to consider , and 
-Identified regions of interest may then be compared with the baseline bottom-up approaches, such as the low-level feature-based saliency maps~\citep{Itti01}. 
+One limit of our model is the simplicity of the generative model for inputs. This simplicity was important to fully assess the possibility and robustness of implementing a ``where'' module which predicts the map of accuracies from the (degraded) log-polar transformed retinal image.
+In future perspectives, more elaborate image categorization, such as the ones performed on natural images by the Imagenet dataset using deep convolutional nets, could be envisaged in our model by simply replacing the ``what'' module. 
+Moreover, inhibition of return mechanism could envisioned by preserving a probabilistic interpretation in bio-realistic action selection. This would generate realistic visual scan-paths over images. This could be used to provide realistic priors over action selection maps.  In particular, identified regions of interest may then be compared with the baseline bottom-up approaches, such as the low-level feature-based saliency maps~\citep{Itti01}. 
 
 
-From the modeling side, our model relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. 
-The presence of many targets in a scene should be addressed, which amounts to sequentially select targets, in combination with implementing an inhibition of return mechanism. Maximizing the Information Gain over multiple targets needs to be envisaged with a more refined probabilistic framework, including mutual exclusion over overt and covert targets.
-How the brain may combine and integrate various probabilities is still an open question, that resorts to the classical binding problem. %: How is it possible to meaningfully combine independently extracted features.
+From the modeling side, our model relies on a strong idealization, assuming the existence of a probabilistic representation of action achievement over large action spaces in the brain. The presence of many targets in a scene should be addressed, which amounts to sequentially select targets, in combination with implementing an inhibition of return mechanism. Maximizing the Information Gain over multiple targets needs to be envisaged with a more refined probabilistic framework, including mutual exclusion over overt and covert targets. How the brain may combine and integrate various probabilities is still an open question, that resorts to the classical binding problem. %: How is it possible to meaningfully combine independently extracted features.
 %\subsection{Perspectives}
