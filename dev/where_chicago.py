@@ -21,7 +21,6 @@ import SLIP
 from what import What # on va voir si ça donne la meme chose avec un robust_what
 # from tqdm import tqdm # commenter car ne sert pas et sinon hydra ne veut pas
 import matplotlib.pyplot as plt
-from PIL import Image
 
 import datetime
 
@@ -636,7 +635,11 @@ class WhereTrainer:
             if self.args.verbose:
                 print('Generating {}ing dataset'.format(use))
 
-            data_loader = ChicagoFacesDataset("../data/ChicagoFacesData/", self.transform)
+            #data_loader = ChicagoFacesDataset("../data/ChicagoFacesData/", self.transform)
+            datasetFaces = ChicagoFacesDataset("../data/ChicagoFacesData/", self.transform)
+            data_loader = DataLoader(datasetFaces,
+                                     batch_size=args.minibatch_size,
+                                     shuffle=True)
 
             """
             for i in range(len(dataset))# lire les images # i, (data, acc) in enumerate(data_loader):
