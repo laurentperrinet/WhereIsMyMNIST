@@ -9,4 +9,4 @@ args = init(filename='../data/2019-07-08')
 args.epochs = 2
 args.save_model = True
 
-where = Where(args=args, force=False)
+where = Where(args=args)
