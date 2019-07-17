@@ -659,7 +659,8 @@ class WhereTrainer:
                                          batch_size=args.minibatch_size,
                                          shuffle=True)
             """
-
+            print("type", type(data_loader))
+            print(data_loader)
             torch.save(data_loader, data_loader_path)
             if self.args.verbose:
                 print('Done!')
