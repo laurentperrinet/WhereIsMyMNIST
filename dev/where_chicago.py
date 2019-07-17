@@ -58,7 +58,7 @@ MNIST(MNIST_dataset):
 class ChicagoFacesDataset:
     """Chicago Faces dataset."""
 
-    def __init__(self, csv_file, root_dir, transform):
+    def __init__(self, root_dir, transform):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -636,7 +636,7 @@ class WhereTrainer:
             if self.args.verbose:
                 print('Generating {}ing dataset'.format(use))
 
-            data_loader = ChicagoFacesDataset()
+            data_loader = ChicagoFacesDataset("../data/ChicagoFacesData/", transform)
 
             """
             for i in range(len(dataset))# lire les images # i, (data, acc) in enumerate(data_loader):
