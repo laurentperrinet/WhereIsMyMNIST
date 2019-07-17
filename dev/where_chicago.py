@@ -624,13 +624,13 @@ class WhereTrainer:
         #                               lr=args.lr, 
         #                               momentum=args.momentum)
         
-    def init_data_loader(self, args, suffix, force_generate = False, train=True):
+    def init_data_loader(self, args, suffix, train=True, generate_data=False):
         if train:
             use = 'train'
         else:
             use = 'test'
         data_loader_path = '/tmp/where_chicago_dataset_{}_{}.pt'.format(suffix, args.minibatch_size) # use retire
-        if os.path.isfile(data_loader_path) and not force_generate:
+        if os.path.isfile(data_loader_path) and not generate_data:
             if self.args.verbose: 
                 print('Loading {}ing dataset'.format(use))
             data_loader = torch.load(data_loader_path)
