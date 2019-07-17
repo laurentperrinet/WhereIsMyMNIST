@@ -548,7 +548,7 @@ class WhereNet(torch.nn.Module):
 """
 
 def where_suffix(args):
-    suffix += '_{}_{}'.format(args.N_theta, args.N_azimuth)
+    suffix = '_{}_{}'.format(args.N_theta, args.N_azimuth)
     suffix += '_{}_{}'.format(args.N_eccentricity, args.N_phase)
     suffix += '_{}_{}'.format(args.rho, args.N_pic)
     return suffix
