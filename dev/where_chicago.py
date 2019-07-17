@@ -588,16 +588,14 @@ class WhereTrainer:
         if not train_loader:
             self.init_data_loader(args, suffix, 
                                   train=True, 
-                                  generate_data=generate_data, 
-                                  fullfield=False)
+                                  generate_data=generate_data)
         else:
             self.train_loader = train_loader
         
         if not test_loader:
             self.init_data_loader(args, suffix, 
                                   train=False, 
-                                  generate_data=generate_data, 
-                                  fullfield=True)
+                                  generate_data=generate_data)
         else:
             self.test_loader = test_loader
             
