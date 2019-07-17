@@ -636,7 +636,7 @@ class WhereTrainer:
             if self.args.verbose:
                 print('Generating {}ing dataset'.format(use))
 
-            data_loader = ChicagoFacesDataset("../data/ChicagoFacesData/", transform)
+            data_loader = ChicagoFacesDataset("../data/ChicagoFacesData/", self.transform)
 
             """
             for i in range(len(dataset))# lire les images # i, (data, acc) in enumerate(data_loader):
