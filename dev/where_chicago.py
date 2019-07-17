@@ -752,6 +752,8 @@ class Where():
         #########################################################
         # loads a WHAT model (or learns it if not already done) #
         #########################################################
+
+        """
         if what_model:
             self.what_model = what_model
         else:
@@ -759,7 +761,7 @@ class Where():
             what = What(args) # trains the what_model if needed
             self.what_model = what.model.to(self.device)
             print(datetime.datetime.now())
-            
+        """
                 
         '''from what import WhatNet
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
