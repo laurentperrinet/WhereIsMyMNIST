@@ -95,7 +95,7 @@ class RetinaFaces:
         except :
             print("Creation du fichier retina_faces_dataset en cours...")
             for idx in range(len(self.list_files)):
-                if idx%1==0 : print(idx) # %10 une fois les tests passés
+                if idx%10==0 : print(idx) # %10 une fois les tests passés
 
                 img_name = os.path.join(self.list_files[idx])
                 # image = io.imread(img_name, as_gray=True) # commente le 08/07/2019 le gris sera fait dans
