@@ -11,16 +11,16 @@
 %------------------------------%
 %: see Figure~\ref{fig:methods}
 \begin{figure}[t!]%%[p!]
-\centering{\includegraphics[width=\linewidth]{where-diagram}}
-%\centering{\includegraphics[width=\linewidth]{fig_methods}}
+\centering{\includegraphics[width=\linewidth]{fig_methods}}
 \caption{%
 {\bf Methods for simulating active vision}:
-\A We first define the model which generates images. It is composed of three different random processes: one choosing a sample image from the MNIST database (of size $28\times 28$) and placing it at a random position within the circular mask on the $128\times 128$ display. Then, this image is rectified and multiplied by a contrast factor and finally embedded in a natural-like noise characterized by noise contrast, mean spatial frequency and bandwidth~\citep{Sanz12} (see an example in Figure~\ref{fig:intro}-A, \DIS ). %
-\B The full-sized image is transformed into a retinal image which will be fed to the ``where'' pathway. This transform is implemented by a bank of filters whose centers are positioned on a log-polar grid and whose radius increases proportionally with eccentricity. In addition, a similar topographic map is used to represent the accuracy of each hypothetical position of a saccade, as represented by the collicular map. %
+\A Input images are composed of three different random processes: one choosing a sample image from the MNIST database (of size $28\times 28$) and placing it at a random position within the circular mask on the $128\times 128$ display. Then, this image is rectified and multiplied by a contrast factor and finally embedded in a natural-like noise characterized by noise contrast, mean spatial frequency and bandwidth~\citep{Sanz12} (see an example in Figure~\ref{fig:intro}-A, \DIS ). %
+\B This full-sized image is transformed into 2 images: a central foveal-like central snippet which is fed to a classification network (``what'' pathway) and a retinal-like image which will be fed to the ``where'' pathway. This log-polar transform is implemented by a bank of filters whose centers are positioned on a log-polar grid and whose radius increases proportionally with eccentricity. %
 \C 
 %The ``where'' pathway is implemented by a three-layered neural network consisting of the retinal input, two hidden layers with $1000$ units each and a log-polar output. To train that network, we used a pre-calculated accuracy map which records the average accuracy over the testing set, knowing a mis-estimation in both axis (respectively $\Delta X$ and $\Delta Y$) of the actual position of the target. %
-%\D 
-The ``where'' pathway is implemented by a three-layered neural network consisting of the retinal input, two hidden layers with $1000$ units each and a collicular output. Each unit is associated with a ReLU non-linearity. To learn to associate the output of the network with the ground truth, supervised training is performed using back-propagation with a binary cross entropy loss. This scalar measures the distance between both distributions (it is always positive and null if and only if they are equal). The position of maximal activity the ``where'' pathway serves to move the center of gaze and classify the foveal image using the ``what'' pathway. %
+The ``what'' network is implemented using the three-layered LeNet CNN~\citep{Lecun1998}, while the ``where'' network is implemented by a three-layered neural network consisting of the retinal input, two hidden layers with $1000$ units each and a collicular-like accuracy map.  This map has a similar topographic map and predicts the accuracy of each hypothetical position of a saccade.  Each layer associates a fully-connected linear transform with a ReLU non-linearity. To learn to associate the output of the network with the ground truth, supervised training is performed using back-propagation with a binary cross entropy loss. 
+\D 
+If the predicted accuracy in the output of the ``where'' network is higher than that predicted in the ``what'' network, the position of maximal activity in the ``where'' pathway serves to generate a saccadic-like action which moves the center of gaze. % Then, and classify the foveal image using the ``what'' pathway. %
 %\E TODO describe log polar
 %\F TODO accuracy map 
 \label{fig:methods}}%
@@ -41,15 +41,15 @@ It is also assumed that a set of motor commands $A = \{..., a, ...\}$ (here sacc
 In a predictive setup, the consequence of every saccade should be analyzed through model inversion \emph{over the future observations}, that is, predicting the effect of every action to choose the one that may optimize future inferences. The benefit of each action should be quantified through a certain metric (future accuracy, future posterior entropy, future variational free energy, ...), that depend on the current inference $p(U,Y|x)$. The saccade $a$ that is selected thus provides a new visual sample from the scene statistics. If well chosen, it should improve the understanding of the scene (here the target position and category). However, estimating in advance the effect of every action over the range of every possible object shapes and body postures is combinatorially hard, even in simple cases such as vision, and thus infeasible in practice.
 
 %To infer the position of the target, we will use the fundamental hypothesis outlined in Figure~\ref{fig:intro}: The position of an object is independent from its category.
-The predictive setup necessitates in practice to restrain the generative model in order to reduce the range of possible combinations. One such restriction, known as the ``Naïve Bayes'' assumption, considers the independance of the factors that are the cause of the sensory view.
+The predictive setup necessitates in practice to restrain the generative model in order to reduce the range of possible combinations. One such restriction, known as the ``Naïve Bayes'' assumption, considers the independence of the factors that are the cause of the sensory view.
 The independence hypothesis allows considering the position $u$ and the category $y$ being independently inferred from the current visual field, i.e $p(U,Y|x) = p(U|x) p(Y|x)$. This property is strictly true in our setting and is very generic in vision for simple classes (such as digits) and simple displays (but see~\citep{Vo12} for more complex visual scene grammars).
 %
 This independence assumption allows to separate the scene analysis in two independent tasks. A first task consists in identifying the target (namely inferring $y$ from $x$) and a second task consists in localizing the target (namely inferring $u$ from $x$). Each task is moreover assumed to be realized in parallel through distinct computational pathways, that are referred as the
-`What'' and the ``Where'' pathways by analogy with the brain (see figure \ref{fig:methods})
+``What'' and the ``Where'' pathways by analogy with the brain (see figure \ref{fig:methods})
 %\bf [ref needed]. \emph{Note that %from the retinotopic projection of the visual information,
 %this independence is conditional on action: both pathways should update their beliefs upon decisions made in each respective pathway {\bf (je ne comprends pas bien cette phrase?)}}}\fi. 
 However, we will here simplify the setting by considering only one possible saccade.
-Each pathway is here assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher cones density, and thus higher spatial precision. In contrast, the target localization should rely on full visual field, with peripheral regions having a lesser sensor density and a lesser sensitivity to high spatial frequencies.
+Each pathway is here assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the target localization should rely on full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies.
 
 \subsection{Metric training}
 Next, the effect of a saccade is to shift the visual field from one place to another.
@@ -90,15 +90,15 @@ To test the validity of our hypothesis, let us find a function implementing the 
 %=================================================================
 We define here the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and as implemented in Figure~\ref{fig:methods}-A.
 
-\paragraph{Targets.} Following a common hypothesis regarding active vision, visual scenes consist of a single visual object of interest. We use the MNIST database of handwritten digits introduced by~\citep{Lecun1998}. %Indeed, we are here focused on the problem of localization (``where'' pathway) and classification solutions (``what'' pathway) abound for this class of targets.
-Samples are drawn from a database of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``where'' network).
+\paragraph{Targets.} Following a common hypothesis regarding active vision, visual scenes consist of a single visual object of interest. We use the MNIST database of handwritten digits introduced by~\citet{Lecun1998}: %Indeed, we are here focused on the problem of localization (``where'' pathway) and classification solutions (``what'' pathway) abound for this class of targets.
+Samples are drawn from the database of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``where'' network).
 
 \paragraph{Full-scale images.} Each sample position is draw a random in a full-scale image of size $128\times 128$. To enforce isotropic saccades, a centered circular mask covering the image (of radius $64$ pixels) is defined, and the position is such that the embedded sample fits entirely into that circular mask.
 
-\paragraph{Background noise setting. } To implement a realistic background noise, we generate synthetic textures~\citep{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image.
+\paragraph{Background noise setting.} To implement a realistic background noise, we generate synthetic textures~\citep{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image.
 The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency $sf_0$ of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. Finally, these images are rectified to have a normalized contrast.
 
-\paragraph{Mixing the signal and the noise. } Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
+\paragraph{Mixing the signal and the noise.} Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
 %
 \subsection{Interoceptive generative model}
 %=================================================================
@@ -142,9 +142,8 @@ The network is trained to predict the distribution $\boldsymbol{a}$ knowing the 
 
 %The ``What'' pathway will be given from the literature. In contrast, the ``Where'' pathway takes the into account in order to tell whether a target is present at the different peripheral locations, in order to monitor future saccades.
 
-
 In practice, the parametric neural network is made of an input (retinal) layer, two fully connected hidden layers of size 1000
 %{\bf (!! 1000 !!)} $500$ and {\bf(!! 1000 !!)} $2000$ units respectively
 and an output layer, with ReLu activation between each layer, except at the output which uses a sigmoid function to ensure that the output is compatible with the representation of a likelihood (see Figure~\ref{fig:methods}-C).
 %In addition, we tested the effect of $50 \%$ drop-out on the last hidden layer.
-Another improvement in convergence speed that was obtained by using batch normalization. The network is trained over $500,000$ saccades on full-images, using the binary cross-entropy loss as the error signal, with a learning rate equal to $10^{-4}$ and stochastic gradient descent with a momentum to improve convergence. The training is done for $25$ epochs in about $1$ hours on a laptop. The code is written in Python (version 3.7.6) with pyTorch library~\citep{Paszke17} (version 1.0.1). The full scripts for reproducing the figures and extending the results to a full range of parameters is available at \url{https://github.com/laurentperrinet/WhereIsMyMNIST}. % TODO: change to https://github.com/SpikeAI/DauceAlbigesPerrinet19 when public
+Another improvement in convergence speed that was obtained by using batch normalization. The network is trained over $500,000$ saccades on full-images, using the binary cross-entropy loss as the error signal, with a learning rate equal to $10^{-4}$ and stochastic gradient descent with a momentum to improve convergence. This scalar measures the distance between both distributions (it is always positive and null if and only if they are equal). The training is done for $25$ epochs in about $1$ hours on a laptop. The code is written in Python (version 3.7.6) with pyTorch library~\citep{Paszke17} (version 1.1.0). The full scripts for reproducing the figures and extending the results to a full range of parameters is available at \url{https://github.com/laurentperrinet/WhereIsMyMNIST}. % TODO: change to https://github.com/SpikeAI/DauceAlbigesPerrinet19 when public

@@ -388,7 +388,8 @@ class WhereTrainer:
                  generate_data=True,
                  retina=None,
                  acc_map=None,
-                 robust=False):
+                 robust=False,
+                 save_path=None):
         self.args=args
         self.device=device
         if retina:
@@ -465,7 +466,8 @@ class WhereTrainer:
             self.init_data_loader(args, suffix, 
                                   train=True, 
                                   generate_data=generate_data, 
-                                  fullfield=False)
+                                  fullfield=False,
+                                  save_path=save_path)
         else:
             self.train_loader = train_loader
         
@@ -473,7 +475,8 @@ class WhereTrainer:
             self.init_data_loader(args, suffix, 
                                   train=False, 
                                   generate_data=generate_data, 
-                                  fullfield=True)
+                                  fullfield=True,
+                                  save_path=save_path)
         else:
             self.test_loader = test_loader
             
@@ -500,12 +503,18 @@ class WhereTrainer:
         #                               lr=args.lr, 
         #                               momentum=args.momentum)
         
-    def init_data_loader(self, args, suffix, train=True, generate_data=True, fullfield = False, force_generate = False):
+    def init_data_loader(self, args, suffix, train=True, generate_data=True, fullfield = False, force_generate = False, save_path=None):
         if train:
             use = 'train'
         else:
             use = 'test'
-        data_loader_path = '/tmp/where_{}_dataset_{}_{}.pt'.format(use, suffix, args.minibatch_size)
+        if save_path is None:
+            data_loader_path = '/tmp/where_{}_dataset_{}_{}.pt'.format(use, suffix, args.minibatch_size)
+        else:
+            data_loader_path = save_path + 'where_{}_dataset_{}_{}.pt'.format(use, suffix, args.minibatch_size)
+            if args.verbose:
+                print('Dataset :', data_loader_path)
+            
         if os.path.isfile(data_loader_path) and generate_data and not force_generate:
             if self.args.verbose: 
                 print('Loading {}ing dataset'.format(use))
@@ -652,7 +661,8 @@ class Where():
                  trainer=None,
                  save_model=True,
                  acc_map=None,
-                 robust=False):
+                 robust=False,
+                 save_path=None):
         
         self.args = args
 
@@ -716,7 +726,12 @@ class Where():
       
         
         suffix = where_suffix(args, robust)
-        model_path = '/tmp/where_model_{}.pt'.format(suffix)
+        if save_path is None:
+            model_path = '/tmp/where_model_{}.pt'.format(suffix)
+        else:
+            model_path = save_path + 'where_model_{}.pt'.format(suffix)
+            if args.verbose:
+                print(model_path)
         
         if model:
             self.model = model
@@ -731,11 +746,14 @@ class Where():
                                        generate_data=generate_data,
                                        retina=retina,
                                        acc_map=acc_map,
-                                       robust=robust)
+                                       robust=robust,
+                                       save_path=save_path)
         elif trainer:
             self.model = trainer.model
             self.trainer = trainer
         elif os.path.exists(model_path) and not force_training:
+            if self.args.verbose:
+                print('loading model')
             self.model  = torch.load(model_path)
             self.trainer = WhereTrainer(args, 
                                        model=self.model,
@@ -745,7 +763,8 @@ class Where():
                                        generate_data=generate_data,
                                        retina=retina,
                                        acc_map=acc_map,
-                                       robust=robust)
+                                       robust=robust,
+                                       save_path=save_path)
         else:                                                       
             self.trainer = WhereTrainer(args, 
                                        train_loader=train_loader, 
@@ -754,7 +773,8 @@ class Where():
                                        generate_data=generate_data,
                                        retina=retina,
                                        acc_map=acc_map,
-                                       robust=robust)
+                                       robust=robust,
+                                       save_path=save_path)
             for epoch in range(1, args.epochs + 1):
                 self.trainer.train(epoch)
                 self.trainer.test()
