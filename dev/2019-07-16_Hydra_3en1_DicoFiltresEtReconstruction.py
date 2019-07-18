@@ -12,7 +12,8 @@ from main import init
 args = init(filename='../data/2019-07-08')
 args.train_batch_size = 1000
 args.test_batch_size = 207
-args.N_eccentricity = 18
+args.N_eccentricity = 24
+args.N_azimuth = 48
 args.contrast = 0.5
 nom = "_{}_{}".format(args.N_azimuth, args.N_eccentricity)
 
@@ -27,8 +28,8 @@ transform=transforms.Compose([
                             InverseTransformDico(retina)
                            ])
 
-dataset = ChicagoFacesDataset(csv_file='../data/ChicagoFacesData/CFD_2.0.3_Norming_Data_and_Codebook.csv',
-                                    root_dir='../data/ChicagoFacesData/', transform=transform)
+dataset = ChicagoFacesDataset(root_dir='../data/ChicagoFacesData/', transform=transform)
+
 print(len(dataset))
 index_liste = 2
 donnees = dataset[index_liste]
@@ -60,10 +61,10 @@ for i_eccentricity in range(args.N_eccentricity):
     #print(filtre.shape[0]**(1/2) - int(filtre.shape[0]**(1/2)))
     dimensions_filtre = int(filtre.shape[0]**(1/2))
     ecc_max = .8
-    ecc = ecc_max * (1 / args.rho) ** (args.N_eccentricity - i_eccentricity)
+    ecc = ecc_max * (1 / args.rho) ** ((args.N_eccentricity - i_eccentricity)/3)
     # ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity)/5)
     # /5 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
-    r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
+    r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
     psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / args.N_azimuth
     x = int(N_X / 2 + r * np.cos(psi))
     y = int(N_Y / 2 + r * np.sin(psi))

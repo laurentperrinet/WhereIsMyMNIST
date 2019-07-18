@@ -160,25 +160,27 @@ class Retina:
         # B_sf=.4, B_theta=np.pi / 12): # on enleve self pour l'instant
 
         # !!?? Magic numbers !!??
-        ecc_max = 0.6  # 0.6  # initialement 0.8 # self.args.ecc_max  # gross. aptitude a grandir
-        sf_0_r = 0.0015  # initialement 0.03 # self.args.sf_0_r # gross. la "diminution" de taille pour les ecc moyennes
+        ecc_max = 0.8  # 0.6  # initialement 0.8 # self.args.ecc_max  # gross. aptitude a grandir
+        sf_0_r = 0.015  # initialement 0.03 # self.args.sf_0_r # gross. la "diminution" de taille pour les ecc moyennes
         B_theta = np.pi / self.N_theta / 2  # self.self.B_theta
         B_sf = 0.4  # initialement 0.4 # gross. le nombre de lobes
-        sf_0_max = 0.02  # 0.05 # initialement 0.45 # gross. taille initiale
+        sf_0_max = 0.45  # 0.05 # initialement 0.45 # gross. taille initiale
 
         #ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
         ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity) / 3)  # /3 ajouté
         # sinon on obtenait exactement les memes coordonnees x et y pour environ la moitie des filtres calcules 12/07
-        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
+        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
         #print(r)
 
-        dimension_filtre = min(2 * int(2 * r),
-                               self.N_pic)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
+        #dimension_filtre = min(2 * int(2 * r),
+                               #self.N_pic)  # 2*int(2*r) pour avoir des filtres vraiment de la meme taille qu'avant
        # print("dimension_filtre", dimension_filtre)
-        if dimension_filtre < 200:
-            dimension_filtre = 200
+        #if dimension_filtre < 200:
+        #    dimension_filtre = 200
         #print("dimension_filtre", dimension_filtre)
-        lg.set_size((dimension_filtre, dimension_filtre))
+        #lg.set_size((dimension_filtre, dimension_filtre))
+
+
 
         # lg.set_size((N_X, N_Y))
 
@@ -187,6 +189,13 @@ class Retina:
         theta_ref = i_theta * np.pi / self.N_theta
         sf_0 = 0.5 * sf_0_r / ecc
         sf_0 = np.min((sf_0, sf_0_max))
+
+        dimension_filtre = int(1 / sf_0 * 2)
+        if dimension_filtre % 2 == 1:
+            dimension_filtre += 1
+        #print("dimension_filtre", dimension_filtre)
+        lg.set_size((dimension_filtre, dimension_filtre))
+
         # TODO : find the good ref for this                print(sf_0)
         x = N_X / 2 + r * np.cos(psi)  # c'est bien le centre du filtre ?
         y = N_Y / 2 + r * np.sin(psi)  # c'est bien le centre du filtre ?
@@ -336,11 +345,10 @@ class Retina:
                         #ecc = ecc_max * (1 / self.args.rho) ** (self.args.N_eccentricity - i_eccentricity)
                         ecc = ecc_max * (1 / self.args.rho) ** ((self.args.N_eccentricity - i_eccentricity)/3)
                         # /3 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
-                        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
+                        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.args.N_azimuth
                         x = int(N_X / 2 + r * np.cos(psi))
                         y = int(N_Y / 2 + r * np.sin(psi))
-                        r = int(r)
 
                         r = dimension_filtre // 2
 
@@ -498,7 +506,7 @@ class Retina:
                         #ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
                         ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity)/3)
                         # /3 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
-                        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc  # radius
+                        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
                         x = int(N_X / 2 + r * np.cos(psi))
                         y = int(N_Y / 2 + r * np.sin(psi))

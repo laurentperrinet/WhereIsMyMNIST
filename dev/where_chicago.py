@@ -52,6 +52,172 @@ MNIST(MNIST_dataset):
         return img, target
 '''
 
+class RetinaFaces:
+    """Chicago Faces dataset."""
+
+    def __init__(self, root_dir, transform, args):
+        """
+        Args:
+            root_dir (string): Directory with all the images.
+        """
+        self.root_dir = root_dir
+        self.transform = transform
+        self.args = args
+
+        self.init_get_path_files()
+        self.init_load_dataset()
+
+    def __len__(self):
+        return len(self.list_files)
+
+    def __getitem__(self, idx):
+        return self.dic_sample[idx]
+
+    def init_get_path_files(self):
+        self.list_files = []
+        self.dic_sample = {}
+        folder_directory = self.root_dir
+
+        for path, subdirs, files in os.walk(folder_directory):
+            for name in files:
+                if name[-4:] == '.jpg':
+                    # print(path, name)
+                    self.list_files.append(os.path.join(path, name))
+        # print(self.list_files)
+        self.list_files = self.list_files[0:10] # pour pouvoir tester les choses vite
+
+    def init_load_dataset(self):
+        file_path = "../tmp/retina_faces_dataset_{}_{}.npy".format(where_suffix(self.args), str(len(self.list_files)))
+        print(file_path)
+        try :
+            self.dic_sample = np.load(file_path).item()
+            print("Fichier retina_faces_dataset charge avec succes")
+        except :
+            print("Creation du fichier retina_faces_dataset en cours...")
+            for idx in range(len(self.list_files)):
+                if idx%1==0 : print(idx) # %10 une fois les tests passés
+
+                img_name = os.path.join(self.list_files[idx])
+                # image = io.imread(img_name, as_gray=True) # commente le 08/07/2019 le gris sera fait dans
+                # image = io.imread(img_name)
+                image = np.array(Image.open(img_name))
+                if self.transform is not None:
+                    image, retina_features = self.transform(image)
+                image_name = self.list_files[idx][-28:-4]
+                if image_name[-5] in ['O', 'C']:
+                    gender = image_name[-12]
+                    race = image_name[-13]
+                    expression = image_name[-2:0]
+                else:
+                    gender = image_name[-11]
+                    race = image_name[-12]
+                    expression = image_name[-1]
+                targets = [race, gender, expression]
+                self.dic_sample[idx] = [image_name, targets, image, retina_features]
+            print("Fichier cree avec succes")
+            np.save(file_path, self.dic_sample)
+            print("Fichier enregistre avec succes")
+
+
+class WhatFaces:
+    def __init__(self, args, dataset, retina, train_loader=None, test_loader=None, force=False, model=None):
+        self.args = args
+        self.dataset = dataset
+        self.retina = retina
+        self.model = model
+        date = str(datetime.datetime.now())
+        suffix = "what_faces_{}_{}_{}_{}_{}epoques_{}_{}h{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast, self.args.epochs, date[0:10], date[11:13], date[14:16])
+        model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
+        if os.path.exists(model_path) and not force:
+            self.model = torch.load(model_path)
+            self.trainer = WhatTrainer(args, dataset, retina,
+                                       model=self.model,
+                                       train_loader=train_loader,
+                                       test_loader=test_loader)
+            print("Modele charge avec succes")
+        else:
+            self.trainer = WhatTrainer(args, retina, dataset,  model=self.model,
+                                       train_loader=train_loader,
+                                       test_loader=test_loader)
+            for epoch in range(1, args.epochs + 1):
+                self.trainer.train(epoch)
+                self.trainer.test()
+            self.model = self.trainer.model
+            if args.save_model:
+                print(model_path)
+                torch.save(self.model, model_path)
+                print("Modele enregistre avec succes")
+
+
+class WhatTrainer:
+    def __init__(self, args, dataset, retina, model=None, train_loader=None, test_loader=None):
+        self.args = args
+        self.dataset = dataset
+        self.retina = retina
+        #kwargs = {}
+        transform = transforms.Compose([
+            WhereSquareCrop(args),
+            WhereGrey(args),
+            RetinaWhiten(N_pic=args.N_pic),
+            TransformDico(self.retina)
+            #transforms.ToTensor(),
+            #transforms.Normalize((args.mean,), (args.std,))
+        ])
+        if not train_loader:
+            dataset_train = {}
+            while len(dataset_train) < self.args.train_batch_size :
+                index = np.random.randint(len(dataset))
+                if index not in dataset_train:
+                    dataset_train[index] = dataset[index]
+            self.train_loader = torch.utils.data.DataLoader(dataset_train,
+                                                            batch_size=args.minibatch_size,
+                                                            **kwargs)
+        else:
+            self.train_loader = train_loader
+
+        if not test_loader:
+            dataset_test = {}
+            while len(dataset_test) < self.args.test_batch_size :
+                index = np.random.randint(len(dataset))
+                if index not in dataset_train and index not in dataset_test:
+                    dataset_test[index] = dataset[index]
+            self.test_loader = torch.utils.data.DataLoader(dataset_test,
+                                                           batch_size=args.minibatch_size,
+                                                           shuffle=True,
+                                                           **kwargs)
+        else:
+            self.test_loader = test_loader
+
+        if not model:
+            self.model = WhatNet(args).to(device)
+        else:
+            self.model = model
+
+        self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
+        try:
+            if args.do_adam == 'adam':
+                self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
+            elif args.do_adam == 'sgd':
+                self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum)
+            elif args.do_adam == "adagrad":
+                # self.optimizer = optim.adagrad(self.args, lr=1e-2, lr_decay=0, weight_decay=0, initial_accumulator_value=0)
+                self.optimizer = optim.Adagrad(self.model.parameters(), lr=args.lr)
+            elif args.do_adam == "adadelta":
+                # self.optimizer = optim.adadelta(self.args, lr=1.0, rho=0.9, eps=1e-6, weight_decay=0)
+                self.optimizer = optim.Adadelta(self.model.parameters(), lr=args.lr)
+        except ValueError:
+            print(
+                "L'optimiseur spécifié est mal orthographié ou inconnu. les choix possibles sont : 'adam', 'sgd', 'adagrad', 'adadelta'")
+
+    def train(self, epoch):
+        train(self.args, self.model, self.train_loader, self.loss_func, self.optimizer, epoch)
+
+    def test(self):
+        return test(self.args, self.model, self.test_loader, self.loss_func)
+
+    def posteriorTest(self):
+        return posteriorTest(self.args, self.model, self.test_loader)
+
 
 class ChicagoFacesDataset:
     """Chicago Faces dataset."""
@@ -225,7 +391,7 @@ class WhereSquareCrop:
         dim = min(h, w)
         self.args.N_pic = dim
         image = image[h//2-dim//2:h//2+dim//2, w//2-dim//2:w//2+dim//2]
-        print("WhereSquareCrop ok")
+        #print("WhereSquareCrop ok")
         #print(image)
         return image
 
@@ -322,7 +488,7 @@ class RetinaWhiten:
         fullfield = self.whit.FTfilter(fullfield, self.K_whitening) 
         #fullfield += 0.5
         #fullfield = np.clip(fullfield, 0, 1)
-        print("RetinaWhiten ok")
+        #print("RetinaWhiten ok")
         #print(fullfield)
         #print(type(fullfield))
         return fullfield #pixel_fullfield.astype('B')
@@ -363,7 +529,7 @@ class WhereGrey:
         #fullfield_PIL.show()
         fullfield = np.array(fullfield_PIL)
         #plt.imshow(fullfield[:,:,0])
-        if self.args.verbose : print("WhereGrey ok")
+        #if self.args.verbose : print("WhereGrey ok")
         return fullfield[:,:,0]
 
 class WhereRotate:
