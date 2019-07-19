@@ -84,7 +84,7 @@ class RetinaFaces:
                     # print(path, name)
                     self.list_files.append(os.path.join(path, name))
         # print(self.list_files)
-        self.list_files = self.list_files[0:10] # pour pouvoir tester les choses vite
+        # self.list_files = self.list_files[0:10] # pour pouvoir tester les choses vite
 
     def init_load_dataset(self):
         file_path = "../tmp/retina_faces_dataset_{}_{}.npy".format(where_suffix(self.args), str(len(self.list_files)))
@@ -113,7 +113,7 @@ class RetinaFaces:
                     race = image_name[-12]
                     expression = image_name[-1]
                 targets = [race, gender, expression]
-                self.dic_sample[idx] = [image_name, targets, image, retina_features]
+                self.dic_sample[idx] = [image_name, targets, retina_features]
             print("Fichier cree avec succes")
             np.save(file_path, self.dic_sample)
             print("Fichier enregistre avec succes")
@@ -158,7 +158,7 @@ class WhatTrainer:
         transform = transforms.Compose([
             WhereSquareCrop(args),
             WhereGrey(args),
-            RetinaWhiten(N_pic=args.N_pic),
+            RetinaWhiten(args),
             TransformDico(self.retina)
             #transforms.ToTensor(),
             #transforms.Normalize((args.mean,), (args.std,))
@@ -477,10 +477,11 @@ class RetinaMask:
         return fullfield #.astype('B')
     
 class RetinaWhiten:
-    def __init__(self, N_pic=128):
-        self.N_pic = N_pic
+    def __init__(self, args):
+        self.N_X = args.N_X
+        self.N_Y = args.N_Y
         self.whit = SLIP.Image(pe=pe)
-        self.whit.set_size((self.N_pic, self.N_pic))
+        self.whit.set_size((self.N_X, self.N_Y))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
     def __call__(self, pixel_fullfield):
@@ -507,8 +508,8 @@ class WhereZoom:
         image_reduite = fullfield_PIL.resize((taille_zoom, taille_zoom))
         #image_reduite.show()
         WHITE = (255, 255, 255, 0)
-        image_totale = Image.new('RGBA', (self.args.N_pic,self.args.N_pic), WHITE)
-        box = (int(self.args.N_pic//2 - taille_zoom//2), int(self.args.N_pic//2 - taille_zoom//2), int(self.args.N_pic//2 + taille_zoom//2), int(self.args.N_pic//2 + taille_zoom//2))
+        image_totale = Image.new('RGBA', (self.args.N_X,self.args.N_Y), WHITE)
+        box = (int(self.args.N_X//2 - taille_zoom//2), int(self.args.N_Y//2 - taille_zoom//2), int(self.args.N_X//2 + taille_zoom//2), int(self.args.N_Y//2 + taille_zoom//2))
         image_totale.paste(image_reduite, box)
         #image_totale.show()
         #print("image_totale", type(image_totale))
@@ -584,7 +585,7 @@ class OnlineRetinaTransform:
     def __init__(self, retina):
         self.retina = retina
     def __call__(self, fullfield):
-        retina_features = retina.online_vectorization(fullfield)
+        retina_features = self.retina.online_vectorization(fullfield)
         return retina_features
 
 class FullfieldRetinaTransform:
@@ -715,7 +716,7 @@ class WhereNet(torch.nn.Module):
 def where_suffix(args):
     suffix = '_{}_{}'.format(args.N_theta, args.N_azimuth)
     suffix += '_{}_{}'.format(args.N_eccentricity, args.N_phase)
-    suffix += '_{}_{}'.format(args.rho, args.N_pic)
+    suffix += '_{}_{}_{}_{}'.format(args.rho, args.N_pic, args.N_X, args.N_Y)
     return suffix
 
 class WhereTrainer:
