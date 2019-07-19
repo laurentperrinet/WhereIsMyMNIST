@@ -9,6 +9,18 @@
 %=================================================================
 %=================================================================
 %------------------------------%
+
+\begin{figure}[t!]%[b!]%%[p!]
+	\centering{	\includegraphics[width=\linewidth]{fig_intro}} %
+	\caption{%
+		{\bf Problem setting}: In generic, ecological settings, the visual system faces a tricky problem when searching for one target (from a class of targets) in a cluttered environment. It is synthesized in the following experiment: %
+		\A After a fixation period \FIX\ of $200~\ms$, an observer is presented with a luminous display \DIS\ showing a single target from a known class (here digits) and at a random position. The display is presented for a short period of $500~\ms$ (light shaded area in B), that is enough to perform at most one saccade on the potential target (\SAC , here successful). Finally, the observer has to identify the digit by a keypress \ANS . %
+		\B Prototypical trace of a saccadic eye movement to the target position. In particular, we show the fixation window \FIX\ and the temporal window during which a saccade is possible (green shaded area). %
+		\C Simulated reconstruction of the visual information from the (interoceptive) retinotopic map at the onset of the display \DIS\ and after a saccade \SAC , the dashed red box indicating the visual area of the ``what'' pathway. In contrast to an exteroceptive representation (see A), this demonstrates that the position of the target has to be inferred from a degraded (sampled) image. In particular, the configuration of the display is such that by adding clutter and reducing the size of the digit, it may become necessary to perform a saccade to be able to identify the digit. The computational pathway mediating the action has to infer the location of the target \emph{before seeing it}, that is, before being able to actually identify the target's category from a central fixation. %
+		\label{fig:intro}}%
+\end{figure}%
+%%------------------------------%
+
 %: see Figure~\ref{fig:methods}
 \begin{figure}[t!]%%[p!]
 \centering{\includegraphics[width=\linewidth]{fig_methods}}
@@ -26,6 +38,9 @@ If the predicted accuracy in the output of the ``where'' network is higher than 
 \label{fig:methods}}%
 \end{figure}%
 %%------------------------------%
+
+The search experience os formalized and simplified in a way reminiscent to classical psychophysic experiments: an observer is asked to classify digits (for instance as taken from the MNIST database) as they are shown on a computer display. However, these digits can be placed at random positions on the display, and visual clutter is added as a background to the image (see Figure~\ref{fig:intro}-A). This opens the possibility that the position of the object may be detected in the clutter without being identified in the first place (see Figure~\ref{fig:intro}-C). This defines more precisely our problem: how do we localize an object in a large image while knowing \emph{a priori} its category but not its identity? This generic visual search problem is of broad interest in machine learning, computer vision and robotics, but also in neuroscience, as it speaks to the mechanisms underlying foveation and more generally to low-level attention mechanisms.
+
 In this study, the visual scene is made of a target object placed in the foreground at a random position over a noisy background. An agent controls a foveal visual sensor that can move over the visual scene through saccades (see Figure~\ref{fig:intro}).
 %We will define a neural network which implements this control process.
 The agent aims at understanding the visual scene, here identifying both the target position and identity from visual samples.
