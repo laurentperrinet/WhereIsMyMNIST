@@ -66,7 +66,8 @@ class Retina:
 
         suffix = '_{}_{}'.format(self.N_theta, self.N_azimuth)
         suffix += '_{}_{}'.format(self.N_eccentricity, self.N_phase)
-        suffix += '_{}_{}_{}_{}'.format(self.args.rho, self.N_pic, self.N_X, self.N_Y)
+        #suffix += '_{}_{}_{}_{}'.format(self.args.rho, self.N_pic, self.N_X, self.N_Y)
+        suffix += '_{}_{}'.format(self.args.rho, self.N_pic)
         return suffix
 
     def init_retina_transform(self):
@@ -155,13 +156,14 @@ class Retina:
     def init_colliculus_inverse(self):
         self.colliculus_inverse = np.linalg.pinv(self.colliculus_transform_vector)
 
-    def local_filter_dico(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg=LogGabor(pe=pe),
-                          N_X=self.N_X, N_Y=self.N_Y):
+    def local_filter_dico(self, i_theta, i_azimuth, i_eccentricity, i_phase, lg=LogGabor(pe=pe)):
         # rho=1.41, ecc_max=.8,
         # sf_0_max=0.45, sf_0_r=0.03,
         # B_sf=.4, B_theta=np.pi / 12): # on enleve self pour l'instant
 
         # !!?? Magic numbers !!??
+        N_X = self.N_X
+        N_Y = self.N_Y
         ecc_max = 0.8  # 0.6  # initialement 0.8 # self.args.ecc_max  # gross. aptitude a grandir
         sf_0_r = 0.015  # initialement 0.03 # self.args.sf_0_r # gross. la "diminution" de taille pour les ecc moyennes
         B_theta = np.pi / self.N_theta / 2  # self.self.B_theta
@@ -171,7 +173,9 @@ class Retina:
         #ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
         ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity) / 3)  # /3 ajouté
         # sinon on obtenait exactement les memes coordonnees x et y pour environ la moitie des filtres calcules 12/07
-        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
+        N_min = min(N_X, N_Y)
+        r = np.sqrt(N_min ** 2 + N_min ** 2) / 2 * ecc - 30  # radius
+        #r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
         #print(r)
 
         #dimension_filtre = min(2 * int(2 * r),
@@ -271,7 +275,7 @@ class Retina:
                     for i_eccentricity in range(self.N_eccentricity):
                         self.retina_dico[i_theta][i_phase][i_eccentricity] = {}
                         for i_azimuth in range(self.N_azimuth):
-                            self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth] = np.ravel(self.local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg, N_X=self.N_X, N_Y=self.N_Y))
+                            self.retina_dico[i_theta][i_phase][i_eccentricity][i_azimuth] = np.ravel(self.local_filter_dico(i_theta, i_azimuth, i_eccentricity, i_phase, lg))
             if self.args.verbose: print("Dico cree")
             np.save(filename, self.retina_dico)
             if self.args.verbose: print("len finale", len(self.retina_dico),len(self.retina_dico[0]),len(self.retina_dico[0][0]),len(self.retina_dico[0][0][0]),len(self.retina_dico[0][0][0][0]))
@@ -295,9 +299,7 @@ class Retina:
                                                                                               i_azimuth,
                                                                                               i_eccentricity,
                                                                                               i_phase,
-                                                                                              lg,
-                                                                                              N_X=self.N_pic,
-                                                                                              N_Y=self.N_pic)
+                                                                                              lg)
                                                                                               #rho=self.args.rho,
                                                                                               #ecc_max=self.args.ecc_max,
                                                                                               #sf_0_max=self.args.sf_0_max,
@@ -328,7 +330,7 @@ class Retina:
     def transform_dico(self, pixel_fullfield):
         fullfield_dot_retina_dico = np.zeros(self.N_theta * self.N_azimuth * self.N_eccentricity * self.N_phase)
 
-        N_X, N_Y = self.N_X, self.Y
+        N_X, N_Y = self.N_X, self.N_Y
 
         indice = 0
         for i_theta in range(self.N_theta):
@@ -347,7 +349,10 @@ class Retina:
                         #ecc = ecc_max * (1 / self.args.rho) ** (self.args.N_eccentricity - i_eccentricity)
                         ecc = ecc_max * (1 / self.args.rho) ** ((self.args.N_eccentricity - i_eccentricity)/3)
                         # /3 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
-                        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
+
+                        N_min = min(N_X, N_Y)
+                        r = np.sqrt(N_min ** 2 + N_min ** 2) / 2 * ecc - 30  # radius
+                        #r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.args.N_azimuth
                         x = int(N_X / 2 + r * np.cos(psi))
                         y = int(N_Y / 2 + r * np.sin(psi))
@@ -443,10 +448,13 @@ class Retina:
 
 
                             elif x + r > N_X:  # ca depasse en bas
+                                #print("pixel_fullfield", pixel_fullfield[x - r:N_X, y - r:y + r].shape)
                                 morceau_interne_fullfield = pixel_fullfield[x - r:N_X, y - r:y + r]
                                 morceau_externe_fullfield = pixel_fullfield[0:r - N_X + x, y - r:y + r]
                                 nb_colonnes = morceau_externe_fullfield.shape[1]
                                 if nb_colonnes == 2 * r:  # ce n'est pas un coin
+                                    #print('fenetre_image', fenetre_image[0:N_X - x + r, 0:2 * r].shape )
+                                    #print("x, y, r, N_X", x, y, r, N_X)
                                     fenetre_image[0:N_X - x + r, 0:2 * r] = morceau_interne_fullfield
                                     affiche(fenetre_image, "Construction fenetre_image : ajout partie haute", c_a)
                                     fenetre_image[N_X - x + r:2 * r, 0:2 * r] = morceau_externe_fullfield
@@ -508,7 +516,10 @@ class Retina:
                         #ecc = ecc_max * (1 / self.args.rho) ** (self.N_eccentricity - i_eccentricity)
                         ecc = ecc_max * (1 / self.args.rho) ** ((self.N_eccentricity - i_eccentricity)/3)
                         # /3 ajoute sinon on obtient les memes coordonnees x et y pour environ la moitie des filtres crees 12/07
-                        r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
+
+                        N_min = min(N_X, N_Y)
+                        r = np.sqrt(N_min ** 2 + N_min ** 2) / 2 * ecc - 30  # radius
+                        #r = np.sqrt(N_X ** 2 + N_Y ** 2) / 2 * ecc - 30 # radius
                         psi = (i_azimuth + 1 * (i_eccentricity % 2) * .5) * np.pi * 2 / self.N_azimuth
                         x = int(N_X / 2 + r * np.cos(psi))
                         y = int(N_Y / 2 + r * np.sin(psi))
