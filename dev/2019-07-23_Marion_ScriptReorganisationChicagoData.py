@@ -7,6 +7,11 @@
 
 # # Remplacez False par True ligne 97
 
+# # Rappels :
+# # - Les fichiers ../data/ChicagoFacesData\BF-209\CFD-BF-209-172-N.jpg et ../data/ChicagoFacesData\WF-005\CFD-WF-005-016-HC.jpg
+# #   ont une taille légèrement différentes de la normale dans le dataset téléchargé, il faut modifier leur taile pour qu'ils soient identiques au reste
+# # - !!! Le fichier ../data/ChicagoFacesData\AF-215\CFD-AF-215-70-N.jpg doit être renommé en ../data/ChicagoFacesData\AF-215\CFD-AF-215-070-N.jpg pour pouvoir être traité comme les autres !!!
+
 
 import sys
 sys.path.append("../figures")
