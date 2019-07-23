@@ -52,7 +52,7 @@ MNIST(MNIST_dataset):
         return img, target
 '''
 
-class RetinaFaces:
+class ChicagoFacesDataset:
     """Chicago Faces dataset."""
 
     def __init__(self, root_dir, transform, args):
@@ -71,11 +71,20 @@ class RetinaFaces:
         return len(self.list_files)
 
     def __getitem__(self, idx):
-        return self.dic_sample[idx]
+        #item = self.dic_sample[idx]
+        item = self.list_samples[idx]
+        #retina_features = Variable(torch.FloatTensor(item[0].astype('float')))
+        retina_features = item[0]
+        targets = item[1]
+        #print('targets', targets)
+        gender = targets[1]
+        #return retina_features, targets
+        return retina_features, gender
 
     def init_get_path_files(self):
         self.list_files = []
-        self.dic_sample = {}
+        #self.dic_sample = {}
+        self.list_samples = []
         folder_directory = self.root_dir
 
         for path, subdirs, files in os.walk(folder_directory):
@@ -84,13 +93,15 @@ class RetinaFaces:
                     # print(path, name)
                     self.list_files.append(os.path.join(path, name))
         # print(self.list_files)
-        self.list_files = self.list_files[0:10] # pour pouvoir tester les choses vite
+        self.list_files = self.list_files[0:100] # pour pouvoir tester les choses vite
 
     def init_load_dataset(self):
-        file_path = "../tmp/retina_faces_dataset_{}_{}.npy".format(where_suffix(self.args), str(len(self.list_files)))
+        #file_path = "../tmp/retina_faces_dataset_{}_{}.npy".format(where_suffix(self.args), str(len(self.list_files)))
+        file_path = "../tmp/retina_faces_dataset_{}_{}.pt".format(where_suffix(self.args), str(len(self.list_files)))
         print(file_path)
         try :
-            self.dic_sample = np.load(file_path).item()
+            #self.dic_sample = np.load(file_path).item()
+            self.list_samples = torch.load(file_path)
             print("Fichier retina_faces_dataset charge avec succes")
         except :
             print("Creation du fichier retina_faces_dataset en cours...")
@@ -98,24 +109,33 @@ class RetinaFaces:
                 if idx%10==0 : print(idx) # %10 une fois les tests passés
 
                 img_name = os.path.join(self.list_files[idx])
+                print(img_name)
                 # image = io.imread(img_name, as_gray=True) # commente le 08/07/2019 le gris sera fait dans
                 # image = io.imread(img_name)
                 image = np.array(Image.open(img_name))
                 if self.transform is not None:
                     image, retina_features = self.transform(image)
                 image_name = self.list_files[idx][-28:-4]
-                if image_name[-5] in ['O', 'C']:
+                if image_name[-1] in ['O', 'C']:
+                    #print("a")
                     gender = image_name[-12]
                     race = image_name[-13]
-                    expression = image_name[-2:0]
+                    expression = "H" + image_name[-1]
                 else:
+                    #print("b")
                     gender = image_name[-11]
                     race = image_name[-12]
                     expression = image_name[-1]
-                targets = [race, gender, expression]
-                self.dic_sample[idx] = [image_name, targets, image, retina_features]
+                print(race, gender, expression)
+                races = ["A", "B", "L", "W"]
+                genders = ["F", "M"]
+                expressions = ["N", "A", "F", "HC", "HO"]
+                targets = (torch.LongTensor(races.index(race)), torch.LongTensor(genders.index(gender)), torch.LongTensor(expressions.index(expression)))
+                #self.dic_sample[idx] = (retina_features, targets)
+                self.list_samples.append([torch.tensor(retina_features), targets])
             print("Fichier cree avec succes")
-            np.save(file_path, self.dic_sample)
+            #np.save(file_path, self.dic_sample)
+            torch.save(self.list_samples, file_path)
             print("Fichier enregistre avec succes")
 
 
@@ -128,7 +148,9 @@ class WhatFaces:
         date = str(datetime.datetime.now())
         suffix = "what_faces_{}_{}_{}_{}_{}epoques_{}_{}h{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast, self.args.epochs, date[0:10], date[11:13], date[14:16])
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
+        print(model_path)
         if os.path.exists(model_path) and not force:
+            print("Chargement du modele en cours")
             self.model = torch.load(model_path)
             self.trainer = WhatTrainer(args, dataset, retina,
                                        model=self.model,
@@ -136,10 +158,12 @@ class WhatFaces:
                                        test_loader=test_loader)
             print("Modele charge avec succes")
         else:
-            self.trainer = WhatTrainer(args, retina, dataset,  model=self.model,
+            print("Entrainement du modele en cours")
+            self.trainer = WhatTrainer(args, dataset, retina,  model=self.model,
                                        train_loader=train_loader,
                                        test_loader=test_loader)
             for epoch in range(1, args.epochs + 1):
+                print("Epoque n."+str(epoch))
                 self.trainer.train(epoch)
                 self.trainer.test()
             self.model = self.trainer.model
@@ -151,6 +175,7 @@ class WhatFaces:
 
 class WhatTrainer:
     def __init__(self, args, dataset, retina, model=None, train_loader=None, test_loader=None):
+        print("Initialisation WhatTrainer")
         self.args = args
         self.dataset = dataset
         self.retina = retina
@@ -158,39 +183,60 @@ class WhatTrainer:
         transform = transforms.Compose([
             WhereSquareCrop(args),
             WhereGrey(args),
-            RetinaWhiten(N_pic=args.N_pic),
+            RetinaWhiten(args),
             TransformDico(self.retina)
             #transforms.ToTensor(),
             #transforms.Normalize((args.mean,), (args.std,))
         ])
         if not train_loader:
-            dataset_train = {}
-            while len(dataset_train) < self.args.train_batch_size :
+            print("\nInitialisation dataset_train")
+            dataset_train = []
+            index_utilises = []
+            while len(dataset_train) < self.args.train_batch_size:
+                #print(len(dataset_train))
                 index = np.random.randint(len(dataset))
-                if index not in dataset_train:
-                    dataset_train[index] = dataset[index]
+                if index not in index_utilises:
+                    #print(index)
+                    dataset_train.append(dataset[index])
+                    index_utilises.append(index)
+                    #print("Ajout !")
+            print(dataset_train)
             self.train_loader = torch.utils.data.DataLoader(dataset_train,
                                                             batch_size=args.minibatch_size,
-                                                            **kwargs)
+                                                            #**kwargs
+                                                            )
+            print("len dataloader", len(self.train_loader))
+
         else:
+            print("Chargement train_loader")
             self.train_loader = train_loader
 
         if not test_loader:
-            dataset_test = {}
-            while len(dataset_test) < self.args.test_batch_size :
-                index = np.random.randint(len(dataset))
-                if index not in dataset_train and index not in dataset_test:
-                    dataset_test[index] = dataset[index]
+            print("\nInitialisation dataset_test")
+            dataset_test = []
+            for index in range(len(dataset)):
+                if index not in index_utilises:
+                    #print(index)
+                    dataset_test.append(dataset[index])
+                # du coup pour l'instant on n'utilise pas args.test_batch_size,
+                # on suppose juste que toutes les donnees non utilisees pour l'apprentissage
+                # seront des donnees test.
             self.test_loader = torch.utils.data.DataLoader(dataset_test,
                                                            batch_size=args.minibatch_size,
                                                            shuffle=True,
-                                                           **kwargs)
+                                                           #**kwargs
+                                                            )
+            print(dataset_test)
+            print("len dataloader", len(self.test_loader))
         else:
+            print("Chargement test_loader")
             self.test_loader = test_loader
 
         if not model:
-            self.model = WhatNet(args).to(device)
+            print("Calcul model")
+            self.model = WhatFacesNet(args)
         else:
+            print("Chargement modele")
             self.model = model
 
         self.loss_func = nn.CrossEntropyLoss()  # F.nll_loss
@@ -210,6 +256,9 @@ class WhatTrainer:
                 "L'optimiseur spécifié est mal orthographié ou inconnu. les choix possibles sont : 'adam', 'sgd', 'adagrad', 'adadelta'")
 
     def train(self, epoch):
+        print("args", self.args)
+        print("model", self.model)
+        print("train_loader", self.train_loader)
         train(self.args, self.model, self.train_loader, self.loss_func, self.optimizer, epoch)
 
     def test(self):
@@ -218,8 +267,9 @@ class WhatTrainer:
     def posteriorTest(self):
         return posteriorTest(self.args, self.model, self.test_loader)
 
-
-class ChicagoFacesDataset:
+''' 
+# La classe suivante calcule les transformations lors du get_item => pas pratique
+class ChicagoFacesDatasetOld:
     """Chicago Faces dataset."""
 
     def __init__(self, root_dir, transform):
@@ -262,6 +312,7 @@ class ChicagoFacesDataset:
         self.dic_sample[idx] = [name_image, image, target]
 
         return self.dic_sample[idx]
+'''
 
 
 class RetinaFill:
@@ -280,6 +331,7 @@ class RetinaFill:
         print("RetinaFill ok")
         #print(pixel_fullfield)
         return pixel_fullfield
+
 
 class CollFill:
     def __init__(self, accuracy_map, N_pic=128, keep_label = False, baseline=0.):
@@ -477,14 +529,17 @@ class RetinaMask:
         return fullfield #.astype('B')
     
 class RetinaWhiten:
-    def __init__(self, N_pic=128):
-        self.N_pic = N_pic
+    def __init__(self, args):
+        self.N_X = args.N_X
+        self.N_Y = args.N_Y
         self.whit = SLIP.Image(pe=pe)
-        self.whit.set_size((self.N_pic, self.N_pic))
+        self.whit.set_size((self.N_X, self.N_Y))
         # https://github.com/bicv/SLIP/blob/master/SLIP/SLIP.py#L611
         self.K_whitening = self.whit.whitening_filt()
     def __call__(self, pixel_fullfield):
         fullfield = (pixel_fullfield - pixel_fullfield.min()) / (pixel_fullfield.max() - pixel_fullfield.min())
+        #print('fullfield', fullfield.shape)
+        #print('K_whitening', self.K_whitening.shape)
         fullfield = self.whit.FTfilter(fullfield, self.K_whitening) 
         #fullfield += 0.5
         #fullfield = np.clip(fullfield, 0, 1)
@@ -507,8 +562,8 @@ class WhereZoom:
         image_reduite = fullfield_PIL.resize((taille_zoom, taille_zoom))
         #image_reduite.show()
         WHITE = (255, 255, 255, 0)
-        image_totale = Image.new('RGBA', (self.args.N_pic,self.args.N_pic), WHITE)
-        box = (int(self.args.N_pic//2 - taille_zoom//2), int(self.args.N_pic//2 - taille_zoom//2), int(self.args.N_pic//2 + taille_zoom//2), int(self.args.N_pic//2 + taille_zoom//2))
+        image_totale = Image.new('RGBA', (self.args.N_X,self.args.N_Y), WHITE)
+        box = (int(self.args.N_X//2 - taille_zoom//2), int(self.args.N_Y//2 - taille_zoom//2), int(self.args.N_X//2 + taille_zoom//2), int(self.args.N_Y//2 + taille_zoom//2))
         image_totale.paste(image_reduite, box)
         #image_totale.show()
         #print("image_totale", type(image_totale))
@@ -584,7 +639,7 @@ class OnlineRetinaTransform:
     def __init__(self, retina):
         self.retina = retina
     def __call__(self, fullfield):
-        retina_features = retina.online_vectorization(fullfield)
+        retina_features = self.retina.online_vectorization(fullfield)
         return retina_features
 
 class FullfieldRetinaTransform:
@@ -659,16 +714,16 @@ class Normalize:
             return data
 
 
-class WhereNet(torch.nn.Module):
+class WhatFacesNet(torch.nn.Module):
     def __init__(self, args):
-        super(WhereNet, self).__init__()
+        super(WhatFacesNet, self).__init__()
         self.args = args
         self.bn1 = torch.nn.Linear(args.N_theta*args.N_azimuth*args.N_eccentricity*args.N_phase, args.dim1, bias=args.bias_deconv)
         #https://raw.githubusercontent.com/MorvanZhou/PyTorch-Tutorial/master/tutorial-contents/504_batch_normalization.py
         self.bn1_bn = nn.BatchNorm1d(args.dim1, momentum=1-args.bn1_bn_momentum)
         self.bn2 = torch.nn.Linear(args.dim1, args.dim2, bias=args.bias_deconv)
         self.bn2_bn = nn.BatchNorm1d(args.dim2, momentum=1-args.bn2_bn_momentum)
-        self.bn3 = torch.nn.Linear(args.dim2, 5, bias=args.bias_deconv)
+        self.bn3 = torch.nn.Linear(args.dim2, 2, bias=args.bias_deconv)
         # 5 classes : Happy mouth closed HC, happy mouth open HO, neutral N, angry A, fearful F
 
     def forward(self, image):
@@ -716,6 +771,7 @@ def where_suffix(args):
     suffix = '_{}_{}'.format(args.N_theta, args.N_azimuth)
     suffix += '_{}_{}'.format(args.N_eccentricity, args.N_phase)
     suffix += '_{}_{}'.format(args.rho, args.N_pic)
+    #suffix += '_{}_{}_{}_{}'.format(args.rho, args.N_pic, args.N_X, args.N_Y)
     return suffix
 
 class WhereTrainer:
@@ -732,7 +788,7 @@ class WhereTrainer:
             self.retina=retina
         else:
             self.retina = Retina(args)
-        kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
+        #kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         
         ## DATASET TRANSFORMS     
         self.transform = transforms.Compose([
@@ -844,7 +900,7 @@ class WhereTrainer:
     def test(self):
         return test(self.args, self.model, self.device, self.test_loader, self.loss_func)
 
-def train(args, model, device, train_loader, loss_function, optimizer, epoch):
+def train(args, model, train_loader, loss_function, optimizer, epoch):
     # setting up training
     '''if seed is None:
         seed = self.args.seed
@@ -863,11 +919,13 @@ def train(args, model, device, train_loader, loss_function, optimizer, epoch):
                     print(status_str)'''
     
     model.train()
+    batch_idx, (data, target) = train_loader
+    print(batch_idx, data, target)
     for batch_idx, (data, target) in enumerate(train_loader):
-        data = Variable(torch.FloatTensor(data.float())).to(device)
+        data = Variable(torch.FloatTensor(data.float()))
         ## !!!
         #data = Normalize()(data)
-        target = Variable(torch.FloatTensor(target.float())).to(device)
+        target = Variable(torch.FloatTensor(target.float()))
         optimizer.zero_grad()
         output = model(data)
         loss = loss_function(output, target)
@@ -878,15 +936,15 @@ def train(args, model, device, train_loader, loss_function, optimizer, epoch):
                 epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def test(args, model, device, test_loader, loss_function):
+def test(args, model, test_loader, loss_function):
     model.eval()
     test_loss = 0
     with torch.no_grad():
         for batch_idx, (data, data_fullfield, target, target_fullfield, label, i_shift, j_shift) in enumerate(test_loader):
-            data = Variable(torch.FloatTensor(data.float())).to(device)
+            data = Variable(torch.FloatTensor(data.float()))
             # !!!
             #data = Normalize()(data)
-            target = Variable(torch.FloatTensor(target.float())).to(device)            
+            target = Variable(torch.FloatTensor(target.float()))
             output = model(data)
             test_loss += loss_function(output, target).item() # sum up batch loss
             #if batch_idx % args.log_interval == 0:
@@ -1255,7 +1313,7 @@ class Where():
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
         for idx, (data, target) in enumerate(self.display.loader_test):
             #data, target = next(iter(self.dataset.test_loader))
-            data, target = data.to(self.device), target.to(self.device)
+            data, target = data, target
             output = self.model(data)
             pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
             if only_wrong and not pred == target:
