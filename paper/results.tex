@@ -8,26 +8,55 @@
 \label{sec:results}
 %=================================================================
 %------------------------------%
-%: see Figure~\ref{fig:results}
+
 \begin{figure}[t!]%%[p!]
-%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
-\centering{\includegraphics[width=\linewidth]{fig_result_robust.png}}
-% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
-\caption{
-{\bf Simulated active vision agent}:
-\A The visual display (\DIS , see also Figure~\ref{fig:intro}-C) is transformed into a retinotopic representation which is used as the input to the multi-layer neural network implementing the ``where'' pathway that predicts the accuracy map from the retinal image. %
-\B We show after training the ``where'' pathway the network output ('Predicted') as compared with the ground truth ('True'). %
-\C The network's output allows to generate a saccade to the most likely target position in visual space and to recenter the retinotopic map after a saccade (\SAC ), making possible to classify the digit on the central snippet. %
-\D The active vision agent is tested at different eccentricities (in pixels) to estimate a final classification rate. Orange bars: accuracy of a central classifier ('No saccade') with respect to the target's eccentricity, averaged over 1,000 trials per eccentricity scale. Blue bars: Final classification rate after one saccade predicted by the ``Where'' pathway. % \if 0\ICANN{\color{blue} TODO: show three levels of noise Low (0.5) median (1.2) high (2). TODO: compare with Accuracy max (knowing the position)}\fi
-\label{fig:results}}%
+	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
+	\centering{{\bf a.} \hspace{1.6cm} {\bf b.} \hspace{1.6cm} {\bf c.} \hspace{1.6cm} {\bf d.} \hspace{1.6cm} {\bf e.}}
+	\centering{\A\includegraphics[width=.9\linewidth]{CNS-saccade-8.png}}
+	\centering{\B\includegraphics[width=.9\linewidth]{CNS-saccade-20.png}}
+	\centering{\C\includegraphics[width=.9\linewidth]{CNS-saccade-46.png}}
+	\centering{\D\includegraphics[width=.9\linewidth]{CNS-saccade-47.png}}
+	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}		% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
+	\caption{
+		{\A-- \E Examples of active vision after training}. \A-- \B are examples of classification success. \C-- \E are examples of classification failures. Digit contrast set to 0.7 (black is 0, white is 1).  From left to right :
+		{\bf a.} The initial 128$\times$128 visual display, with blue cross giving the center of gaze.  
+		The visual input is retinotopically transformed and sent to the multi-layer neural network implementing the ``Where'' pathway. 
+		{\bf b.} Magnified reconstruction of the  visual input, as it shows off from the primary visual features through an inverse log-polar transform. 
+		{\bf c.-d.} Color-coded radial representation of the output accuracy maps, with dark violet for the lower accuracies, and yellow for the higher accuracies. The network output ('Predicted') is visually compared with the ground truth ('True'). %
+		{\bf e.} $28 \times 28$ central snippet as extracted from the visual display after doing a saccade, with label prediction and success flag in the title. 
+		\label{fig:saccades}}%
 \end{figure}%
+
 %%------------------------------%
 %=================================================================
-\subsection{Inferring where to look}
+\subsection{Inferring the target label from active visual search}
 %=================================================================
-After training the network, we evaluated simulations of the final accuracy at the landing of the predicted saccade (see Figure~\ref{fig:results}). For each different visual display (a different digit at a different position with a different noise clutter), a retinocentric visual input is processed (figure \ref{fig:results}-A), providing a predicted accuracy map (figure \ref{fig:results}-B) that can be compared to the actual future accuracy. Then, a saccade is carried out based on the most probable position as computed from the predicted accuracy map (figure \ref{fig:results}-C), and the final accuracy is computed from the ``what'' pathway using LeNet model. We observed that either the detection of the object's position was correct, thus allowing a classification proportional to the accuracy of the ``what'' pathway, either that the predicted accuracy map was wrong and generated a wrong classification with an accuracy at chance level. 
-This process is repeated $1,000$ times for each different eccentricity, and the final average accuracy is shown as blue bars on figure \ref{fig:results}-D. It is compared to a central classifier trying to predict the category without doing a saccade (orange bars). As expected, the accuracy decreases with the eccentricity, for the targets become less and less visible in the periphery. The decrease is very rapid in the central classifier case: the accuracy drops to the baseline level
-approximately at a pixel radius of $20$ around the center of fixation. In contrast, issuing a saccade is beneficial in up to the border of the image, thus allowing for a full covering of the initial image with an average accuracy of approximately $80\%$. The difference between the two distributions forms an ``accuracy gain'', that quantifies the benefit of active inference with respect to a central prior, interpreted as the information gain provided by the ``Where'' pathway.
+After training, the ``Where'' pathway is now capable to predict an accuracy map, whose maximal argument drives the eye toward a new viewpoint. There, a central snippet is extracted, that is processed through the ``What'' pathway, allowing to predict the digit's label. Examples of this simple open loop sequence are presented in figure \ref{fig:saccades}, when the digit contrast parameter is set to 0.7 and the digit eccentricity varies between 0 and 40 pixels. The presented examples correspond to strong eccentricity cases, when the target is hardly visible on the display (fig. \ref{fig:saccades}a), and almost invisible on the reconstructed input (fig. \ref{fig:saccades}b). The radial maps (fig. \ref{fig:saccades}c-d) respectively represent the actual and the predicted accuracy maps. The final focus is represented in fig. \ref{fig:saccades}e, with cases of classification success (fig. \ref{fig:saccades}A-B) and cases of classification failures (fig. \ref{fig:saccades}C-E).  
+In the case of successful detection (fig. \ref{fig:saccades}A-B), the accuracy prediction is not perfect and the digit is not perfectly centered on the fovea. This ``close match'' however allows for a correct classification for the digit's pixels are fully present on the fovea. The case of fig. \ref{fig:saccades}B and \ref{fig:saccades}C
+ is interesting for it shows to cases of a bimodal prediction, indicating that the network is capable of doing multiple detections at a single glance. The case of \ref{fig:saccades}C corresponds to a false detection case, with the true target detected still, though with a lower intensity. The case of fig. \ref{fig:saccades}D is a ``close match'' detection that is not precise enough to correctly center the visual target. Not every pixel of the digit is thus visible on the fovea, and the label prediction is mistaken.
+The last failure case (fig. \ref{fig:saccades}E) corresponds to a correct detection that is harmed by a wrong label prediction, only due to the ``What'' classifier inherent error rate.  
+% We observed that either the detection of the object's position was correct, thus allowing a classification proportional to the accuracy of the ``what'' pathway, either that the predicted accuracy map was wrong and generated a wrong classification with an accuracy at chance level. 
+
+
+%: see Figure~\ref{fig:results}
+\begin{figure}[t!]%%[p!]
+	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
+	\centering{\includegraphics[width=\linewidth]{fig-results-contrast.png}}
+	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
+	\caption{
+		{\bf Effect of contrast.}%
+		The active vision agent is tested for different target eccentricities (in pixels) and different contrasts to estimate a final classification rate. Orange bars: accuracy of a central classifier ('No saccade') with respect to the target's eccentricity, averaged over 1,000 trials per eccentricity scale. Blue bars: Final classification rate after one saccade predicted by the ``Where'' pathway. % \if 0\ICANN{\color{blue} TODO: show three levels of noise Low (0.5) median (1.2) high (2). TODO: compare with Accuracy max (knowing the position)}\fi
+		\label{fig:results}}%
+\end{figure}%
+
+By manipulating the SNR and the eccentricity, one can precisely monitor the network detection and recognition capabilities, with detection task ranging from `easy'' (small shift, strong contrast) to ``almost impossible'' (large shift, low contrast). The  digit recognition capability is systematically evaluated in Figure~\ref{fig:results} for different eccentricities and different contrasts. 
+%in simulation as the average accuracy obtained at the landing of the predicted saccade (see). For each different visual display (a different digit at a different position with a different noise clutter), a retinocentric visual input is processed (figure \ref{fig:results}-A), providing a predicted accuracy map (figure \ref{fig:results}-B) that can be compared to the actual future accuracy. Then, a saccade is carried out based on the most probable position as computed from the predicted accuracy map (figure \ref{fig:results}-C), and the final accuracy is computed from the ``what'' pathway using LeNet model.
+For 3 target contrasts conditions ranging from 0.3 to 0.7, and 10 different eccentricities ranging from 4 pixels to 40 pixels, the final accuracy is estimated on $1,000$ trials both on the initial central snippet and on the final one (after the saccade). 
+The final average accuracy is shown as blue bars on figure \ref{fig:results}. It is compared to a central classifier trying to predict the category without doing a saccade (orange bars). As expected, the accuracy decreases with the eccentricity, for the targets become less and less visible in the periphery. The decrease is rapid in the central classifier case: the accuracy drops to the baseline level
+approximately after $20$ pixels away from the center of fixation. In contrast, issuing a saccade is beneficial in most of the case, allowing to recognize digits up to the border of the image. This full covering of the image range, with a final accuracy approaching that of the central classifier, is done at a much lesser cost than would be done by a systematic scan. 
+
+{\color{green} [TODO]
+The difference between the two distributions forms an ``accuracy gain'', that quantifies the benefit of active inference with respect to a central prior, interpreted as the information gain provided by the ``Where'' pathway.}
 % energy consumption
 
 As our saccade selection algorithm may implement the essential operations done in the ``Where'' pathway, the central classifier may also reflect the response of the ``What'' pathway, giving the potential category of the digit. It is therefore possible to compare the two accuracy estimates to chose the most appropriate action: it may be that the accuracy is best in the ``What'' pathway and in that case no saccade is produced. The decision frontier lies between the first and the second spatial scale, allowing to pursue micro-saccades in the close vicinity of the target (2-3 pixels), in order to achieve a perfect centering.  In the other decision case, the ''What'' accuracy can still be considered to update the ``Where'' accuracy. When extending our framework to several saccades, this would allow in particular to ``explain away" the current position of the fixation and the neighboring ones. Such heuristic gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\citep{Itti01}. In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits. 
