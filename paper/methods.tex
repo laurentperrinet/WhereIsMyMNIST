@@ -122,7 +122,7 @@ The saccadic motor output showing a similar log-polar compression than the visua
 From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by an \emph{information gain}, namely:
 \begin{align}
 \text{IG}_\text{max} &= \max_{u'} \log p(y|u',x',x, u) - \log p(y|x, u)\\
-     &\simeq \max_{u'} \log p(y|x') - \log p(y|x)
+     &\simeq \max_{u'} \log p(y|x') - \log p(y|x)\label{eq:IG}
 \end{align}
 with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the 'what' pathway. The accuracy gain may be averaged over many saccades and many initial eccentricities (so that the information gain may be close to zero when the initial $u$ is very central).
 
@@ -167,8 +167,8 @@ The network output is a vector representing the probability of detecting each of
 
 \begin{figure}[t!]%%[p!]
 	\centering{\includegraphics[width=\linewidth]{fig_what_accmap.png}}
-	\caption{\A Example input samples from the ``What'' training set, with SNR randomly set between 0.3 and 0.7, and targets randomly shifted using a Gaussian bivariate spatial offset with a standard deviation of 15 pixels.
-		\B $55 \times 55$ shift-dependent accuracy map, measured for different target eccentricities on the test set after training.  
+	\caption{\A Input samples from the ``What'' training set, with  randomly shifted targets using a Gaussian bivariate spatial offset with a standard deviation of 15 pixels. The target contrast is randomly set between 0.3 and 0.7.
+	\B $55 \times 55$ shift-dependent accuracy map, measured for different target eccentricities on the test set after training.  
 	}
 \label{fig:accuracy}
 \end{figure}
