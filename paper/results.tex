@@ -7,13 +7,6 @@
 \section{Results}
 \label{sec:results}
 %=================================================================
-%=================================================================
-\subsection{Inferring where to look}
-%=================================================================
-After training the network, we evaluated simulations of the final accuracy at the landing of the predicted saccade (see Figure~\ref{fig:results}). For each different visual display (a different digit at a different position with a different noise clutter), a retinocentric visual input is processed (figure \ref{fig:results}-A), providing a predicted accuracy map (figure \ref{fig:results}-B) that can be compared to the actual future accuracy. Then, a saccade is carried out based on the most probable position as computed from the predicted accuracy map (figure \ref{fig:results}-C), and the final accuracy is computed from the ``what'' pathway using LeNet model. We observed that either the detection of the object's position was correct, thus allowing a classification proportional to the accuracy of the ``what'' pathway, either that the predicted accuracy map was wrong and generated a wrong classification with an accuracy at chance level. 
-This process is repeated $1,000$ times for each different eccentricity, and the final average accuracy is shown as blue bars on figure \ref{fig:results}-D. It is compared to a central classifier trying to predict the category without doing a saccade (orange bars). As expected, the accuracy decreases with the eccentricity, for the targets become less and less visible in the periphery. The decrease is very rapid in the central classifier case: the accuracy drops to the baseline level
-approximately at a pixel radius of $20$ around the center of fixation. In contrast, issuing a saccade is beneficial in up to the border of the image, thus allowing for a full covering of the initial image with an average accuracy of approximately $80\%$. The difference between the two distributions forms an ``accuracy gain'', that quantifies the benefit of active inference with respect to a central prior, interpreted as the information gain provided by the ``Where'' pathway.
-
 %------------------------------%
 
 \begin{figure}[t!]%%[p!]
@@ -35,9 +28,6 @@ approximately at a pixel radius of $20$ around the center of fixation. In contra
 \end{figure}%
 
 %%------------------------------%
-<<<<<<< HEAD
-% energy consumption
-=======
 %=================================================================
 \subsection{Inferring the target label from active visual search}
 %=================================================================
@@ -76,28 +66,19 @@ More generally, this accuracy difference, that quantifies the benefit of active 
 
 %The benefit of active inference can be enhanced by doing several saccades.   
 
-<<<<<<< HEAD
->>>>>>> 60115e7c253d5a8b385e70133971c6c6af32dd87
-As our saccade selection algorithm may implement the essential operations done in the ``Where'' pathway, the central classifier may also reflect the response of the ``What'' pathway, giving the potential category of the digit. It is therefore possible to compare the two accuracy estimates to chose the most appropriate action: it may be that the accuracy is best in the ``What'' pathway and in that case no saccade is produced. The decision frontier lies between the first and the second spatial scale, allowing to pursue micro-saccades in the close vicinity of the target (2-3 pixels), in order to achieve a perfect centering.  In the other decision case, the ''What'' accuracy can still be considered to update the ``Where'' accuracy. When extending our framework to several saccades, this would allow in particular to ``explain away" the current position of the fixation and the neighboring ones. Such heuristic gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\citep{Itti01}. In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits. 
-=======
 %As our saccade selection algorithm may implement the essential operations done in the ``Where'' pathway, the central classifier may also reflect the response of the ``What'' pathway, giving the potential category of the digit. 
 
 When both pathways are considered working in parallel, it is moreover possible to compare the two accuracy estimates to choose the most appropriate action: it may be that the accuracy is higher in the ``What'' pathway when the target is close to the center of gaze. In that case no saccade should be produced, and a categorical response should be given instead. The decision frontier lies 2-3 pixels away from the center, %between the first and the second spatial scale, 
 allowing to pursue micro-saccades in the close vicinity of the target, in order to improve the centering and thus the classification accuracy. 
 In the other decision case, the ''What'' accuracy can still be considered helpful to update the ``Where'' accuracy. 
 When extending our framework to several saccades, this would allow in particular to ``explain away" the current position of the fixation and the neighboring ones. Such heuristic gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\citep{Itti01}. In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits. 
->>>>>>> 24d436ea9ba462e74486baba1a233760f60bcef6
 
 \subsection{Quantitative role of parameters}
 %: effect of contrast
 
 
 %: scanning of other parameters
-<<<<<<< HEAD
-In addition, we controlled that these results are robust to changes in an individual experimental or network parameters from the default parameters (see Figure~\ref{fig:params}). From the scan of each of these parameters, the following observations were remarkable. First we verified that accuracy decreased when \texttt{noise} increased and, while the bandwidth of the noise imported weakly, the spatial frequency of the noise was an important factor. In particular, final accuracy was worst for $\texttt{sf\_0} \approx 0.07$, that is when the characteristic textures elements were close to the characteristic size of the objects. Second, we saw that the dimension of the ``where'' network was optimal for a dimensionality similar to that of the input but that this mattered weakly. The dimensionality of the log-polar map is more important. The analysis proved that an optimal accuracy was achieved when using a number of $24$ azimuthal directions. Indeed, a finer log-polar grid requires more epochs to converge and may result in an over-fitting phenomenon hindering the final accuracy. Such fine tuning of parameters may prove to be important in practical applications and to optimize the compromise between accuracy and compression. 
-=======
 In addition, we controlled that these results are robust to changes in an individual experimental or network parameters from the default parameters (see Figure~\ref{fig:params}). From the scan of each of these parameters, the following observations were remarkable. First we verified that accuracy decreased when \texttt{noise} increased and while the bandwidth of the noise imported weakly, the spatial frequency of the noise was an important factor. In particular, final accuracy was worst for $\texttt{sf\_0} \approx 0.07$, that is when the characteristic textures elements were close to the characteristic size of the objects. Second, we saw that the dimension of the ``Where'' network was optimal for a dimensionality similar to that of the input but that this mattered weakly. The dimensionality of the log-polar map is more important. The analysis proved that an optimal accuracy was achieved when using a number of $24$ azimuthal directions. Indeed, a finer log-polar grid requires more epochs to converge and may result in an over-fitting phenomenon hindering the final accuracy. Such fine tuning of parameters may prove to be important in practical applications and to optimize the compromise between accuracy and compression. 
->>>>>>> 24d436ea9ba462e74486baba1a233760f60bcef6
 %=================================================================
 %------------------------------%
 %: see Figure~\ref{fig:params}
