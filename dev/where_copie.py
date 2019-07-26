@@ -603,6 +603,9 @@ class WhereTrainer:
                 data_loader = DataLoader(dataset,
                                          batch_size=args.minibatch_size,
                                          shuffle=True)
+                print("type", type(data_loader))
+                print(data_loader)
+                print("chemin", data_loader_path)
                 torch.save(data_loader, data_loader_path)
                 if self.args.verbose: 
                     print('Done!')

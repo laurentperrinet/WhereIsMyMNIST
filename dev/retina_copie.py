@@ -43,9 +43,9 @@ class Retina:
         self.init_retina_dico()
         #self.init_colliculus_transform_dico()
         self.init_grid()
-        #self.init_retina_transform()
+        self.init_retina_transform()
         #self.init_inverse_retina() # il faudra le decommenter plus tard
-        #self.init_colliculus_transform()
+        self.init_colliculus_transform()
         #self.init_colliculus_inverse()
 
     def init_grid(self):
