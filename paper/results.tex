@@ -1,10 +1,10 @@
-% !TEX root = paper.tex
+% !TEX root = plos-paper.tex
 % !TEX encoding = UTF-8 Unicode
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
 % !TEX spellcheck = en-US
 %=================================================================
-\section{Results}
+\section*{Results}
 \label{sec:results}
 %=================================================================
 %------------------------------%
@@ -29,7 +29,7 @@
 
 %%------------------------------%
 %=================================================================
-\subsection{Inferring the target label from active visual search}
+\subsection*{Inferring the target label from active visual search}
 %=================================================================
 After training, the ``Where'' pathway is now capable to predict an accuracy map, whose maximal argument drives the eye toward a new viewpoint. There, a central snippet is extracted, that is processed through the ``What'' pathway, allowing to predict the digit's label. Examples of this simple open loop sequence are presented in figure \ref{fig:saccades}, when the digits contrast parameter is set to 0.7 and the digits eccentricity varies between 0 and 40 pixels. The presented examples correspond to strong eccentricity cases, when the target is hardly visible on the display (fig. \ref{fig:saccades}a), and almost invisible on the reconstructed input (fig. \ref{fig:saccades}b). The radial maps (fig. \ref{fig:saccades}c-d) respectively represent the actual and the predicted accuracy maps. The final focus is represented in fig. \ref{fig:saccades}e, with cases of classification success (fig. \ref{fig:saccades}A-B) and cases of classification failures (fig. \ref{fig:saccades}C-E).  
 In the case of successful detection (fig. \ref{fig:saccades}A-B), the accuracy prediction is not perfect and the digit is not perfectly centered on the fovea. This ``close match'' however allows for a correct classification for the digit's pixels are fully present on the fovea. The case of fig. \ref{fig:saccades}B and \ref{fig:saccades}C
@@ -71,9 +71,9 @@ More generally, this accuracy difference, that quantifies the benefit of active 
 When both pathways are considered working in parallel, it is moreover possible to compare the two accuracy estimates to choose the most appropriate action: it may be that the accuracy is higher in the ``What'' pathway when the target is close to the center of gaze. In that case no saccade should be produced, and a categorical response should be given instead. The decision frontier lies 2-3 pixels away from the center, %between the first and the second spatial scale, 
 allowing to pursue micro-saccades in the close vicinity of the target, in order to improve the centering and thus the classification accuracy. 
 In the other decision case, the ''What'' accuracy can still be considered helpful to update the ``Where'' accuracy. 
-When extending our framework to several saccades, this would allow in particular to ``explain away" the current position of the fixation and the neighboring ones. Such heuristic gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\citep{Itti01}. In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits. 
+When extending our framework to several saccades, this would allow in particular to ``explain away" the current position of the fixation and the neighboring ones. Such heuristic gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\cite{Itti01}. In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits. 
 
-\subsection{Quantitative role of parameters}
+\subsection*{Quantitative role of parameters}
 %: effect of contrast
 
 
@@ -95,13 +95,13 @@ In addition, we controlled that these results are robust to changes in an indivi
 
 % TODO : make a (minimal) psychophysics experiment= show an image as in figure 1, then in (ANS), make a 2AFC task by showing the true versus a random one -> web experiment using pavlovia?
 
-\subsection{Relation with other models}
+\subsection*{Relation with other models}
 
 Our model is, to our best knowledge, the first case of a bio-realistic log-polar implementations of an active vision framework. We have thus provided a proof of concept that a log-polar encoding retina can efficiently serve object detection and identification over wide visual displays. 
 
 There are however lots of model that reflect to some degree the biological principles of sequential visual processing. 
-First, active vision is of course an important topic in mainstream computer vision. In the case of image classification, it is considered as a way to improve object recognition by progressively increasing the definition over identified regions of interest, referred as ``recurrent attention'' \citep{mnih2014recurrent,fu2017look}. Standing on a similar mathematical background, recurrent attention is however at odd with the functioning of biological systems, with a mere distant analogy with the retinal principles of foveal-surround visual definition. 
+First, active vision is of course an important topic in mainstream computer vision. In the case of image classification, it is considered as a way to improve object recognition by progressively increasing the definition over identified regions of interest, referred as ``recurrent attention'' \cite{mnih2014recurrent,fu2017look}. Standing on a similar mathematical background, recurrent attention is however at odd with the functioning of biological systems, with a mere distant analogy with the retinal principles of foveal-surround visual definition. 
 
-Phenomenological bio-realistic models, such as the one proposed in Najemnik and Geisler's seminal paper \citep{Najemnik05}, rely on rough simplification, with foveal center-surround acuity modeled as a response curve. Despite providing a bio-realistic account of sequential visual search, the model owns no foveal image processing implementation. Stemming on Najemnik and Geisler's principles, a trainable center-surround processing system was proposed in \cite{Butko2010infomax}, with a sequential scan of an image in a face-detection task, however the visual search task here relies  on a systematic scan over degraded image, with visual processing delegated to standard feature detectors.  
+Phenomenological bio-realistic models, such as the one proposed in Najemnik and Geisler's seminal paper \cite{Najemnik05}, rely on a rough simplification, with foveal center-surround acuity modeled as a response curve. Despite providing a bio-realistic account of sequential visual search, the model owns no foveal image processing implementation. Stemming on Najemnik and Geisler's principles, a trainable center-surround processing system was proposed in \cite{Butko2010infomax}, with a sequential scan of an image in a face-detection task, however the visual search task here relies  on a systematic scan over degraded image, with visual processing delegated to standard feature detectors.  
 
-Denil at al's paper \citep{denil2012learning} is probably the one that shows the closest correspondence with our setup. It owns an identity pathway and a control pathway, in a What/Where fashion, just as ours. Interestingly, only the ``what'' pathway is neurally implemented using a random foveal/multi-fixation scan within the fixation zone. The ``Where'' pathway, in contrast, mainly implements object tracking, using  particle filtering with a separately learned generative process. The direction of gaze is here chosen so as to minimize the target position, speed and scale uncertainty, using the variance of the future beliefs as an uncertainty metric. The control part is thus much similar to a dynamic ROI tracking algorithm, with no direct correspondence with foveal visual search, or with the capability to recognize the target.   
+Denil at al's paper \cite{denil2012learning} is probably the one that shows the closest correspondence with our setup. It owns an identity pathway and a control pathway, in a What/Where fashion, just as ours. Interestingly, only the ``what'' pathway is neurally implemented using a random foveal/multi-fixation scan within the fixation zone. The ``Where'' pathway, in contrast, mainly implements object tracking, using  particle filtering with a separately learned generative process. The direction of gaze is here chosen so as to minimize the target position, speed and scale uncertainty, using the variance of the future beliefs as an uncertainty metric. The control part is thus much similar to a dynamic ROI tracking algorithm, with no direct correspondence with foveal visual search, or with the capability to recognize the target.   
