@@ -5,17 +5,7 @@
 % !TEX spellcheck = en-US
 
 
-We develop a visuo-motor model that implements visual search as a focal accuracy-seeking policy across a crowded visual display.
-Stemming from the active inference framework, saccade-based visual exploration is idealized as an inference process, assuming that the target position and category are independently drawn from a common generative process. 
-This independence allows to divide the visual processing in two independent pathways, consistently with the anatomical ``What''/``Where'' separation. 
-A biomimetic log-polar treatment of the visual information, that includes the strong compression rate performed at the sensor level by retina and V1 encoding,  
-is preserved up to the action selection level.
-A dual neural network architecture, that independently learns where to look and what to see, is then trained, 
-with the foveal accuracy used as a monitoring signal for action selection.
-This allows in particular to interpret the ``Ẁhere'' as a retinotopic action selection pathway, that drives the fovea toward the target position, in order to increase the recognition accuracy.
-A specific approximate Information Gain metric, taken as the difference between central and peripheral accuracy, is used for action selection after training.
-The comparison of both accuracies amounts either to select a saccade or to keep the eye focused at the center, so as to identify the target.
-Tested on a simple task of finding digits in a large, cluttered image, simulation results demonstrate the benefit of our approach, whose key computational shortcuts finally provide ways to implement visual search in a sub-linear fashion, in contrast with mainstream computer vision. 
+We develop a visuo-motor model that implements visual search as a focal accuracy-seeking policy across a crowded visual display. Stemming from the active inference framework, saccade-based visual exploration is idealized as an inference process, assuming that the target position and category are independently drawn from a common generative process. This independence allows to divide the visual processing in two independent pathways, consistently with the anatomical ``What''/``Where'' separation. A biomimetic log-polar treatment of the visual information, that includes the strong compression rate performed at the sensor level by retina and V1 encoding, is preserved up to the action selection level. A dual neural network architecture, that independently learns where to look and what to see, is then trained, with the foveal accuracy used as a monitoring signal for action selection. This allows in particular to interpret the ``Where'' as a retinotopic action selection pathway, that drives the fovea toward the target position, in order to increase the recognition accuracy. A specific approximate Information Gain metric, taken as the difference between central and peripheral accuracy, is used for action selection after training. The comparison of both accuracies amounts either to select a saccade or to keep the eye focused at the center, so as to identify the target. Tested on a simple task of finding digits in a large, cluttered image, simulation results demonstrate the benefit of our approach, whose key computational shortcuts finally provide ways to implement visual search in a sub-linear fashion, in contrast with mainstream computer vision. 
 
 
 % TODO : include whenever we do more than one saccade...
