@@ -1,0 +1,101 @@
+%!TeX TS-program = Lualatex 
+%!TeX encoding = UTF-8 Unicode 
+%!TeX spellcheck = en-US
+
+\documentclass[stdletter,8pt,dateno]{newlfm}%
+%\usepackage{kpfonts}
+\usepackage{etoolbox}
+
+\makeatletter
+\patchcmd{\@zfancyhead}{\fancy@reset}{\f@nch@reset}{}{}
+\patchcmd{\@set@em@up}{\f@ncyolh}{\f@nch@olh}{}{}
+\patchcmd{\@set@em@up}{\f@ncyolh}{\f@nch@olh}{}{}
+\patchcmd{\@set@em@up}{\f@ncyorh}{\f@nch@orh}{}{}
+\makeatother
+
+\usepackage{url}
+%: METADATA
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\AuthorA}{Emmanuel Dauc\'e}
+\newcommand{\AuthorB}{Pierre Albiges}%
+\newcommand{\AuthorC}{Laurent U.~Perrinet}%
+\newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS / Aix-Marseille Universit\'e - Marseille, France}%
+%\newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS / Aix-Marseille Universit\'e - Marseille, France}%
+\newcommand{\Website}{https://laurentperrinet.github.io}%
+\newcommand{\Email}{Laurent.Perrinet@univ-amu.fr}%
+\newcommand{\Title}{A dual foveal-peripheral visual processing model implements efficient saccade selection}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newcommand{\Journal}{Journal of Vision}%
+\newcommand{\Journal}{PLoS Computational Biology}%
+%\newcommand{\Journal}{eLife}%
+\widowpenalty=1000
+\clubpenalty=1000
+
+\newsavebox{\Lpalmb} \sbox{\Lpalmb}{\parbox[t]{1.75in}{\includegraphics[width=1.\textwidth]{/Users/laurentperrinet/nextcloud/libs/slides.py/figures/troislogos.png}}}
+%\makelth{Homea}{\Lheader{\usebox{\Lpalms}}}%
+%
+\Lheader{\usebox{\Lpalmb}}
+
+\newlfmP{headermarginskip=2pt}
+\newlfmP{sigsize=2pt}
+\newlfmP{dateskipafter=2pt}
+%\newlfmP{addrfromphone}
+\newlfmP{addrfromemail}
+%\PhrPhone{Phone}
+\PhrEmail{Email}
+
+\namefrom{\AuthorA , \AuthorB\ and \AuthorC\ }
+\addrfrom{%
+\AuthorC\ \\
+%\Address \\
+%\AuthorB\\[6pt]
+    \Address\\[6pt]
+%\AuthorA\\[6pt]
+%%    \AddressA
+%    \LongAddressA
+}
+%        \phonefrom{\PhoneA}
+\emailfrom{\Email\\[6pt]
+    }
+
+\addrto{%
+    \today
+}
+
+\greetto{
+To the editorial board of \emph{\Journal},%
+%To Whom It May Concern,
+%Dear XXX
+}
+\closeline{Sincerely,}
+
+\begin{document}
+\begin{newlfm}
+%Cover Letter:
+%
+%    How will your work make others in the field think differently and move the field forward?
+%    How does your work relate to the current literature on the topic?
+%    Who do you consider to be the most relevant audience for this work?
+%    Have you made clear in the letter what the work has and has not achieved?
+Please consider this submission for publication in \Journal . This computational modeling work proposes ``\emph{\Title}'' by defining a trainable neural network framework implementing the essential features of saccade selection in an ecological and theoretically grounded model of visual processing.
+
+Inspired by human vision, we develop an original visual search model based on active inference principles. To alleviate the computational complexity of a fully-predictive visual search, a simple independence assumption (identification vs localization) leads to separating  visual processing in two parallel pathways, such as the what/where visual pathways in humans. This principle is implemented neurally using deep learning, allowing the fast training of an efficient accuracy-seeking policy. We provide a full analysis of the capabilities of such a framework on a synthetic generative model with varying difficulty.
+
+Importantly, our work provides a bio-inspired methodological framework for the processing of complex visual scenes with a sub-linear computational complexity, which we think will provide an essential tool to move forward the field of computer vision. 
+As such, we believe that this work presents a highly novel and significant finding of broad interest both for computer science and neuroscience 
+which will have an influential impact on the readership of \Journal .
+
+%The cover letter should state clearly what is included as the submission, including number of words in the text and number of display items (figures, tables, boxes) in the print version of the paper; number of additional words in the text (full Methods and Extended Data legends) and number of Extended Data figures and tables for the online-only version; any Supplementary Information (specifying number of items and format); number of supporting manuscripts.
+Our submission has a 248-word summary and a body of 11649 words
+(including methods, figure legends and appendix), along with six figures.
+% pdftotext paper/plos-paper.pdf - | wc -w
+
+The authors declare no competing interests.
+We did not have any prior discussions with
+a \Journal\ Editorial Board Member
+about the work described in the manuscript.
+
+Thank you for your consideration, and we look forward to your response.
+
+\end{newlfm}
+\end{document}
