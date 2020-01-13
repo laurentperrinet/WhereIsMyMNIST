@@ -113,3 +113,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+paper/plos-paper.aux
+paper/plos-paper.out
+paper/plos-paper.pdf
+paper/plos-paper.synctex.gz
+paper/plos-paper.bbl
+paper/plos-paper.blg
