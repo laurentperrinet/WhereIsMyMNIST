@@ -84,7 +84,7 @@ If this experiment is repeated many times over many visual scenes, the probabili
 To sum up, a main assumption here is that instead of trying to detect the actual position of the target, better off for the agent is to estimate how accurate the categorical classifier will be after moving the eye. Extended to the full action space $A$, this forms an accuracy map that may be learned through trials and errors, by actuating saccades %after processing the visual input,
 and taking the final classification success or failure as a teaching signal.
 Our main assumption here is that such a \emph{predictive accuracy map} is at the core of a realistic saccade-based vision systems.
-{\color{red} \textbf{Unclear (rev 2)} Compared with a baseline approach that would predict for all possible gaze directions over an image}, this map should moreover be organized radially to preserve the retinotopic compression.
+Consistent with a baseline approach that would predict for all possible gaze directions over an image, this map should moreover be organized radially to preserve the retinotopic organization.
 %, as exemplified by a retinotopic map. The map , preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
 
 Finally, the independence assumption allows to separate the scene analysis in two independent tasks. %A first task consists in identifying the target (namely inferring $y$ from $x$) and a second task consists in localizing the target (namely inferring $u$ from $x$).
@@ -100,8 +100,6 @@ Finally, each different initial visual field may bring out a different accuracy 
 A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculo-motor control \cite{sparks1987sensory}.
 The saccadic motor output showing a similar log-polar compression than the visual input, the saccades should be more precise at short than at long distance (and several saccades may be necessary to precisely reach distant targets).
 
-{\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.
-}
 
 
 \begin{figure}[t!]%%[p!]
@@ -137,6 +135,9 @@ We define here the generative model for input display images as shown first in F
 
 \paragraph{Targets.} Following a common hypothesis regarding active vision, visual scenes consist of a single visual object of interest. We use the MNIST dataset of handwritten digits introduced by~\cite{Lecun1998}: %Indeed, we are here focused on the problem of localization (``Where'' pathway) and classification solutions (``What'' pathway) abound for this class of targets.
 Samples are drawn from the dataset of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``Where'' network).
+
+{\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.
+}
 
 \paragraph{Full-scale images.}
 {\color{red}\textbf{ Unclear (rev 2)}
