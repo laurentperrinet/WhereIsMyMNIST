@@ -1,4 +1,4 @@
 default: pdf
 
 pdf:
-	cd paper/ ; latexmk -pdf -pdflatex=pdflatex paper.tex
+	cd paper/ ; latexmk -pdf -pdflatex=pdflatex plos-paper.tex
