@@ -226,7 +226,7 @@
 %
 % % % % % % % % % % % % % % % % % % % % % % % %
 
-\documentclass[10pt,letterpaper]{article}
+\documentclass[10pt,a4paper]{article}
 \usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
 
 % amsmath and amssymb packages, useful for mathematical formulas and symbols
@@ -263,38 +263,39 @@
 \usepackage{csquotes}
 \usepackage{bm}
 
-
-% create "+" rule type for thick vertical lines
-\newcolumntype{+}{!{\vrule width 2pt}}
-
-% create \thickcline for thick horizontal lines of variable length
-\newlength\savedwidth
-\newcommand\thickcline[1]{%
-  \noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
-  \cline{#1}%
-  \noalign{\vskip\arrayrulewidth}%
-  \noalign{\global\arrayrulewidth\savedwidth}%
-}
-
-% \thickhline command for thick horizontal lines that span the table
-\newcommand\thickhline{\noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
-\hline
-\noalign{\global\arrayrulewidth\savedwidth}}
-
-
-% Remove comment for double spacing
-%\usepackage{setspace}
-%\doublespacing
-
-% Text layout
-\raggedright
-\setlength{\parindent}{0.5cm}
-\textwidth 5.25in
-\textheight 8.75in
+%
+% % create "+" rule type for thick vertical lines
+% \newcolumntype{+}{!{\vrule width 2pt}}
+%
+% % create \thickcline for thick horizontal lines of variable length
+% \newlength\savedwidth
+% \newcommand\thickcline[1]{%
+%   \noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+%   \cline{#1}%
+%   \noalign{\vskip\arrayrulewidth}%
+%   \noalign{\global\arrayrulewidth\savedwidth}%
+% }
+%
+% % \thickhline command for thick horizontal lines that span the table
+% \newcommand\thickhline{\noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+% \hline
+% \noalign{\global\arrayrulewidth\savedwidth}}
+%
+%
+% % Remove comment for double spacing
+% %\usepackage{setspace}
+% %\doublespacing
+%
+% % Text layout
+% \raggedright
+% \setlength{\parindent}{0.5cm}
+% \textwidth 5.25in
+% \textheight 8.75in
 
 % Bold the 'Figure #' in the caption and separate it from the title/caption with a period
 % Captions will be left justified
-\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,justification=raggedright,singlelinecheck=off]{caption}
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,%justification=raggedright,
+singlelinecheck=off]{caption}
 \renewcommand{\figurename}{Fig}
 
 % Use the PLoS provided BiBTeX style
@@ -305,8 +306,6 @@
 \renewcommand{\@biblabel}[1]{\quad#1.}
 \makeatother
 
-
-
 % Header and Footer with logo
 \usepackage{lastpage,fancyhdr,graphicx}
 \usepackage{epstopdf}
@@ -315,7 +314,7 @@
 \fancyhf{}
 %\setlength{\headheight}{27.023pt}
 %\lhead{\includegraphics[width=2.0in]{PLOS-submission.eps}}
-\rfoot{\thepage/\pageref{LastPage}}
+% \rfoot{\thepage/\pageref{LastPage}}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrule}{\hrule height 2pt \vspace{2mm}}
 \fancyheadoffset[L]{2.25in}
@@ -361,9 +360,9 @@
 \newline
 % Insert author names, affiliations and corresponding author email (do not include titles, positions, or degrees).
 \\
-\AuthorED\textsuperscript{1},
-\AuthorPA\textsuperscript{2},
-\AuthorLP\textsuperscript{2,*}
+\AuthorED, %\textsuperscript{1},
+\AuthorPA, %\textsuperscript{2},
+\AuthorLP%\textsuperscript{2,*}
 \\
 \bigskip
 \Address
