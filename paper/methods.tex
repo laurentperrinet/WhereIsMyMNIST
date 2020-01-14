@@ -42,6 +42,7 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 
 \subsection*{Active inference}
 
+{\color{red} {\bf rev 2} Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii)  partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent.}
 
 The previous reasoning can be captured by a statistical framework called a
 partially observed Markov Decision Process (POMDP), {\color{red} \textbf{unclear (rev 2)} where the cause of a visual scene is couple made of
@@ -83,7 +84,7 @@ If this experiment is repeated many times over many visual scenes, the probabili
 To sum up, a main assumption here is that instead of trying to detect the actual position of the target, better off for the agent is to estimate how accurate the categorical classifier will be after moving the eye. Extended to the full action space $A$, this forms an accuracy map that may be learned through trials and errors, by actuating saccades %after processing the visual input,
 and taking the final classification success or failure as a teaching signal.
 Our main assumption here is that such a \emph{predictive accuracy map} is at the core of a realistic saccade-based vision systems.
-Compared with a baseline approach that would predict for all possible gaze directions over an image, this map should moreover be organized radially to preserve the retinotopic compression. 
+{\color{red} \textbf{Unclear (rev 2)} Compared with a baseline approach that would predict for all possible gaze directions over an image}, this map should moreover be organized radially to preserve the retinotopic compression. 
 %, as exemplified by a retinotopic map. The map , preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
 
 Finally, the independence assumption allows to separate the scene analysis in two independent tasks. %A first task consists in identifying the target (namely inferring $y$ from $x$) and a second task consists in localizing the target (namely inferring $u$ from $x$).
@@ -99,6 +100,9 @@ Finally, each different initial visual field may bring out a different accuracy 
 A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculo-motor control \cite{sparks1987sensory}.
 The saccadic motor output showing a similar log-polar compression than the visual input, the saccades should be more precise at short than at long distance (and several saccades may be necessary to precisely reach distant targets).
 
+{\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss. 
+}
+
 
 \begin{figure}[t!]%%[p!]
 	\centering{\includegraphics[width=\linewidth]{fig_methods}}
@@ -111,6 +115,7 @@ The saccadic motor output showing a similar log-polar compression than the visua
 		The ``What'' network is implemented using the three-layered LeNet CNN~\cite{Lecun1998}, while the ``Where'' network is implemented by a three-layered neural network consisting of the retinal input, two hidden layers with $1000$ units each and a collicular-like accuracy map at the output.  This map has a similar retinotopic organization and predicts the accuracy of each hypothetical position of a saccade. % Each layer associates a fully-connected linear transform with a ReLU non-linearity. 
 		To learn to associate the output of the network with the ground truth, supervised training is performed using back-propagation with a binary cross entropy loss. 
 		\D 
+		{\color{red} \textbf{rev 2} In Figure 2 part (D), a stopping condition is explicitly given. However, this rule is not explicitly mentioned in the text. The relevant part is the “Concurrent action selection” on page 16. This section should be improved for clarity. And, explicit connections should be drawn to Figure 2.}
 		If the predicted accuracy in the output of the ``Where'' network is higher than that predicted in the ``What'' network, the position of maximal activity in the ``Where'' pathway serves to generate a saccade which shifts the center of gaze. % Then, and classify the foveal image using the ``What'' pathway. %
 		%\E TODO describe log polar
 		%\F TODO accuracy map 
@@ -133,7 +138,9 @@ We define here the generative model for input display images as shown first in F
 \paragraph{Targets.} Following a common hypothesis regarding active vision, visual scenes consist of a single visual object of interest. We use the MNIST dataset of handwritten digits introduced by~\cite{Lecun1998}: %Indeed, we are here focused on the problem of localization (``Where'' pathway) and classification solutions (``What'' pathway) abound for this class of targets.
 Samples are drawn from the dataset of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``Where'' network).
 
-\paragraph{Full-scale images.} Each sample position is draw a random in a full-scale image of size $128\times 128$. To enforce isotropic saccades, a centered circular mask covering the image (of radius $64$ pixels) is defined, and the position is such that the embedded sample fits entirely into that circular mask.
+\paragraph{Full-scale images.} 
+{\color{red}\textbf{ Unclear (rev 2)}
+Each sample position is draw a random in a full-scale image of size $128\times 128$. To enforce isotropic saccades, a centered circular mask covering the image (of radius $64$ pixels) is defined, and the position is such that the embedded sample fits entirely into that circular mask.}
 
 \paragraph{Background noise setting.} To implement a realistic background noise, we generate synthetic textures~\cite{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image.
 The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency $s\hspace{-2pt}f_0$ of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. The spatial frequency is optimized at $0.1\text{ pixel}^{-1}$ to fit that of the original digits. This specific spatial frequency occasionally allows to generate some ``phantom'' digit shapes in the background. Finally, these images are rectified to have a normalized contrast.
@@ -148,8 +155,9 @@ The texture is designed to fit well with the statistics of natural images. We ch
 At the core of the vision system is the identification module, i.e. the ``What'' pathway. It consists of a classic convolutional classifier showing some translation invariance. This translation invariance can be measured in the form of a shift-dependent accuracy map. Importantly, it can quantify its own classification uncertainty, that may allow comparisons with the output of the ``Where'' pathway.
 
 The foveal input is defined as the $28\times 28$ grayscale image extracted at the center of gaze (see dashed red box in Figure~\ref{fig:intro}-C). 
-This image is passed unmodified to the agent's visual categorical pathway (the ``What'' pathway), that is realized by a convolutional neural network, here  the known ``LeNet'' classifier~\cite{Lecun1998}. The network structure, that processes the input to identify the target category, is  provided (and unmodified) by the pyTorch library~\cite{Paszke17}.
+This image is passed unmodified to the agent's visual categorical pathway (the ``What'' pathway), that is realized by a convolutional neural network, here  the known ``LeNet'' classifier~\cite{Lecun1998}. The network structure, that processes the input to identify the target category, is  provided (and unmodified) by the Pytorch library~\cite{Paszke17}.
 It is made of a 3 convolution layers followed by two fully-connected layers.
+{\color{red} \textbf{rev 2} Authors claim the foveal processing has some translational invariance. However, they do not mention the use of any pooling layers in the convolutional net. Are there any pooling layers? If not, how does the conv net achieve translation invariance? Would not it be better to use max-pooling?  The architecture of the conv net is not given in the paper. And from the reference [26], I could not find it. Care must be taken when formatting the references. If the reference is a web-page, its URL must be given along with its last accessed date. }
 %. It is trained over the (centered) MNIST dataset after approx $20$ training epochs. %Input images are rectified (\emph{with a mean and standard deviation of respectively $0.1307$ and $0.3081$ {\bf why??}}).} \fi 
 The network output is a vector representing the probability of detecting each of the $10$ digits. The argument of the output neuron with maximum probability provides the image category. 
 %This strategy achieves an average $98.7\%$ accuracy on the validation dataset~\cite{Lecun1998}.%
@@ -164,7 +172,7 @@ The network output is a vector representing the probability of detecting each of
 
 A specific dataset is constructed to train the network. It is made of  randomly shifted/randomly attenuated digits overlayed over a noisy background, as defined above. Both the offset, the contrast and the background noise render the task more difficult than the original MNIST classification. The relative contrast of the digit is randomly set between 0.3 and 0.7.  The network is trained incrementally by progressively increasing the offset variability (of a bivariate central gaussian) by increasing the standard deviation from 0 to 15 (with a maximal offset set at 25 pixels). The network is trained on a total of 75 epochs, with 60000 examples generated at each epoch from the MNIST original training set. The shifts and backgrounds are re-generated at each epoch. The shift standard deviation increases of one unit every 5 epochs.  Note that at the end of the training, many digits fall outside the center of the fovea, so that many examples are close to impossible to classify, either because of a low contrast or a too large eccentricity. At the end of the training process, the average accuracy is thus of 34\% (though it had a 91\% accuracy after the 5th epoch, when the digits were only at the center). 
 
-After training, a shift-dependent accuracy map is computed by systematically testing the network accuracy on every horizontal and vertical offset, each on a set of 1000 samples generated from the MNIST test set, within a range of $+/-$27 pixels (see figure \ref{fig:accuracy}).  This forms a $55\times 55$ accuracy map showing higher accuracy at the center, and a slow decreasing accuracy with target eccentricity (with over 70\% accuracy plateau showing a shift invariance on a 7-8 pixels eccentricity radius). This significant shift invariance is a known effect of convolutional computation, that is obtained here at the cost of a lesser central recognition rate (around 80\%), remembering the classification task is here harder by construction. The accuracy fastly drops for greater than 10 pixels eccentricity, reaching the baseline 10\% chance level at around 20 pixels offset. 
+{\color{red} \textbf{Unclear (rev 2)} After training, a shift-dependent accuracy map is computed by systematically testing the network accuracy on every horizontal and vertical offset, each on a set of 1000 samples generated from the MNIST test set, within a range of $+/-$27 pixels (see figure \ref{fig:accuracy}).  This forms a $55\times 55$ accuracy map showing higher accuracy at the center, and a slow decreasing accuracy with target eccentricity (with over 70\% accuracy plateau showing a shift invariance on a 7-8 pixels eccentricity radius)}. This significant shift invariance is a known effect of convolutional computation, that is obtained here at the cost of a lesser central recognition rate (around 80\%), remembering the classification task is here harder by construction. The accuracy fastly drops for greater than 10 pixels eccentricity, reaching the baseline 10\% chance level at around 20 pixels offset. 
 %, as shown in(with a central value of $80\%$ corresponding to the validation score without any translational shift),
 
 
