@@ -18,7 +18,7 @@ Moreover, one crucial aspect of vision highlighted by our model is the importanc
 
 
 Despite its simplicity, the generative model used to generate our visual display allowed to assess the effectiveness and robustness of our learning scheme, that should be extended to more complex displays and more realistic closed-loop setups.
-On the one side, the restricted 28$\times$28 input used for the foveal processing is a mere placeholder, that should be replaced by more elaborate image processing frameworks, such as Inception \cite{szegedy2015going} or VGG-19
+On the one side, the restricted 28$\times$28 input used for the foveal processing is a mere placeholder, that should be replaced by more elaborate computer vision frameworks, such as Inception \cite{szegedy2015going} or VGG-19
 \cite{simonyan2014very}, that can handle natural image classification. 
 %By preserving a probabilistic interpretation in bio-realistic action selection, 
 The main advantage of our peripheral image processing is its  energy-efficiency. Our full log-polar processing pathway consistently conserves the high compression rate performed by retina and V1 encoding up to the action selection level. The organization of both the visual filters and the action maps in concentric log-polar elements, with radially exponentially growing spatial covering, can thus serve as a baseline for a future sub-linear (logarithmic) visual search in computer vision. This may allow to detect an object in large visual environments at little cost, which should be particularly beneficial when the computing resources are under constraint, such as for drones or mobile robots. 
