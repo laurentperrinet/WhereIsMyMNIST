@@ -13,9 +13,9 @@
 %%
 %%Thank you very much for submitting your manuscript "A dual foveal-peripheral visual processing model implements efficient saccade selection" (PCOMPBIOL-D-19-01274) for consideration at PLOS Computational Biology. As with all papers peer reviewed by the journal, your manuscript was reviewed by members of the editorial board and by several independent peer reviewers. Based on the reports, I regret to inform you that we will not be pursuing this manuscript for publication at PLOS Computational Biology.
 %%
-%%There are several technical issues and suggestions raised by the reviewers, which I would believe could be fixed in a major revision. Unfortunately, however, as reviewer #2 points out, there is some lack of novelty, which precludes this manuscript from being considered further for PLoS Computational Biology. Nonetheless, I hope that the reviewers' comments will be helpful for submission elsewhere, e.g., PLoS One, whose focus is on technically sound work but less on novelty. 
+%%There are several technical issues and suggestions raised by the reviewers, which I would believe could be fixed in a major revision. Unfortunately, however, as reviewer #2 points out, there is some lack of novelty, which precludes this manuscript from being considered further for PLoS Computational Biology. Nonetheless, I hope that the reviewers' comments will be helpful for submission elsewhere, e.g., PLoS One, whose focus is on technically sound work but less on novelty.
 %%
-%%The reviews are attached below this email, and we hope you will find them helpful if you decide to revise the manuscript for submission elsewhere. I am sorry that we cannot be more positive on this occasion. We very much appreciate your wish to present your work in one of PLOS's Open Access publications. 
+%%The reviews are attached below this email, and we hope you will find them helpful if you decide to revise the manuscript for submission elsewhere. I am sorry that we cannot be more positive on this occasion. We very much appreciate your wish to present your work in one of PLOS's Open Access publications.
 %%
 %%Thank you for your support, and I hope that you will consider PLOS Computational Biology for other submissions in the future.
 %%
@@ -76,77 +76,77 @@
 %%- It might be interesting to train both pathways jointly
 %%- It's interesting that the "what"-pathway is highly nonlinear but the "where"-pathway is linear. It might be interesting to check whether with simple nonlinearities the performance of the model could be increased.
 %%
-%%Reviewer #2: This paper proposes a foveated visual search model. Both the foveal and peripheral processing of the model are based on deep neural networks. The model is experimentally evaluated on a search task for handwritten digits on cluttered backgrounds. 
+%%Reviewer #2: This paper proposes a foveated visual search model. Both the foveal and peripheral processing of the model are based on deep neural networks. The model is experimentally evaluated on a search task for handwritten digits on cluttered backgrounds.
 %%
 %%The main claim of the paper is that it is “the first case of a bio-realistic log-polar implementation of an active vision framework.” (line 556). However, this is not the case. The “foveated object detector” (FOD) by Akbas and Eckstein (PLOS Computational Biology, 2017) proposed a very similar model to that of the current manuscript and in fact, the FOD is more general in several ways: (i) it can handle real-world objects (not just simple digits), (ii) scale-variance of objects are handled, (iii) a comparison with its sliding-window counterpart is presented, (iv) the case where “the number of targets is unknown” is handled. In general, the current manuscript does a poor job of reviewing the literature. For example, another very similar model (Target Acquisition Model (TAM) by G. Zelinsky) is not mentioned at all. The related work presented by Akbas and Eckstein (2017) is more general and comprehensive.
 %%
-%%The main weakness of the manuscript is its lack of originality, which -- I think - caused by not reviewing the prior art properly. I recommend to re-submit after addressing the lack-of-originality concern and improving the manuscript along the issues/questions I raise below. 
+%%The main weakness of the manuscript is its lack of originality, which -- I think - caused by not reviewing the prior art properly. I recommend to re-submit after addressing the lack-of-originality concern and improving the manuscript along the issues/questions I raise below.
 %%
-%%At the beginning of the Introduction, authors use both “image processing” and “computer vision” to refer to the same thing. I think it would be better to stick with just “computer vision”. 
+%%At the beginning of the Introduction, authors use both “image processing” and “computer vision” to refer to the same thing. I think it would be better to stick with just “computer vision”.
 %%
-%%In the Introduction, references should be provided for the following statements: “fovea (a disk of about 6 degrees of diameter…” and “they take about 200 ms to initiate, last about 200 ms and … 600 degrees per second.” 
+%%In the Introduction, references should be provided for the following statements: “fovea (a disk of about 6 degrees of diameter…” and “they take about 200 ms to initiate, last about 200 ms and … 600 degrees per second.”
 %%
-%%In line 86, authors say “can be found in [10,11,16] that will be compared further on with our approach.” However, this comparison is only in the form of a discussion (lines 555-585). Upon reading line 86, I expected to see experimental comparisons. In fact, no actual (experimental) comparisons with other models are done. As a reader, at the least, I expected a comparison with a baseline model which implements the classical sliding-window method. 
+%%In line 86, authors say “can be found in [10,11,16] that will be compared further on with our approach.” However, this comparison is only in the form of a discussion (lines 555-585). Upon reading line 86, I expected to see experimental comparisons. In fact, no actual (experimental) comparisons with other models are done. As a reader, at the least, I expected a comparison with a baseline model which implements the classical sliding-window method.
 %%
-%%In line 81, authors claim that “sequential implementations have not been shown effective enough to overtake static object search methods.” However, there are at least three models (FOD, TAM and Infomax) which were shown to be superior to (in some performance metric) classical sliding-window approach. So, the authors should revise their statement. 
+%%In line 81, authors claim that “sequential implementations have not been shown effective enough to overtake static object search methods.” However, there are at least three models (FOD, TAM and Infomax) which were shown to be superior to (in some performance metric) classical sliding-window approach. So, the authors should revise their statement.
 %%
-%%In general, the use of citations in text is not professional. There are usages like “study of [19]”, “in [10,11]”, “by [18]”, etc. These should be corrected. 
+%%In general, the use of citations in text is not professional. There are usages like “study of [19]”, “in [10,11]”, “by [18]”, etc. These should be corrected.
 %%
-%%In line 150, the MNIST dataset appears for the first time, where it should be cited. 
+%%In line 150, the MNIST dataset appears for the first time, where it should be cited.
 %%
-%%The first sentence in the “Active inference” sub-section reads “This kind of reasoning…” (line 177). Which kind of reasoning? Because this is the start of a section, whatever “This” is referring to should be made more clear. This sentence should be more stand-alone. 
+%%The first sentence in the “Active inference” sub-section reads “This kind of reasoning…” (line 177). Which kind of reasoning? Because this is the start of a section, whatever “This” is referring to should be made more clear. This sentence should be more stand-alone.
 %%
-%%In line 178, I could not understand: “... the cause of a visual scene is couple made of a viewpoint …”. Please revise. 
+%%In line 178, I could not understand: “... the cause of a visual scene is couple made of a viewpoint …”. Please revise.
 %%
 %%Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii) partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent.
 %%
-%%In line 237: “predict for all” -> predict what? Not clear. 
+%%In line 237: “predict for all” -> predict what? Not clear.
 %%
-%%Throughout the text, both “Fig” and “fig” are used. Please be consistent and follow journal’s style rules. 
+%%Throughout the text, both “Fig” and “fig” are used. Please be consistent and follow journal’s style rules.
 %%
-%%In Figure 2 part (D), a stopping condition is explicitly given. However, this rule is not explicitly mentioned in the text. The relevant part is the “Concurrent action selection” on page 16. This section should be improved for clarity. And, explicit connections should be drawn to Figure 2. 
+%%In Figure 2 part (D), a stopping condition is explicitly given. However, this rule is not explicitly mentioned in the text. The relevant part is the “Concurrent action selection” on page 16. This section should be improved for clarity. And, explicit connections should be drawn to Figure 2.
 %%
-%%The paragraph about generating “Full-scale image” (line 279-282) should be improved. I could not understand how it is done. 
+%%The paragraph about generating “Full-scale image” (line 279-282) should be improved. I could not understand how it is done.
 %%
-%%Authors claim the foveal processing has some translational invariance. However, they do not mention the use of any pooling layers in the convolutional net. Are there any pooling layers? If not, how does the conv net achieve translation invariance? Would not it be better to use max-pooling? The architecture of the conv net is not given in the paper. And from the reference [26], I could not find it. Care must be taken when formatting the references. If the reference is a web-page, its URL must be given along with its last accessed date. 
+%%Authors claim the foveal processing has some translational invariance. However, they do not mention the use of any pooling layers in the convolutional net. Are there any pooling layers? If not, how does the conv net achieve translation invariance? Would not it be better to use max-pooling? The architecture of the conv net is not given in the paper. And from the reference [26], I could not find it. Care must be taken when formatting the references. If the reference is a web-page, its URL must be given along with its last accessed date.
 %%
-%%Lines 328-333 should be improved for clarity. 
+%%Lines 328-333 should be improved for clarity.
 %%
-%%In line 471, authors say “a much lesser cost than … a systematic image scan.” However, they do not offer even a basic calculation of the reduction in cost. 
+%%In line 471, authors say “a much lesser cost than … a systematic image scan.” However, they do not offer even a basic calculation of the reduction in cost.
 %%
-%%Figure fonts are very small in general. As a rule-of-thumb, the fonts used in figures should roughly be the same size as the main text fonts. 
+%%Figure fonts are very small in general. As a rule-of-thumb, the fonts used in figures should roughly be the same size as the main text fonts.
 %%
-%%What about inhibition of return? Does your model implement it? What prevents your model to jump to a previously foveated position? 
+%%What about inhibition of return? Does your model implement it? What prevents your model to jump to a previously foveated position?
 %%
 %%In Figure 7, what do the blue and red colors mean? There could be several ways to interpret these plots. Please improve the plots and the caption for clarity. Also, the cases B and C are mixed up.
 %%
-%%The authors mention “sub-linear (logarithmic) visual search”. As a reader I expected more than just a mention. How will this be achieved? This claim is not substantiated by any means. 
+%%The authors mention “sub-linear (logarithmic) visual search”. As a reader I expected more than just a mention. How will this be achieved? This claim is not substantiated by any means.
 %%
-%%Many references are missing some fields. For example, check refs [6], [8], [25] and [26]. All refs should be checked for formatting and missing fields. 
+%%Many references are missing some fields. For example, check refs [6], [8], [25] and [26]. All refs should be checked for formatting and missing fields.
 %%
-%%The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss. 
+%%The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.
 %%
-%%Finally, there are lots of typos (which can be easily caught by automatic spell-checkers) and grammatical errors. A non-comprehensive list follows. 
+%%Finally, there are lots of typos (which can be easily caught by automatic spell-checkers) and grammatical errors. A non-comprehensive list follows.
 %%In the abstract, in the second occurence of “Where”, the letter “W” has an accent on it.
-%%Last sentence of the “Author summary” is grammatically not correct. 
+%%Last sentence of the “Author summary” is grammatically not correct.
 %%Line 62: “provide” -> provides
 %%Line 77: “relies a non-homogeneous” -> check for correctness
-%%Line 127: what does “both” refer to? 
-%%Line 145: “implements” -> implement 
+%%Line 127: what does “both” refer to?
+%%Line 145: “implements” -> implement
 %%Line 172: “need to that it’s” ???
-%%Line 180: “how typically looks the” ??? 
-%%Figure 2 caption: “wether” 
-%%Line 279: “position is draw a” ??? 
+%%Line 180: “how typically looks the” ???
+%%Figure 2 caption: “wether”
+%%Line 279: “position is draw a” ???
 %%Line 308: “here the known” ???
-%%Line 310: “made of a 3 convolution” 
-%%Line 346: “ouput” 
-%%Line 348: “For to reduce” ??? 
-%%Line 363: “These position,” 
-%%Line 365: “model” -> models 
-%%Line 383: opening quotation mark should be corrected. Similar typos can be found in the caption of Figure 4. 
-%%Line 416: “1 hours” 
-%%Line 435: please check for correctness of grammar 
-%%Line 446: “of of” 
+%%Line 310: “made of a 3 convolution”
+%%Line 346: “ouput”
+%%Line 348: “For to reduce” ???
+%%Line 363: “These position,”
+%%Line 365: “model” -> models
+%%Line 383: opening quotation mark should be corrected. Similar typos can be found in the caption of Figure 4.
+%%Line 416: “1 hours”
+%%Line 435: please check for correctness of grammar
+%%Line 446: “of of”
 %%Line 491: there should be a period at the end of the sentence
 %%Line 560: “lots of model”
 %%
@@ -159,21 +159,21 @@
 %
 % -- IMPORTANT NOTE
 %
-% This template contains comments intended 
-% to minimize problems and delays during our production 
+% This template contains comments intended
+% to minimize problems and delays during our production
 % process. Please follow the template instructions
 % whenever possible.
 %
-% % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % %
 %
-% Once your paper is accepted for publication, 
-% PLEASE REMOVE ALL TRACKED CHANGES in this file 
-% and leave only the final text of your manuscript. 
+% Once your paper is accepted for publication,
+% PLEASE REMOVE ALL TRACKED CHANGES in this file
+% and leave only the final text of your manuscript.
 % PLOS recommends the use of latexdiff to track changes during review, as this will help to maintain a clean tex file.
 % Visit https://www.ctan.org/pkg/latexdiff?lang=en for info or contact us at latex@plos.org.
 %
 %
-% There are no restrictions on package use within the LaTeX files except that 
+% There are no restrictions on package use within the LaTeX files except that
 % no packages listed in the template may be deleted.
 %
 % Please do not include colors or graphics in the text.
@@ -187,8 +187,8 @@
 % Please include tables/figure captions directly after the paragraph where they are first cited in the text.
 %
 % DO NOT INCLUDE GRAPHICS IN YOUR MANUSCRIPT
-% - Figures should be uploaded separately from your manuscript file. 
-% - Figures generated using LaTeX should be extracted and removed from the PDF before submission. 
+% - Figures should be uploaded separately from your manuscript file.
+% - Figures generated using LaTeX should be extracted and removed from the PDF before submission.
 % - Figures containing multiple panels/subfigures must be combined into one image file before submission.
 % For figure citations, please use "Fig" instead of "Figure".
 % See http://journals.plos.org/plosone/s/figures for PLOS figure guidelines.
@@ -212,15 +212,15 @@
 %
 % Do not include text that is not math in the math environment. For example, CO2 should be written as CO\textsubscript{2} instead of CO$_2$.
 %
-% Please add line breaks to long display equations when possible in order to fit size of the column. 
+% Please add line breaks to long display equations when possible in order to fit size of the column.
 %
 % For inline equations, please do not include punctuation (commas, etc) within the math environment unless this is part of the equation.
 %
-% When adding superscript or subscripts outside of brackets/braces, please group using {}.  For example, change "[U(D,E,\gamma)]^2" to "{[U(D,E,\gamma)]}^2". 
+% When adding superscript or subscripts outside of brackets/braces, please group using {}.  For example, change "[U(D,E,\gamma)]^2" to "{[U(D,E,\gamma)]}^2".
 %
 % Do not use \cal for caligraphic font.  Instead, use \mathcal{}
 %
-% % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % %
 %
 % Please contact latex@plos.org with any questions.
 %
@@ -283,13 +283,13 @@
 
 
 % Remove comment for double spacing
-%\usepackage{setspace} 
+%\usepackage{setspace}
 %\doublespacing
 
 % Text layout
 \raggedright
 \setlength{\parindent}{0.5cm}
-\textwidth 5.25in 
+\textwidth 5.25in
 \textheight 8.75in
 
 % Bold the 'Figure #' in the caption and separate it from the title/caption with a period
@@ -366,14 +366,15 @@
 \AuthorLP\textsuperscript{2,*}
 \\
 \bigskip
-\textbf{1} \AddressED
-\\
-\textbf{2} \AddressLP
-\\
+\Address
+% \textbf{1} \AddressED
+% \\
+% \textbf{2} \AddressLP
+% \\
 \bigskip
 
 % Insert additional author notes using the symbols described below. Insert symbol callouts after author names as necessary.
-% 
+%
 % Remove or comment out the author notes below if they aren't used.
 %
 % Primary Equal Contribution Note
@@ -385,7 +386,7 @@
 
 % Current address notes
 %\textcurrency Current Address: Dept/Program/Center, Institution Name, City, State, Country % change symbol to "\textcurrency a" if more than one current address note
-% \textcurrency b Insert second current address 
+% \textcurrency b Insert second current address
 % \textcurrency c Insert third current address
 
 % Deceased author note
@@ -403,8 +404,8 @@
 \Abstract
 
 % Please keep the Author Summary between 150 and 200 words
-% Use first person. PLOS ONE authors please skip this step. 
-% Author Summary not valid for PLOS ONE submissions.   
+% Use first person. PLOS ONE authors please skip this step.
+% Author Summary not valid for PLOS ONE submissions.
 \section*{Author summary}
 \AuthorSummary
 \linenumbers
@@ -431,9 +432,9 @@
 %
 % Compile your BiBTeX database using our plos2015.bst
 % style file and paste the contents of your .bbl file
-% here. See http://journals.plos.org/plosone/s/latex for 
+% here. See http://journals.plos.org/plosone/s/latex for
 % step-by-step instructions.
-% 
+%
 \bibliographystyle{plos2015}
 
 {\color{red} \textbf{Rev 2} Many references are missing some fields. For example, check refs [6], [8], [25] and [26]. All refs should be checked for formatting and missing fields.}
@@ -441,4 +442,3 @@
 \bibliography{Bibliography}
 
 \end{document}
-
