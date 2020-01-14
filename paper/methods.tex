@@ -43,9 +43,9 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 \subsection*{Active inference}
 
 
-This kind of reasoning can be captured by a statistical framework called a
-partially observed Markov Decision Process (POMDP), where the cause of a visual scene is couple made of
-a viewpoint and scene elements. Changing the viewpoint will conduct to a different scene rendering.
+The previous reasoning can be captured by a statistical framework called a
+partially observed Markov Decision Process (POMDP), {\color{red} \textbf{unclear (rev 2)} where the cause of a visual scene is couple made of
+a viewpoint and scene elements}. Changing the viewpoint will conduct to a different scene rendering.
 A generative model tells how typically looks the visual field knowing the scene elements and a certain viewpoint. 
 In general, active inference assumes a hidden external state $e$, which is known indirectly through its effects on the sensor. The external state corresponds to the physical environment. Here the external state is assumed to split in two (independent) components, namely $e = (u,y)$ with $u$ the interoceptive body posture (in our case the gaze orientation, or ``viewpoint'') and $y$ the object shape (or object identity). The visual field $x$ is the state of the sensors, that is, a partial view of the visual scene, measured through the generative process : $x\sim p(X|e)$. 
 
