@@ -125,9 +125,9 @@ The saccadic motor output showing a similar log-polar compression than the visua
 \label{sec:implementation}
 %To test the validity of our hypothesis, let us find a function implementing the ``Where'' network. This function should be able to find the position of an object knowing only the degraded retinal image. Here, we describe the methods that we will follow to find that function, from the generative models (first external and then internal) to the actual implementation of the ``Where'' pathway. %
 
-Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms allows for the quantification of the difficulty of a task through the failure or success of the training.
-The simplified anatomy of the agent is composed of two separate pathways whose processing is realized by such a neural network. Each network is trained and tested separately on distinct datasets, before being finally evaluated in a dynamic vision setup (see next section).
-
+Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms is sufficient to allow in particular for the quantification of the difficulty of a task through the failure or success of the training.
+For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network. Each network is trained and tested separately. Because the training of the ``Where'' pathway depends on the accuracy given by the ``What'' pathway (and not the reverse), we trained the latter first, though a joint learning also yielded similar results. % TODO : à vérifier
+Finally, these are evaluated in a coupled, dynamic vision setup (see next section).
 
 \subsection*{Images generation}
 %=================================================================
@@ -135,16 +135,16 @@ We define here the generative model for input display images as shown first in F
 
 \paragraph{Targets.} Following a common hypothesis regarding active vision, visual scenes consist of a single visual object of interest. We use the MNIST dataset of handwritten digits introduced by~\cite{Lecun1998}: %Indeed, we are here focused on the problem of localization (``Where'' pathway) and classification solutions (``What'' pathway) abound for this class of targets.
 Samples are drawn from the dataset of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``Where'' network).
+% {\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.}
+Note that to simplify the task there is one and only one target in the image.
 
-{\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.
-}
-
+% >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
 \paragraph{Full-scale images.}
 {\color{red}\textbf{ Unclear (rev 2)}
 Each sample position is drawn at random in a full-scale image of size $128\times 128$. To enforce isotropic saccades, a centered circular mask covering the image (of radius $64$ pixels) is defined, and the position is such that the embedded sample fits entirely into that circular mask.}
 
 \paragraph{Background noise setting.} To implement a realistic background noise, we generate synthetic textures~\cite{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image.
-The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency $s\hspace{-2pt}f_0$ of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. The spatial frequency is optimized at $0.1\text{ pixel}^{-1}$ to fit that of the original digits. This specific spatial frequency occasionally allows to generate some ``phantom'' digit shapes in the background. Finally, these images are rectified to have a normalized contrast.
+The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency $f_0$ of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. The spatial frequency is optimized at $0.1\text{ pixel}^{-1}$ to fit that of the original digits. This specific spatial frequency occasionally allows to generate some ``phantom'' digit shapes in the background. Finally, these images are rectified to have a normalized contrast.
 
 \paragraph{Mixing the signal and the noise.} Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
 %
