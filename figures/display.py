@@ -47,8 +47,6 @@ pe = {
     'verbose': 0,
     }
 
-
-
 class Display:
     def __init__(self, args, save=True):
         self.args = args
