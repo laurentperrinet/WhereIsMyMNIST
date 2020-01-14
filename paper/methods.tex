@@ -43,16 +43,15 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 
 \subsection*{Active inference}
 
-{\color{red} {\bf rev 2} Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii)  partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent.}
+{\color{blue} {\bf rev 2} Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii)  partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent.}
 
 The previous reasoning can be captured by a statistical framework called a
-partially observed Markov Decision Process (POMDP), {\color{red} \textbf{unclear (rev 2)} where the cause of a visual scene is couple made of
-a viewpoint and scene elements}. Changing the viewpoint will conduct to a different scene rendering.
+partially observed Markov Decision Process (POMDP), where the cause of a visual scene is  made up from the couple of independent random variables of the viewpoint and of the scene elements (here a digit). For instance, changing the viewpoint will conduct to a different scene rendering.
 A generative model tells how the visual field should look knowing the scene elements and a certain viewpoint.
 In general, active inference assumes a hidden external state $e$, which is known indirectly through its effects on the sensor. The external state corresponds to the physical environment. Here the external state is assumed to split in two (independent) components, namely $e = (u,y)$ with $u$ the interoceptive body posture (in our case the gaze orientation, or ``viewpoint'') and $y$ the object shape (or object identity). The visual field $x$ is the state of the sensors, that is, a partial view of the visual scene, measured through the generative process : $x\sim p(X|e)$.
 
 
-Using Bayes rule, one may then infer the scene elements from the current view point (model inversion).
+Using Bayes rule, one may then infer the scene elements from the current viewpoint (model inversion).
  The real physical state $e$ being hidden, a parametric model $\theta$ is assumed to allow for an estimate of the cause of the current visual field through model inversion thanks to Bayes formula, in short:
 $$p(E|x) \propto p(x|E;\theta)$$
 
@@ -75,7 +74,7 @@ Concretely, each saccade provokes a new visual field $x'$ and a new subjective p
 Choosing the next saccade thus means using a model to predict how accurate $p(U|x)$ and $p(Y|x)$ will be after the saccade realization.
 % a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This . followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
 %It is worth noting that active inference needs either the current identity $y$ or the current eye direction $u$ to be readable from the present view, in order to effectively predict future inferences, through computationally intensive predictions.
-In detail, modeling the full sequence of operations that lead to both estimate $p(U'|x')$ and $p(Y|x')$ means predicting the future visual field $x'$ over all possible saccades, that may yet be too costly in case of large visual fields.
+In detail, modeling the full sequence of operations that lead to estimate both $p(U'|x')$ and $p(Y|x')$ means predicting the future visual field $x'$ over all possible saccades, which may be too costly in the case of large visual fields.
 Better off instead is to form a statistics over the (scene understanding) benefit obtained from past saccades in the same context, that is forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here. The putative effect of every saccade should be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
 from the current observation $x$. If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the categorical classifier over $x'$ can either be correct (1) or incorrect (0).
 If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ forms a probability, i.e. a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
