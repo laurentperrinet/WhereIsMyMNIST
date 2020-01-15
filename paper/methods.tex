@@ -129,25 +129,26 @@ Modern parametric classifiers are composed of many layers (hence the term ``Deep
 For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network. Each network is trained and tested separately. Because the training of the ``Where'' pathway depends on the accuracy given by the ``What'' pathway (and not the reverse), we trained the latter first, though a joint learning also yielded similar results. % TODO : à vérifier
 Finally, these are evaluated in a coupled, dynamic vision setup (see next section).
 
-\subsection*{Images generation}
+\subsection*{Image generation}
 %=================================================================
-We define here the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and as implemented in Figure~\ref{fig:methods}-A.
+We define here the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and as implemented in Figure~\ref{fig:methods}-A. Following a common hypothesis regarding active vision, visual scenes consist of a single target embedded in a large image with a cluttered background.
 
-\paragraph{Targets.} Following a common hypothesis regarding active vision, visual scenes consist of a single visual object of interest. We use the MNIST dataset of handwritten digits introduced by~\cite{Lecun1998}: %Indeed, we are here focused on the problem of localization (``Where'' pathway) and classification solutions (``What'' pathway) abound for this class of targets.
+\paragraph{Targets.}
+We use the MNIST dataset of handwritten digits introduced by~\cite{Lecun1998}: %Indeed, we are here focused on the problem of localization (``Where'' pathway) and classification solutions (``What'' pathway) abound for this class of targets.
 Samples are drawn from the dataset of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``Where'' network).
 % {\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.}
-Note that to simplify the task there is one and only one target in the image.
+% Note that to simplify the task there is one and only one target in the image.
 
-% >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
 \paragraph{Full-scale images.}
-{\color{red}\textbf{ Unclear (rev 2)}
-Each sample position is drawn at random in a full-scale image of size $128\times 128$. To enforce isotropic saccades, a centered circular mask covering the image (of radius $64$ pixels) is defined, and the position is such that the embedded sample fits entirely into that circular mask.}
+Input images are full-scale images of size $128\times 128$ in which we embed the target.
+Each target location is drawn at random in this large image. To enforce isotropic generation (at any direction from the fixation point), a centered circular mask covering the image (of radius $64$ pixels) is defined, and the target's location is such that the embedded sample fits entirely into that circular mask.
 
 \paragraph{Background noise setting.} To implement a realistic background noise, we generate synthetic textures~\cite{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image.
-The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency $f_0$ of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. The spatial frequency is optimized at $0.1\text{ pixel}^{-1}$ to fit that of the original digits. This specific spatial frequency occasionally allows to generate some ``phantom'' digit shapes in the background. Finally, these images are rectified to have a normalized contrast.
+The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. The spatial frequency is set at $0.1\text{ pixel}^{-1}$ to fit that of the original digits. This specific spatial frequency occasionally allows to generate some ``phantom'' digit shapes in the background. Finally, these images are rectified to have a normalized contrast.
 
 \paragraph{Mixing the signal and the noise.} Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
 %
+% >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
 \subsection*{Foveal vision and the ``What'' pathway}
 %=================================================================
 %
