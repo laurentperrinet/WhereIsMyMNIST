@@ -175,10 +175,6 @@ To achieve a more generic ``What'' pathway, a specific dataset is constructed to
 After training, this shift-dependent accuracy map is validated by systematically testing the network accuracy on every horizontal and vertical shift, each on a set of $1000$ cluttered target samples generated from the MNIST test set and within the range of $\pm 27$ pixels (see figure \ref{fig:accuracy}).  This forms a $55\times 55$ accuracy map showing higher accuracy at the center, and a slow decreasing accuracy with target eccentricity (with an accuracy plateau  over $70\%$ showing a relative shift invariance on around $7$ pixels eccentricity radius). This shift invariance is a known effect of convolutional computation. Note that the categorization task is here harder by construction and the accuracy that is obtained here is lower (with a central recognition rate of around $80\%$). The accuracy fastly drops for eccentricities  greater than $10$ pixels, reaching the baseline $10\%$ chance level at shift amplitudes at around $20$ pixels.
 %, as shown in(with a central value of $80\%$ corresponding to the validation score without any translational shift),
 
-
-
-% >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
-
 \subsection*{Peripheral vision: from log-polar feature vectors to log-polar action maps}
 %
 % page 476 de :
@@ -187,6 +183,7 @@ After training, this shift-dependent accuracy map is validated by systematically
 %
 % Estimates ofw0D0.087 and2D0.051 inappropriate units can be obtained from Drasdo’s data on the human retina,andaandbare constants. These values correspond to a magnification factor of 11 .5 mm/degrees of visual angle at the fovea and 5.75 mm/degrees
 %An interesting perspective is given with previous modeling of such foveated sensors.
+% >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
 {\color{magenta} [[\textbf{Rev 1} : I think it would be better to first simply describe the architecture of the pathway (linear filters with retinotopic distribution, linear operation (??) and sigmoid to predict local accuracies) and then go into more detail on why the different parts where designed in a certain way. Also, maybe a figure that shows more architectural details of the "where"-pathway than figure 2 might be helpful.]]}
 
 The ``Where'' pathway is devoted to choosing the next saccade.
