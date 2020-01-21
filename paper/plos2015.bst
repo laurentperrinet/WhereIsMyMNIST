@@ -45,9 +45,9 @@
 %% It requires no extra package to interface to the main text.
 %% The form of the \bibitem entries is
 %%   \bibitem{key}...
-%% Usage of \cite is as follows:
-%%   \cite{key} ==>>          [#]
-%%   \cite[chap. 2]{key} ==>> [#, chap. 2]
+%% Usage of~\cite is as follows:
+%%  ~\cite{key} ==>>          [#]
+%%  ~\cite[chap. 2]{key} ==>> [#, chap. 2]
 %% where # is a number determined by the ordering in the reference list.
 %% The order in the reference list is that by which the works were originally
 %%   cited in the text, or that in the database.
