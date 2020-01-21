@@ -8,7 +8,7 @@
 \label{sec:implementation}
 %To test the validity of our hypothesis, let us find a function implementing the ``Where'' network. This function should be able to find the position of an object knowing only the degraded retinal image. Here, we describe the methods that we will follow to find that function, from the generative models (first external and then internal) to the actual implementation of the ``Where'' pathway. %
 
-\subsection*{Active inference}
+\subsection{Active inference}
 
 {\color{blue} {\bf rev 2} Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii)  partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent.}
 
@@ -25,7 +25,7 @@ $$p(E|x) \propto p(x|E;\theta)$$
 
 It is also assumed that a set of motor commands $A = \{..., a, ...\}$ (here saccades) may control the body posture, but not the object's identity, so that $y$ is invariant to $a$. Actuating a command $a$ changes the viewpoint to $u'$, which feeds the system with a new visual sample $x'\sim p(X|u', y)$. The more viewpoints you have, the more certain you are about the object identity through a chain rule sequential evidence accumulation.
 
-In an optimal search setup however \cite{Najemnik05}, you need to choose the next viewpoint that will help you \emph{the most} to disambiguate the scene.
+In an optimal search setup however~\cite{Najemnik05}, you need to choose the next viewpoint that will help you \emph{the most} to disambiguate the scene.
 In a predictive setup, the consequence of every saccade should be analyzed through model inversion \emph{over the future observations}, that is, predicting the effect of every action to choose the one that may optimize future inferences. The benefit of each action should be quantified through a certain metric (future accuracy, future posterior entropy, future variational free energy, ...), that depend on the current inference $p(U,Y|x)$. The saccade $a$ that is selected thus provides a new visual sample from the scene statistics. If well chosen, it should improve the understanding of the scene (here the target position and category). However, estimating in advance the effect of every action over the range of every possible object shapes and body postures is combinatorially hard, even in simplified setups, and thus infeasible in practice.
 
 %To infer the position of the target, we will use the fundamental hypothesis outlined in Figure~\ref{fig:intro}: The position of an object is independent from its category.
@@ -33,11 +33,7 @@ The predictive approach necessitates in practice to restrain the generative mode
 The independence hypothesis allows considering the viewpoint $u$ and the category $y$ being independently inferred from the current visual field, i.e $p(U,Y|x) = p(U|x) p(Y|x)$. This property is strictly true in our setting and is very generic in vision for simple classes (such as digits) and simple displays (but see~\cite{Vo12} for more complex visual scene grammars).
 %
 
-
-
-
-
-\subsection*{Image generation}
+\subsection{Image generation}
 %=================================================================
 We define here the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and as implemented in Figure~\ref{fig:methods}-A. Following a common hypothesis regarding active vision, visual scenes consist of a single target embedded in a large image with a cluttered background.
 
@@ -57,7 +53,7 @@ The texture is designed to fit well with the statistics of natural images. We ch
 \paragraph{Mixing the signal and the noise.} Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
 %
 % >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
-\subsection*{Foveal vision and the ``What'' pathway}
+\subsection{Foveal vision and the ``What'' pathway}
 %=================================================================
 %
 At the core of the vision system is the identification module, i.e. the ``What'' pathway. It consists of a classic convolutional classifier for which we will show some translation invariance in the form of a shift-dependent accuracy map. Importantly, it can quantify its own classification uncertainty, that may allow comparisons with the output of the ``Where'' pathway.
@@ -83,7 +79,17 @@ To achieve a more generic ``What'' pathway, a specific dataset is constructed to
 After training, this shift-dependent accuracy map is validated by systematically testing the network accuracy on every horizontal and vertical shift, each on a set of $1000$ cluttered target samples generated from the MNIST test set and within the range of $\pm 27$ pixels (see figure \ref{fig:accuracy}).  This forms a $55\times 55$ accuracy map showing higher accuracy at the center, and a slow decreasing accuracy with target eccentricity (with an accuracy plateau  over $70\%$ showing a relative shift invariance on around $7$ pixels eccentricity radius). This shift invariance is a known effect of convolutional computation. Note that the categorization task is here harder by construction and the accuracy that is obtained here is lower (with a central recognition rate of around $80\%$). The accuracy fastly drops for eccentricities  greater than $10$ pixels, reaching the baseline $10\%$ chance level at shift amplitudes at around $20$ pixels.
 %, as shown in(with a central value of $80\%$ corresponding to the validation score without any translational shift),
 
-\subsection*{Peripheral vision: from log-polar feature vectors to log-polar action maps}
+\subsection{``Where'' pathway: Transforming log-polar feature vectors to log-polar action maps}
+
+\begin{figure}[t!]%%[p!] (see Figure~\ref{fig:where}-C)
+	% \centering{\includegraphics[width=\linewidth]{fig_where.pdf}}
+	\caption{\A A visual display is transformed by a feature vector which elements compute the similarity of the full image with a bank of oriented filters placed at positions defined by a log-polar grid. This defines a linear transform of the $128\times128=16384$ input pixels into $2880$ coefficients. It is possible to represent this information in visual space by using the pseudo-inverse of the linear transform (see for instance Figure~\ref{fig:intro}-C).
+	\B The ``Where'' network consists of two hidden layer composed with a RELU operator transfoming the retinal feature vector. A soft-max operatror ensures that this output vector is a distribution of predicted probabilities in log-polar space.
+	\C Similarly to \A , any full accuracy map computed by shifting the know shift-dependent accuracy map of the ``What'' pathway (see figure \ref{fig:accuracy}) can be transformed into a distribution in log-polar space, similarly to a colicular representation. As the full accuracy map is itself a distribution, This can be implemented by a linear (matrix) transform. In practice, one can use the inverse of this linear transform to project any  colicular representation into the visual space, for instance to predict for the position with maximal accuracy (red cross).
+	}
+\label{fig:where}
+\end{figure}
+
 %
 % page 476 de :
 %
@@ -98,24 +104,24 @@ The ``Where'' pathway is thus devoted to choosing the next saccade by predicting
 This implies moving the eye such as to increase the ``What'' categorization accuracy. For a given visual field, each possible future saccade has an expected accuracy, that can be trained from the ``What'' pathway output. To accelerate the training, we use a shortcut that is training the network on a translated accuracy map. The output is thus an accuracy map, that tells for each possible visuo-motor displacement the value of the future accuracy.
 
 \paragraph{Primary visual representation: log-polar orientation filters}
-In order to reduce the processing cost, and in accordance with observations \cite{connolly1984representation,sparks1987sensory}, a similar log-polar compression pattern is assumed to be conserved from the retina up to the primary motor layers.
+In order to reduce the processing cost, and in accordance with observations~\cite{connolly1984representation,sparks1987sensory}, a similar log-polar compression pattern is assumed to be conserved from the retina up to the primary motor layers.
 The non-uniform sampling of the visual space is adequately modeled as a log-polar conformal mapping, as it provides a good fit with observations in mammals~\cite{Traver10} which has a long history in computer vision and robotics.
 %A first property of this mapping is the separation between the foveal and the peripheral areas as we defined above.  However, this sensor is to our knowledge most often not coupled to an action.
 %\if 0\ICANN
 % {\color{blue}(but see~\cite{ref_needed)}}\fi.
 Both the visual features and the output accuracy map are to be expressed in retinal coordinates.
 % {\color{magenta} [[ \textbf{Rev 1} It would be very helpful to have at least a little bit more details on what the log-polar oriented filters are. Right now there is only a reference to [28].]]}
-On the visual side, local visual features are extracted as oriented edges as a combination of the retinotopic transform with primary visual cortex filters~\cite{Fischer2007a}. The centers of these first and second order orientation filters are radially organized around the center of fixation, with small and tightened receptive fields at the center and more large and scarce receptive fields at the periphery.
+On the visual side, local visual features are extracted as oriented edges as a combination of the retinotopic transform with primary visual cortex filters~\cite{Fischer2007a}, see Figure~\ref{fig:where}-A. The centers of these first and second order orientation filters are radially organized around the center of fixation, with small and tightened receptive fields at the center and more large and scarce receptive fields at the periphery.
 % see Figure~\ref{fig:methods}-B.
-The size of the filters increases proportionally to the eccentricity.  The filters are organized in $10$ spatial eccentricity scales (respectively placed at around $2$, $3$, $4.5$, $6.5$, $9$, $13$, $18$, $26$, $36.5$ , and $51.3$ pixels from the center) and $24$ different azimuth angles allowing them to cover most of the original $128 \times 128 $ image. At each of these positions,  $6$ different edge orientations and $2$ different phases (symmetric and anti-symmetric) are computed. This finally implements a (fixed) bank of linear filters which models the receptive fields of the primary visual cortex.
+The size of the filters increases proportionally to the eccentricity.  The filters are organized in $10$ spatial eccentricity scales (respectively placed at around $2$, $3$, $4.5$, $6.5$, $9$, $13$, $18$, $26$, $36.5$ , and $51.3$ pixels from the center) and $24$ different azimuth angles allowing them to cover most of the original $128 \times 128 $ image. At each of these positions, $6$ different edge orientations and $2$ different phases (symmetric and anti-symmetric) are computed. This finally implements a (fixed) bank of linear filters which models the receptive fields of the primary visual cortex.
 
-To ensure the balance of the coefficients across scales, the images are first whitened and then linearly transformed into a ``primary visual'' feature vector $\boldsymbol{x}$.  The length of this vector is $2880$, such that the retinal filter compresses the original image by about $83\%$, with high spatial frequencies preserved at the center and only low spatial frequencies conserved at the periphery. In practice, the bank of filters is pre-computed and placed into a matrix for a rapid transformation of input batches into feature vectors. This matrix transformation allows also the evaluation of a reconstructed visual image given a retinal activity vector thanks to a pseudo-inverse of the forward transform matrix. In summary, the full-sized images are transformed into a primary visual feature vector which is fed to the ``Where'' pathway.
+To ensure the balance of the coefficients across scales, the images are first whitened and then linearly transformed into a retinal input as a feature vector $\boldsymbol{x}$.  The length of this vector is $2880$, such that the retinal filter compresses the original image by about $83\%$, with high spatial frequencies preserved at the center and only low spatial frequencies conserved at the periphery. In practice, the bank of filters is pre-computed and placed into a matrix for a rapid transformation of input batches into feature vectors. This matrix transformation allows also the evaluation of a reconstructed visual image given a retinal activity vector thanks to a pseudo-inverse of the forward transform matrix. In summary, the full-sized images are transformed into a primary visual feature vector which is fed to the ``Where'' pathway.
 
 \paragraph{Visuo-motor representation: ``Collicular'' accuracy maps}
 
-The output of the ``Where'' pathway is defined as an \emph{accuracy map} representing the recognition probability after moving the eye, independently of its identity. Like the primary visual map, this target accuracy map is also organized radially in a log-polar fashion, making the target position estimate more precise at the center and fuzzier at the periphery. This modeling choice is reminiscent of the approximate log-polar organization of the superior colliculus (SC) motor map \cite{sparks1987sensory}. In ecological conditions, this accuracy map should be trained by sampling, i.e. by ``trial and error'', using the actual recognition accuracy (after the saccade) to grade the action selection. For instance, we could use corrective saccades to compute (a posteriori) the probability of a correct localization. In a computer simulation however, this induces a combinatorial explosion which does render the calculation not amenable.
+The output of the ``Where'' pathway is defined as an \emph{accuracy map} representing the recognition probability after moving the eye, independently of its identity. Like the primary visual map, this target accuracy map is also organized radially in a log-polar fashion, making the target position estimate more precise at the center and fuzzier at the periphery. This modeling choice is reminiscent of the approximate log-polar organization of the superior colliculus (SC) motor map~\cite{sparks1987sensory}. To ensure that this output is a distribution function, we use a soft-max operator at the ouput of the ``Where'' network. In ecological conditions, this accuracy map should be trained by sampling, i.e. by ``trial and error'', using the actual recognition accuracy (after the saccade) to grade the action selection. For instance, we could use corrective saccades to compute (a posteriori) the probability of a correct localization. In a computer simulation however, this induces a combinatorial explosion which does render the calculation not amenable.
 
-In practice, as we designed the generative model for the visual display, the position of the target (which is hidden to the agent) is known. Combining this translational shift and the shift-dependent accuracy map of the ``What'' classifier (Figure~\ref{fig:accuracy}-B), the full accuracy map at each pixel can be thus predicted for each visual sample under an ergodic assumption, by shifting the central accuracy map on the true position of the target. Such a computational shortcut is allowed by the independence of the categorical performance with position. % {\color{magenta} \textbf{Rev 1 I don't really understand : }}{\color{blue}
+In practice, as we designed the generative model for the visual display, the position of the target (which is hidden to the agent) is known. Combining this translational shift and the shift-dependent accuracy map of the ``What'' classifier (Figure~\ref{fig:accuracy}-B), the full accuracy map at each pixel can be thus predicted for each visual sample under an ergodic assumption, by shifting the central accuracy map on the true position of the target (see Figure~\ref{fig:where}-C). Such a computational shortcut is allowed by the independence of the categorical performance with position. % {\color{magenta} \textbf{Rev 1 I don't really understand : }}{\color{blue}
 This full accuracy map is a probability distribution function defined on the rectangular grid of the visual display. We project this distribution on a log-polar grid to provide the expected accuracy of each hypothetical saccade in a retinotopic space similar to a collicular map. In practice, we used Gaussian kernels defined in the log-polar space as a proxy to quantify the projection from the metric space to the retinotopic space. This generates a filter bank at $10$ spatial eccentricies and $24$ different azimuth angles, i.e. $240$ output filters. To ensure keeping a distribution function, each filter is normalized such that the value at each log-polar position is the average of the values which are integrated in visual space. Applied to the full sized ground truth accuracy map computed in metric space, this gives an accuracy map at different location of a retinotopic motor space. %Such transform is again implemented by a simple matrix multiplication which can be pre-computed to fasten calculations. Practically, this also allows to compute an inverse transform using the pseudo-inverse matrix of the forward transform. In particular, that inverse transform is used to represent the accuracy predicted by any given visual feature vector, but also to compute the position of maximal accuracy in metric space to set up the sensor displacement.
 
 %\subsection{Implementing the ``Where'' pathway}
@@ -123,20 +129,19 @@ This full accuracy map is a probability distribution function defined on the rec
 
 \paragraph{Classifier training}
 % >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
-
-Consider the retinal transform $\boldsymbol{x}$ as the input and a log-polar retinotopic vector $\boldsymbol{a}$ made of $n$ Bernouilli probabilities (success probabilities) as the output. %Following the active inference framework, we will train
+The ``Where'' pathway is a function transforming an input retinal feature vector $\boldsymbol{x}$ into a log-polar retinotopic vector $\boldsymbol{a}$ representing a prediction of the accuracy probabilities as the output. %Following the active inference framework, we will train
 The network is trained to predict the distribution $\boldsymbol{a}$ knowing the retinal input $\boldsymbol{x}$ by comparing it to the known ground truth distribution computed over the motor map.
-{\color{magenta} \textbf{Rev 1} According to line 409 the loss function of the classifier is a KL-divergence. However, neither the output of the accuracy map nor the retinotopic vector a are distributions. As far as I understood the, they encode a probabilities for each location. So I don't really see how a KL-divergence could be applicable here.}
+% {\color{magenta} \textbf{Rev 1} According to line 409 the loss function of the classifier is a KL-divergence. However, neither the output of the accuracy map nor the retinotopic vector a are distributions. As far as I understood the, they encode a probabilities for each location. So I don't really see how a KL-divergence could be applicable here.}
 The loss function that comes naturally is the Binary Cross-Entropy (negative term of the Kullback-Leibler divergence) between the ground truth and the predicted map (assuming the independence of the output map features).
 
 %The ``What'' pathway will be given from the literature. In contrast, the ``Where'' pathway takes the into account in order to tell whether a target is present at the different peripheral locations, in order to monitor future saccades.
 
 The parametric neural network consists of a primary visual input layer, followed by two fully connected hidden layers of size 1000  with rectified linear activation,
 %{\bf (!! 1000 !!)} $500$ and {\bf(!! 1000 !!)} $2000$ units respectively
-and a final output layer with a sigmoid nonlinearity to ensure that the output is compatible with a likelihood.
+and a final output layer with a sigmoid nonlinearity to ensure that the output is compatible with a likelihood function (see Figure~\ref{fig:where}-B).
 %In addition, we tested the effect of $50 \%$ drop-out on the last hidden layer.
 %Another improvement in convergence speed that was obtained by using batch normalization.
-The network is trained on 60 epochs of 60000 samples, with a learning rate equal to $10^{-4}$ and the Adam optimizer \cite{kingma2014adam}.
+The network is trained on $60$ epochs of $60000$ samples, with a learning rate equal to $10^{-4}$ and the Adam optimizer~\cite{kingma2014adam} with standard momentum parameters.
 %stochastic gradient descent with a momentum to improve convergence.
 %This scalar measures the distance between both distributions (it is always positive and null if and only if they are equal).
-The full training takes about $1$ hour on a laptop. The code is written in Python (version 3.7.6) with pyTorch library~\cite{NEURIPS2019_9015} (version 1.1.0). The full scripts for reproducing the figures and extending the results to a full range of parameters is available at \url{https://github.com/laurentperrinet/WhereIsMyMNIST}. % TODO: change to https://github.com/SpikeAI/DauceAlbigesPerrinet19 when public
+The full training takes about $1$ hour on a laptop. The code is written in Python (version 3.7.6) with pyTorch library~\cite{NEURIPS2019_9015} (version 1.1.0). The full scripts for reproducing the figures and extending the results to a full range of parameters is available at \url{https://github.com/laurentperrinet/WhereIsMyMNIST}. % TODO: change to https://github.com/SpikeAI/DauceAlbigesPerrinet2020 when public
