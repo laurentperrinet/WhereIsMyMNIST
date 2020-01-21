@@ -110,8 +110,9 @@ for base in bases if not args.filename == '../data/debug' else [2]:
     args.do_adam = True
     mml = MetaML(args, base=base, tag='adam')
     for parameter in ['lr', 'momentum', 'minibatch_size', 'epochs']:
-        accuracies = mml.parameter_scan(parameter)
-        results = update_results(results, parameter + '_adam', accuracies)
+        if not (base == 2 and parameter=='epochs'): # HACK
+            accuracies = mml.parameter_scan(parameter)
+            results = update_results(results, parameter + '_adam', accuracies)
 
     print(50*'-')
     print(' parameter scan : retina')
