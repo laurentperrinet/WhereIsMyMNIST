@@ -3,13 +3,13 @@
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
 % !TEX spellcheck = en-US
-\section*{Introduction}
+\section{Introduction}
 \label{sec:intro}
-\subsection*{Problem statement}
+\subsection{Problem statement}
 %------------------------------%
 %: see Figure~\ref{fig:intro}
 %Past 10 years have seen the disrupting development of deep learning based image processing. Indeed, t
-The field of computer vision was recently recast by the outstanding capability of convolution-based deep networks to capture the semantic content of images and photographs. Human observers performance is now outreached by computer algorithms in specific image categorization tasks~\cite{He15}. One facet of this success relies on a reduction of parameter complexity through the weight sharing imposed in convolutional neural networks. 
+The field of computer vision was recently recast by the outstanding capability of convolution-based deep networks to capture the semantic content of images and photographs. Human observers performance is now outreached by computer algorithms in specific image categorization tasks~\cite{He15}. One facet of this success relies on a reduction of parameter complexity through the weight sharing imposed in convolutional neural networks.
 %Initially trained on energy greedy, high performance computers, these algorithms are now designed to work on more common hardware such as desktop computers with dedicated GPU hardware~\cite{Sandler18}.
 However, despite lots of efforts spent in optimizing the processing, visual processing is still done at a cost that scales linearly with the image size as all regions of the image, even the “boring” ones are systematically scanned and processed. % in parallel through dedicated hardware at a significant computational cost.
 %Inherent to this problem is the combinatorial explosion State-of-the art classification
@@ -29,7 +29,7 @@ Take for instance the case of an encounter with a friend in a crowded café. To 
 %It is one type of active inference~\cite{Friston12} (see below) and we will envision herein how to incorporate it to classical computer vision schemes.
 % (1 / 2.5 * 3600 * 24 * 365 * 75 = 946080000.0 ~= .95e9) X (wakeful + REM = .66)
 %
-\subsection*{State of the art}
+\subsection{State of the art}
 
 To take benefit from this visuomotor behavior, it is important to understand both its computational and neurophysiological principles. First, the joint problem of target localization and identification is a classical problem of visual search in computer vision. Addressing apparently simple questions such as ``find the green bottle on the table'', it is of broad interest in machine learning, computer vision and robotics, but also in neuroscience, as it speaks to the mechanisms underlying foveation and more generally to low-level attention mechanisms.
 When restricted to a mere ``feature search''~\cite{Treisman80}, many computational solutions already exist. Notably, recent advances in deep-learning have provided efficient models such as faster-RCNN~\cite{Ren17} or YOLO~\cite{Redmon16}. %5}.
@@ -53,7 +53,7 @@ allows to interpret saccades as optimal experiments, by which the agent seeks to
 Saccades %are not the output of a value-based cost function, but
 are here a consequence of an active seek for the agent to minimize the uncertainty about his beliefs, knowing his priors on the generative model of the visual world.
 
-\subsection*{Outline}
+\subsection{Outline}
 
 
 Stemming from the active vision principles, our aim is to produce a principled and resource-effective model of vision.
