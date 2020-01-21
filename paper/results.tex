@@ -8,7 +8,6 @@
 \label{sec:results}
 %=================================================================
 %------------------------------%
-
 \begin{figure}[t!]%%[p!]
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
 	\centering{{\bf a.} \hspace{1.6cm} {\bf b.} \hspace{1.6cm} {\bf c.} \hspace{1.6cm} {\bf d.} \hspace{1.6cm} {\bf e.}}
@@ -18,7 +17,7 @@
 	\centering{\D\includegraphics[width=.9\linewidth]{CNS-saccade-47.png}}
 	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}		% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
-		{\A-- \E Representative active vision samples after training}. \A-- \B  classification success samples. \C-- \E classification failure samples. Digit contrast set to 0.7.  From left to right: {\bf a.}~The initial 128$\times$128 visual display, with blue cross giving the center of gaze.
+		{\A-- \E Representative active vision samples after training}: \A-- \B  classification success samples, \C-- \E classification failure samples. Digit contrast set to $70\%$.  From left to right: {\bf a.}~The initial 128$\times$128 visual display, with blue cross giving the center of gaze.
 		The visual input is retinotopically transformed and sent to the multi-layer neural network implementing the ``Where'' pathway.
 		{\bf b.}~Magnified reconstruction of the  visual input, as it shows off from the primary visual features through an inverse log-polar transform.
 		{\bf c.-d.}~Color-coded radial representation of the output accuracy maps, with dark violet for the lower accuracies, and yellow for the higher accuracies. The network output ('Predicted') is visually compared with the ground truth ('True'). %
@@ -30,7 +29,7 @@
 %=================================================================
 \subsection*{Open loop setup}
 %=================================================================
-After training, the ``Where'' pathway is now capable to predict an accuracy map, whose maximal argument drives the eye toward a new viewpoint. There, a central snippet is extracted, that is processed through the ``What'' pathway, allowing to predict the digit's label. Examples of this simple open loop sequence are presented in figure \ref{fig:saccades}, when the digits contrast parameter is set to 0.7 and the digits eccentricity varies between 0 and 40 pixels. The presented examples correspond to strong eccentricity cases, when the target is hardly visible on the display (fig. \ref{fig:saccades}a), and almost invisible on the reconstructed input (fig. \ref{fig:saccades}b). The radial maps (fig. \ref{fig:saccades}c-d) respectively represent the actual and the predicted accuracy maps. The final focus is represented in fig. \ref{fig:saccades}e, with cases of classification success (fig. \ref{fig:saccades}A-B) and cases of classification failures (fig. \ref{fig:saccades}C-E).
+After training, the ``Where'' pathway is now capable to predict an accuracy map, whose maximal argument drives the eye toward a new viewpoint. There, a central snippet is extracted, that is processed through the ``What'' pathway, allowing to predict the digit's label. Examples of this simple open loop sequence are presented in figure \ref{fig:saccades}, when the digits contrast parameter is set to $70\%$ and the digits eccentricity varies between $0$ and $40$ pixels. The presented examples correspond to strong eccentricity cases, when the target is hardly visible on the display (fig. \ref{fig:saccades}a), and almost invisible on the reconstructed input (fig. \ref{fig:saccades}b). The radial maps (fig. \ref{fig:saccades}c-d) respectively represent the actual and the predicted accuracy maps. The final focus is represented in fig. \ref{fig:saccades}e, with cases of classification success (fig. \ref{fig:saccades}A-B) and cases of classification failures (fig. \ref{fig:saccades}C-E).
 In the case of successful detection (fig. \ref{fig:saccades}A-B), the accuracy prediction is not perfect and the digit is not perfectly centered on the fovea. This ``close match'' still allows for a correct classification, as the digit's pixels are fully present on the fovea. The case of fig. \ref{fig:saccades}B and \ref{fig:saccades}C
  is interesting for it shows two cases of a bimodal prediction, indicating that the network is capable of doing multiple detections at a single glance. The case of \ref{fig:saccades}C corresponds to a false detection, with the true target detected still, though with a lower intensity. The case of fig. \ref{fig:saccades}D is a ``close match'' detection that is not precise enough to correctly center the visual target. Not every pixel of the digit being visible on the fovea, the label prediction is mistaken.
 The last failure case (fig. \ref{fig:saccades}E) corresponds to a correct detection that is harmed by a wrong label prediction, only due to the ``What'' classifier inherent error rate.
@@ -44,7 +43,7 @@ The last failure case (fig. \ref{fig:saccades}E) corresponds to a correct detect
 	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\bf Effect of contrast and target eccentricity.} %
-		The active vision agent is tested for different target eccentricities (in pixels) and different contrasts to estimate a final classification rate. Orange bars: accuracy of a central classifier ('No saccade') with respect to the target's eccentricity, averaged over 1,000 trials per eccentricity. Blue bars: Final classification rate after one saccade. % \if 0\ICANN{\color{blue} TODO: show three levels of noise Low (0.5) median (1.2) high (2). TODO: compare with Accuracy max (knowing the position)}\fi
+		The active vision agent is tested for different target eccentricities (in pixels) and different contrasts to estimate a final classification rate. Orange bars: accuracy of a central classifier ('No saccade') with respect to the target's eccentricity, averaged over $1000$ trials per eccentricity. Blue bars: Final classification rate after one saccade. % \if 0\ICANN{\color{blue} TODO: show three levels of noise Low (0.5) median (1.2) high (2). TODO: compare with Accuracy max (knowing the position)}\fi
 		\label{fig:results}}%
 \end{figure}%
 
@@ -87,7 +86,7 @@ The most peripheral targets are difficult to detect in one round, resulting in d
 	\caption{
 		{\bf Multi-saccades case.} %
 		\A Example of a corrective saccade on a 3-saccades trial. The subjective visual field  is reconstructed from the log-polar visual features, with red square delineated $28\times28$ foveal snippet, after 0, 1, 2 and 3 saccades (from left to right).
-		\B Average classification accuracies measured for different target eccentricities (in pixels) and a different number of saccades. Target contrast set to 0.7. Orange bars: initial central accuracy ('0 saccade') in function of the eccentricity, averaged over 1,000 trials per eccentricity. Blue bars: Final classification rate after one, two and three saccades (from left to right). % \if 0\ICANN{\color{blue} TODO: show three levels of noise Low (0.5) median (1.2) high (2). TODO: compare with Accuracy max (knowing the position)}\fi
+		\B Average classification accuracies measured for different target eccentricities (in pixels) and a different number of saccades. Target contrast set to $0.7$. Orange bars: initial central accuracy (``0 saccade'') in function of the eccentricity, averaged over $1000$ trials per eccentricity. Blue bars: Final classification rate after one, two and three saccades (from left to right).
 		\label{fig:results-saccades}}%
 \end{figure}%
 
@@ -103,7 +102,7 @@ From the information theory standpoint, each saccade comes with fresh visual inf
 \text{IG}_\text{max} &= \max_{u'} \log p(y|u',x',x, u) - \log p(y|x, u)\nonumber\\
 &\simeq \max_{u'} \log p(y|x') - \log p(y|x)\label{eq:IG}
 \end{align}
-with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the 'what' pathway. The accuracy gain may be averaged over many saccades and many initial eccentricities (so that the information gain may be close to zero when the initial $u$ is very central).
+with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the ``What'' pathway. The accuracy gain may be averaged over many saccades and many initial eccentricities (so that the information gain may be close to zero when the initial $u$ is very central).
 For the saccade is subject to predictions errors and execution noise, the actual $u'$ may be different from the initial prediction. The final accuracy, as instantiated in the accuracy map, contains this intrinsic imprecision, and is thus necessary lower than the optimal one. The consequence is that in some cases, the approximate information gain may become negative, when the future accuracy is actually lower than the current one. This is for instance the case when the target is centered on the fovea.
 
 In our simulation results, the central accuracy is found to overtake the maximal peripheral accuracy when the target is close to the center of gaze. When closely inspecting the 1-10 pixels eccentricity range (not shown), a decision frontier between a positive and a negative information gain is found to lie at 2-3 pixels away from the center. Inside that range, no additional saccade is expected to be produced, and a categorical response should be given instead.  %(see figure \ref{fig:center}), %between the first and the second spatial scale,
