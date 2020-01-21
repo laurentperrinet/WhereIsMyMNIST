@@ -67,13 +67,13 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 Next, the effect of a saccade is to shift the visual field from one place to another.
 Concretely, each saccade provokes a new visual field $x'$ at a new subjective position $u'$, while the target identity $y$ remains unchanged.
 %Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
-Choosing the next saccade thus means predicting how accurate %$p(U|x)$ and $p(Y|x)$ 
+Choosing the next saccade thus means predicting how accurate %$p(U|x)$ and $p(Y|x)$
 the estimation of $y$ will be after the saccade realization.
 % a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This . followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
 %It is worth noting that active inference needs either the current identity $y$ or the current eye direction $u$ to be readable from the present view, in order to effectively predict future inferences, through computationally intensive predictions.
-In practice, %modeling the full sequence of operations that lead to estimate %both $p(U'|x')$ and $p(Y|x')$ 
-%the future $u$ and $y$ 
-%means predicting 
+In practice, %modeling the full sequence of operations that lead to estimate %both $p(U'|x')$ and $p(Y|x')$
+%the future $u$ and $y$
+%means predicting
 predicting the future visual field $x'$ over all possible saccades being computationally too costly, %in the case of large visual fields.
 better off instead is to form a statistics over the (scene understanding) benefit obtained from past saccades in the same context, that is forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here. The putative effect of every saccade should be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
 from the current observation $x$. If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the categorical classifier over $x'$ can either be correct (1) or incorrect (0).
