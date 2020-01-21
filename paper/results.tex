@@ -43,8 +43,6 @@ This setup provides the conditions for a separate processing of the visual infor
 %, with visuo-spatial information extracted from the peripheral clutter, and object detailed shape and identity extracted through central foveal examination.
 Indeed, in order to analyze a complex visual scene, there are two types of processing that need to be done. On the one side, you need  to analyze in detail what is at the center of fixation, that is the region of interest currently processed. On the other side, you also need to analyze the surrounding part, even if the resolution is low, in order to choose what is the next center of fixation. This basically means making a choice of “what’s interesting next”. You do not necessarily need to know what it is, but you need to know that it’s interesting enough, and of course you need to know what action to take to move the center of fixation at the right position. This is reminiscent of the What/Where separate visual processing separation observed in monkeys and humans ventral and dorsal visual pathways \cite{mishkin1983object}.
 
-
-
 \begin{figure}[t!]%%[p!]
 	\centering{\includegraphics[width=\linewidth]{fig_methods}}
 	\caption{%
@@ -66,23 +64,29 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 
 \subsection*{Metric training}
 The effect of a saccade is to shift the visual field from one place to another.
-Concretely, each saccade provokes a new visual field $x'$ at a new subjective position $u'$, while the target identity $y$ remains unchanged.
+In a stationary condition, where the target position and identity does not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
 %Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
-Choosing the next saccade thus means predicting how accurate %$p(U|x)$ and $p(Y|x)$
-the estimation of $y$ will be after the saccade realization.
+We assume here is that, in a visual search task, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than scene representation. 
+This means in short estimating how accurate the categorical classifier will be after moving the eye.
+%action selection can be interpreted as choosing the saccade that should provide the best target identity estimate. 
+In a full setup, predictive action selection means first predicting the future visual field $x'$ obtained at the center of fixation, and then predicting how good the  %$p(U|x)$ and $p(Y|x)$
+estimate of the target identity, i.e. $p(y|x')$, will be there.
 % a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This . followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
 %It is worth noting that active inference needs either the current identity $y$ or the current eye direction $u$ to be readable from the present view, in order to effectively predict future inferences, through computationally intensive predictions.
 In practice, %modeling the full sequence of operations that lead to estimate %both $p(U'|x')$ and $p(Y|x')$
 %the future $u$ and $y$
 %means predicting
-predicting the future visual field $x'$ over all possible saccades being computationally too costly, %in the case of large visual fields.
-better off instead is to form a statistics over the (scene understanding) benefit obtained from past saccades in the same context, that is forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here. The putative effect of every saccade should be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
-from the current observation $x$. If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the categorical classifier over $x'$ can either be correct (1) or incorrect (0).
-If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ forms a probability, i.e. a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
+predicting a future visual field over all possible saccades is too computationally expensive. %in the case of large visual fields.
+Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after saccades $a$, $a'$, $a''$ etc. 
+If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the central categorical classifier over $x'$ can either be correct (1) or incorrect (0).
+If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ is a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
+% This means forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here. 
+The putative effect of every saccade can thus be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
+from the current observation $x$. 
 % when issuing a saccade $a$ after seeing $\boldsymbol{x}$ (the initial visual field).
 %It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
 %In a biological setting, this would be acchieved for instance by catch-up saccades that would scan the area neighboring the saccade that was actually issued.
-To sum up, a main assumption here is that instead of trying to detect the actual position of the target, better off for the agent is to estimate how accurate the categorical classifier will be after moving the eye. Extended to the full action space $A$, this forms an accuracy map that may be learned through trials and errors, by actuating saccades %after processing the visual input,
+ Extended to the full action space $A$, this forms an accuracy map that may be learned through trials and errors, by actuating saccades %after processing the visual input,
 and taking the final classification success or failure as a teaching signal.
 Our main assumption here is that such a \emph{predictive accuracy map} is at the core of a realistic saccade-based vision systems.
 Consistent with a baseline approach that would predict for all possible gaze directions over an image, this map should moreover be organized radially to preserve the retinotopic organization.
