@@ -66,7 +66,7 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 The effect of a saccade is to shift the visual field from one place to another.
 In a stationary condition, where the target position and identity does not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
 %Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
-We assume here is that, in a visual search task, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than scene representation. 
+We assume here is that, in a visual search task, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation. 
 This means in short estimating how accurate the categorical classifier will be after moving the eye.
 %action selection can be interpreted as choosing the saccade that should provide the best target identity estimate. 
 In a full setup, predictive action selection means first predicting the future visual field $x'$ obtained at the center of fixation, and then predicting how good the  %$p(U|x)$ and $p(Y|x)$
