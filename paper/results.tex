@@ -69,7 +69,7 @@ For our specific problem, the simplified anatomy of the agent is composed of two
 
 In a stationary condition, where the target position and identity do not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
 %Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
-Following the active inference setup \cite{Najemnik05, Friston12}, we assume here is that, in a visual search task, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation. 
+Following the active inference setup \cite{Najemnik05, Friston12}, we assume  that, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation. 
 This means in short estimating how accurate a categorical target classifier will be after moving the eye.
 %action selection can be interpreted as choosing the saccade that should provide the best target identity estimate. 
 In a full setup, predictive action selection means first predicting the future visual field $x'$ obtained at the center of fixation, and then predicting how good the  %$p(U|x)$ and $p(Y|x)$
@@ -206,16 +206,21 @@ As shown in figure  \ref{fig:results-saccades}B, such corrective saccades, that 
 \subsection{Concurrent action selection}
 
 
+Finally, when both pathways are assumed to work in parallel, each one may be used concurrently to choose the most appropriate action. Two concurrent accuracies are indeed  predicted through separate processing pathways, namely the central pixels recognition accuracy through the ``What'' pathway, and the log-polar accuracy map through the ``Where'' pathway. The central accuracy may thus be compared with the maximal accuracy as predicted by the ``Where'' pathway.
 
-Finally, when both pathways are assumed working in parallel, each one may be used concurrently to choose the most appropriate action. Two concurrent accuracies are indeed  predicted through separate processing pathways, namely the central pixels recognition accuracy through the ``What'' pathway, and the log-polar accuracy map through the ``Where'' pathway. The central accuracy may thus be compared with the maximal accuracy as predicted by the ``Where'' pathway.
-
-From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by an \emph{information gain}, namely:
+From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by a conditional \emph{information gain}, namely:
 \begin{align}
-\text{IG}_\text{max} &= \max_{u'} \log p(y|u',x',x, u) - \log p(y|x, u)\nonumber\\
-&\simeq \max_{u'} \log p(y|x') - \log p(y|x)\label{eq:IG}
+\text{IG}_\text{max} &= \max_{x'} \log p(y|x,x') - \log p(y|x)\nonumber
 \end{align}
-with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the ``What'' pathway. The accuracy gain may be averaged over many saccades and many initial eccentricities (so that the information gain may be close to zero when the initial $u$ is very central).
-For the saccade is subject to predictions errors and execution noise, the actual $u'$ may be different from the initial prediction. The final accuracy, as instantiated in the accuracy map, contains this intrinsic imprecision, and is thus necessary lower than the optimal one. The consequence is that in some cases, the approximate information gain may become negative, when the future accuracy is actually lower than the current one. This is for instance the case when the target is centered on the fovea.
+with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the ``What'' pathway.
+Estimating the joint conditional dependence in the first term being once again out of reach for computational reasons, the following approximative estimate is used instead {\color{green} à justifier un peu mieux}:
+\begin{align}
+\tilde{\text{IG}}_\text{max}&\simeq \text{IG}_\text{max}\nonumber\\
+&=\max_{x'} \log p(y|x') - \log p(y|x)\label{eq:IG}
+\end{align}
+that is a simple difference between the log accuracy after the saccade minus the log accuracy before the saccade.
+To provide a reliable estimate, the information gain may be averaged over many saccades and many target eccentricities (so that the information gain may be close to zero when the target eccentricity is close to zero).
+For the saccade is subject to predictions errors and execution noise, the saccade landing position may be different from the initial prediction. The final accuracy, as instantiated in the accuracy map, contains this intrinsic imprecision, and is thus necessary lower than the optimal one. The consequence is that in some cases, the approximate information gain may become negative, when the future accuracy is actually lower than the current one. This is for instance the case when the target is exactly positioned at the center of the fovea.
 
 In our simulation results, the central accuracy is found to overtake the maximal peripheral accuracy when the target is close to the center of gaze. When closely inspecting the 1-10 pixels eccentricity range (not shown), a decision frontier between a positive and a negative information gain is found to lie at 2-3 pixels away from the center. Inside that range, no additional saccade is expected to be produced, and a categorical response should be given instead.  %(see figure \ref{fig:center}), %between the first and the second spatial scale,
 While this frontier is not attained, micro-saccades may be pursued in the close vicinity of the target in search of a perfect centering.
