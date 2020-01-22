@@ -10,7 +10,7 @@
 
 \subsection{Active inference}
 
-{\color{blue} {\bf rev 2} Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii)  partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent.}
+{\color{blue} {\bf rev 2} Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii)  partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent. {\bf laurent:} tu as pu regarder ce point?}
 
 Saccade selection in visual processing can be captured by a statistical framework called a
 partially observed Markov Decision Process (POMDP), where the cause of a visual scene is  made up from the couple of independent random variables of the viewpoint and of the scene elements (here a digit). For instance, changing the viewpoint will conduct to a different scene rendering.
@@ -52,7 +52,6 @@ The texture is designed to fit well with the statistics of natural images. We ch
 
 \paragraph{Mixing the signal and the noise.} Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
 %
-% >>>>>>>>>>>> LuP is here <<<<<<<<<<<<<<<<<<<<<<<
 \subsection{Foveal vision and the ``What'' pathway}
 %=================================================================
 %
@@ -83,9 +82,9 @@ After training, this shift-dependent accuracy map is validated by systematically
 
 \begin{figure}[t!]%%[p!] (see Figure~\ref{fig:where}-C)
 	% \centering{\includegraphics[width=\linewidth]{fig_where.pdf}}
-	\caption{\A A visual display is transformed by a feature vector which elements compute the similarity of the full image with a bank of oriented filters placed at positions defined by a log-polar grid. This defines a linear transform of the $128\times128=16384$ input pixels into $2880$ coefficients. It is possible to represent this information in visual space by using the pseudo-inverse of the linear transform (see for instance Figure~\ref{fig:intro}-C).
-	\B The ``Where'' network consists of two hidden layer composed with a RELU operator transfoming the retinal feature vector. A soft-max operatror ensures that this output vector is a distribution of predicted probabilities in log-polar space.
-	\C Similarly to \A , any full accuracy map computed by shifting the know shift-dependent accuracy map of the ``What'' pathway (see figure \ref{fig:accuracy}) can be transformed into a distribution in log-polar space, similarly to a colicular representation. As the full accuracy map is itself a distribution, This can be implemented by a linear (matrix) transform. In practice, one can use the inverse of this linear transform to project any  colicular representation into the visual space, for instance to predict for the position with maximal accuracy (red cross).
+	\caption{Implementing the ``Where'' pathway: \A A visual display is transformed by a feature vector which elements compute the similarity of the full image with a bank of oriented filters placed at positions defined by a log-polar grid. This defines a linear transform of the $128\times128=16384$ input pixels into $2880$ coefficients. It is possible to represent this information in visual space by using the pseudo-inverse of the linear transform (see for instance Figure~\ref{fig:intro}-C).
+	\B The ``Where'' network consists of two hidden layer composed with a RELU operator transfoming the retinal feature vector. A soft-max operator ensures that this output vector is a distribution of predicted probabilities in log-polar space.  {\color{magenta} [[\textbf{laurent:} pourquoi on utilise pas un soft-max - on sait qu'il y a une et une seule cible}
+	\C Similarly to~(A), any full accuracy map computed by shifting the know shift-dependent accuracy map of the ``What'' pathway (see figure \ref{fig:accuracy}) can be transformed into a distribution in log-polar space, similarly to a colicular representation. As the full accuracy map is itself a distribution, This can be implemented by a linear (matrix) transform. In practice, one can use the inverse of this linear transform to project any  colicular representation into the visual space, for instance to predict for the position with maximal accuracy (red cross).
 	}
 \label{fig:where}
 \end{figure}
@@ -144,4 +143,4 @@ and a final output layer with a sigmoid nonlinearity to ensure that the output i
 The network is trained on $60$ epochs of $60000$ samples, with a learning rate equal to $10^{-4}$ and the Adam optimizer~\cite{kingma2014adam} with standard momentum parameters.
 %stochastic gradient descent with a momentum to improve convergence.
 %This scalar measures the distance between both distributions (it is always positive and null if and only if they are equal).
-The full training takes about $1$ hour on a laptop. The code is written in Python (version 3.7.6) with pyTorch library~\cite{NEURIPS2019_9015} (version 1.1.0). The full scripts for reproducing the figures and extending the results to a full range of parameters is available at \url{https://github.com/laurentperrinet/WhereIsMyMNIST}. % TODO: change to https://github.com/SpikeAI/DauceAlbigesPerrinet2020 when public
+The full training takes about $1$ hour on a laptop. The code is written in Python (version 3.7.6) with pyTorch library~\cite{NEURIPS2019_9015} (version 1.1.0). The full scripts for reproducing the figures and explore the results to the full range of parameters is available at \url{https://github.com/laurentperrinet/WhereIsMyMNIST}. % TODO: change to https://github.com/SpikeAI/DauceAlbigesPerrinet2020 when public
