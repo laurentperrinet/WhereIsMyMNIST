@@ -1,0 +1,108 @@
+%% Copyright (C) 2009 by Tobias Elze
+%% Journal of Vision LaTeX template version 1.0
+%% This document may be used freely for your own submissions.
+
+\documentclass{jov}
+
+\begin{document}
+
+\title{This is the title of the article}
+\abstract{This document is an inofficial \LaTeX{} template to be used
+to create a suitably formatted submission for the Journal of Vision. It
+considers the changed layout requirements as of 2010. The complete
+instructions for manuscript preparation are available at
+\href{http://www.journalofvision.org/site/misc/ifora.xhtml}
+{http://www.journalofvision.org/site/misc/ifora.xhtml}.
+This is the text of the abstract. This version of the template is dated
+\today. The template makes your \LaTeX{} manuscript look similar to 
+Journal of Vision articles. However, in contrast to the two-column JOV
+articles, manuscripts are in single colum mode.}
+
+\author{Smith}{Jane Q.}
+ {Schepens Eye Research Institute}
+ {and Harvard Medical School, Boston, MA, USA}
+ {http://}{jqs@schepens.harvard.edu}
+\author{Elze}{Tobias}
+ {Research Group Complex Structures in Biology and Cognition}
+ {Max Planck Institute for Mathematics in the Sciences, Leipzig, Germany}
+ {http://www.mis.mpg.de/complex/members/tobias-elze.html}
+ {Tobias.Elze@mis.mpg.de}
+
+\keywords{reverse correlation, triggered correlation, primate, recursive 
+least squares, linear-nonlinear model, system identification}
+
+\maketitle
+
+\section{Introduction}
+
+The jov class provides the following commands:
+\begin{itemize}
+\item \verb=\=title
+\item \verb=\=abstract
+\item \verb=\=author
+\item \verb=\=keywords
+\end{itemize}
+To specify authors, use the \verb=\=author command for each author in the 
+same order as they are to appear on the manuscript. The \verb=\=author 
+command requires six arguments: Name, first name(s), institution, address, 
+ehomepage, and email.
+
+After specifying the commands above make use of \verb=\=maketitle to 
+generate the title of the manuscript.
+
+\section{To create a new manuscript}
+
+To create a new manuscript for \textit{Journal of Vision}, do the 
+following:
+\begin{enumerate}
+\item Open this template in your favorite \LaTeX{} editor.
+\item Save the file under a new name.
+\item Enter content into the appropriate sections, and make use of the 
+standard \LaTeX{} commands.
+
+\end{enumerate}
+
+\section{Including references}
+
+Treatment of cited material closely follows the Publication Manual of the 
+American Psychological Association. The Bib\TeX{} file \verb=jovcite.bst= 
+is a modified version of \verb=apacite.bst=. References can be included in 
+rthe same way as required for \verb=apacite.bst=: 
+\begin{itemize}
+\item \verb=\citeA{AndrewsPollen1979}= $\to$ \citeA{AndrewsPollen1979}
+\item \verb=\cite{RoordaWilliams2002}= $\to$ \cite{RoordaWilliams2002}
+\item \verb=\citeNP{AndrewsPollen1979}= $\to$ \citeNP{AndrewsPollen1979}
+\end{itemize}
+The following Bib\TeX{} tags have been added to \verb=apacite.bst=: \verb=doi=, 
+\verb=pubmedurl=, and \verb=articleurl=. See \verb=jovtemplate_latex.bib= 
+for an example how to use a JOV bib file.
+
+\section{Figures}
+
+Add figures as usual in \LaTeX{}. Figure \ref{pdffigure} shows an example 
+how to insert a figure stored in a pdf file.
+\begin{figure}[h!]
+\fbox{\parbox{\columnwidth}{Insert your figure here, for instance like 
+this:\\[5mm]
+\textbackslash{}includegraphics[width=\textbackslash{}columnwidth]\{file.pdf\}
+\\[5mm] }}
+\caption{Example how to add a figure stored in a pdf file}
+\label{pdffigure}
+\end{figure}
+
+If you are using pdflatex, the following file types are processed by 
+\verb=\includegraphics=: pdf, png, and jpg.
+
+\section{Disclaimer}
+
+Feel free to use this template on your own risk. Note that it is \textit{not} an 
+official template and that it may contain errors or deviations from 
+Journal of Vision's requirements. If you find errors or if you have 
+suggestions for improvements, please contact me.\\ \\
+\textcopyright{} 2009--2010, Tobias Elze.
+
+\bibliography{jovtemplate_latex}
+\bibliographystyle{jovcite}
+
+\end{document}
+
