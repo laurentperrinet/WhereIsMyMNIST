@@ -113,12 +113,12 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-paper/plos-paper.aux
-paper/plos-paper.out
-paper/plos-paper.pdf
-paper/plos-paper.synctex.gz
-paper/plos-paper.bbl
-paper/plos-paper.blg
-paper/plos-paper.fls
-paper/plos-paper.fdb_latexmk
-paper/plos-paper.synctex(busy)
+paper/DauceAlbigesPerrinet2020.aux
+paper/DauceAlbigesPerrinet2020.out
+paper/DauceAlbigesPerrinet2020.pdf
+paper/DauceAlbigesPerrinet2020.synctex.gz
+paper/DauceAlbigesPerrinet2020.bbl
+paper/DauceAlbigesPerrinet2020.blg
+paper/DauceAlbigesPerrinet2020.fls
+paper/DauceAlbigesPerrinet2020.fdb_latexmk
+paper/DauceAlbigesPerrinet2020.synctex(busy)

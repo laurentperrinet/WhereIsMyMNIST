@@ -491,7 +491,7 @@
 \usepackage{amsmath,amssymb}
 
 % Use adjustwidth environment to exceed column width (see example table in text)
-\usepackage{changepage}
+% \usepackage{changepage}
 
 % Use Unicode characters when possible
 \usepackage[utf8x]{inputenc}
@@ -500,7 +500,7 @@
 \usepackage{textcomp,marvosym}
 
 % cite package, to clean up citations in the main text. Do not remove.
-\usepackage{cite}
+% \usepackage{cite}
 
 % Use nameref to cite supporting information files (see Supporting Information section for more info)
 \usepackage{nameref,hyperref}
@@ -521,7 +521,6 @@
 \usepackage{csquotes}
 \usepackage{bm}
 
-%
 % % create "+" rule type for thick vertical lines
 % \newcolumntype{+}{!{\vrule width 2pt}}
 %
@@ -556,18 +555,15 @@
 singlelinecheck=off]{caption}
 \renewcommand{\figurename}{Fig}
 
-% Use the PLoS provided BiBTeX style
-%\bibliographystyle{plos2015}
+\bibliographystyle{alpha}
 
 % Remove brackets from numbering in List of References
-\makeatletter
-\renewcommand{\@biblabel}[1]{\quad#1.}
-\makeatother
+%\makeatletter
+%\renewcommand{\@biblabel}[1]{\quad#1.}
+%\makeatother
 
-% Header and Footer with logo
 \usepackage{lastpage,fancyhdr,graphicx}
 \graphicspath{{../figures/}}%
-\usepackage{epstopdf}
 %\pagestyle{myheadings}
 \pagestyle{fancy}
 \fancyhf{}
@@ -680,20 +676,6 @@ singlelinecheck=off]{caption}
 
 \nolinenumbers
 
-% Either type in your references using
-% \begin{thebibliography}{}
-% \bibitem{}
-% Text
-% \end{thebibliography}
-%
-% or
-%
-% Compile your BiBTeX database using our plos2015.bst
-% style file and paste the contents of your .bbl file
-% here. See http://journals.plos.org/plosone/s/latex for
-% step-by-step instructions.
-%
-\bibliographystyle{jov/jovcite}
 
 \bibliography{Bibliography}
 
