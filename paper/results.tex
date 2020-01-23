@@ -25,7 +25,7 @@
 
 %:
 
-For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, we need to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems. 
+For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, we need to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems.
 
 \subsection{Visual Environment}
 
@@ -65,13 +65,13 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 \subsection*{Metric training}
 
 Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms is sufficient to allow in particular for the quantification of the difficulty of a task through the failure or success of the training.
-For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways,  each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the  saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification.  The first one is calle the ``What'' network, and the second one is the `Where network''. They are both implemented in Pytorch \cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers. 
+For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways,  each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the  saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification.  The first one is calle the ``What'' network, and the second one is the `Where network''. They are both implemented in Pytorch \cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers.
 
 In a stationary condition, where the target position and identity do not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
 %Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
-Following the active inference setup \cite{Najemnik05, Friston12}, we assume  that, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation. 
+Following the active inference setup \cite{Najemnik05, Friston12}, we assume  that, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation.
 This means in short estimating how accurate a categorical target classifier will be after moving the eye.
-%action selection can be interpreted as choosing the saccade that should provide the best target identity estimate. 
+%action selection can be interpreted as choosing the saccade that should provide the best target identity estimate.
 In a full setup, predictive action selection means first predicting the future visual field $x'$ obtained at the center of fixation, and then predicting how good the  %$p(U|x)$ and $p(Y|x)$
 estimate of the target identity $y$, i.e. $p(y|x')$, will be there.
 % a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This . followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
@@ -80,12 +80,12 @@ In practice, %modeling the full sequence of operations that lead to estimate %bo
 %the future $u$ and $y$
 %means predicting
 predicting a future visual field over all possible saccades is too computationally expensive. %in the case of large visual fields.
-Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after saccades $a$, $a'$, $a''$ etc. 
+Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after saccades $a$, $a'$, $a''$ etc.
 If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the central categorical classifier over $x'$ can either be correct (1) or incorrect (0).
 If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ is a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
-% This means forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here. 
+% This means forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here.
 The putative effect of every saccade can thus be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
-from the current observation $x$. 
+from the current observation $x$.
 % when issuing a saccade $a$ after seeing $\boldsymbol{x}$ (the initial visual field).
 %It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
 %In a biological setting, this would be acchieved for instance by catch-up saccades that would scan the area neighboring the saccade that was actually issued.
@@ -125,7 +125,8 @@ Finally, these are evaluated in a coupled, dynamic vision setup.
 	\centering{\B\includegraphics[width=.9\linewidth]{CNS-saccade-20.png}}
 	\centering{\C\includegraphics[width=.9\linewidth]{CNS-saccade-46.png}}
 	\centering{\D\includegraphics[width=.9\linewidth]{CNS-saccade-47.png}}
-	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}		% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
+	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}
+	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\A-- \E Representative active vision samples after training}: \A-- \B  classification success samples, \C-- \E classification failure samples. Digit contrast set to $70\%$.  From left to right: {\bf a.}~The initial 128$\times$128 visual display, with blue cross giving the center of gaze.
 		The visual input is retinotopically transformed and sent to the multi-layer neural network implementing the ``Where'' pathway.
