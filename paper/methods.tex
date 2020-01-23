@@ -8,6 +8,25 @@
 \label{sec:implementation}
 %To test the validity of our hypothesis, let us find a function implementing the ``Where'' network. This function should be able to find the position of an object knowing only the degraded retinal image. Here, we describe the methods that we will follow to find that function, from the generative models (first external and then internal) to the actual implementation of the ``Where'' pathway. %
 
+\subsection{Image generation}
+%=================================================================
+We first define here the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and as implemented in Figure~\ref{fig:methods}-A. Following a common hypothesis regarding active vision, visual scenes consist of a single target embedded in a large image with a cluttered background.
+
+\paragraph{Targets.}
+We use the MNIST dataset of handwritten digits introduced by~\cite{Lecun1998}: %Indeed, we are here focused on the problem of localization (``Where'' pathway) and classification solutions (``What'' pathway) abound for this class of targets.
+Samples are drawn from the dataset of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``Where'' network).
+% {\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.}
+% Note that to simplify the task there is one and only one target in the image.
+
+\paragraph{Full-scale images.}
+Input images are full-scale images of size $128\times 128$ in which we embed the target.
+Each target location is drawn at random in this large image. To enforce isotropic generation (at any direction from the fixation point), a centered circular mask covering the image (of radius $64$ pixels) is defined, and the target's location is such that the embedded sample fits entirely into that circular mask.
+
+\paragraph{Background noise setting.} To implement a realistic background noise, we generate synthetic textures~\cite{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image.
+The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. The spatial frequency is set at $0.1\text{ pixel}^{-1}$ to fit that of the original digits. This specific spatial frequency occasionally allows to generate some ``phantom'' digit shapes in the background. Finally, these images are rectified to have a normalized contrast.
+
+\paragraph{Mixing the signal and the noise.} Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
+
 \subsection{Active inference and the Naïve Bayes assumption}
 
 {\color{blue} {\bf rev 2} Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii)  partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent. {\bf laurent:} tu as pu regarder ce point?}
@@ -33,24 +52,35 @@ The predictive approach necessitates in practice to restrain the generative mode
 The independence hypothesis allows considering the viewpoint $u$ and the category $y$ being independently inferred from the current visual field, i.e $p(U,Y|x) = p(U|x) p(Y|x)$. This property is strictly true in our setting and is very generic in vision for simple classes (such as digits) and simple displays (but see~\cite{Vo12} for more complex visual scene grammars).
 %
 
-\subsection{Image generation}
-%=================================================================
-We define here the generative model for input display images as shown first in Figure~\ref{fig:intro}-A (\DIS ) and as implemented in Figure~\ref{fig:methods}-A. Following a common hypothesis regarding active vision, visual scenes consist of a single target embedded in a large image with a cluttered background.
 
-\paragraph{Targets.}
-We use the MNIST dataset of handwritten digits introduced by~\cite{Lecun1998}: %Indeed, we are here focused on the problem of localization (``Where'' pathway) and classification solutions (``What'' pathway) abound for this class of targets.
-Samples are drawn from the dataset of $60000$ grayscale $28\times 28$ pixels images and separated between a training and a validation set (see below the description of the ``Where'' network).
-% {\color{red} \textbf{Rev 2} The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.}
-% Note that to simplify the task there is one and only one target in the image.
+\subsection{Concurrent action selection}
+\label{sec:IG}
 
-\paragraph{Full-scale images.}
-Input images are full-scale images of size $128\times 128$ in which we embed the target.
-Each target location is drawn at random in this large image. To enforce isotropic generation (at any direction from the fixation point), a centered circular mask covering the image (of radius $64$ pixels) is defined, and the target's location is such that the embedded sample fits entirely into that circular mask.
+Finally, when both pathways are assumed to work in parallel, each one may be used concurrently to choose the most appropriate action. Two concurrent accuracies are indeed  predicted through separate processing pathways, namely the central pixels recognition accuracy through the ``What'' pathway, and the log-polar accuracy map through the ``Where'' pathway. The central accuracy may thus be compared with the maximal accuracy as predicted by the ``Where'' pathway.
 
-\paragraph{Background noise setting.} To implement a realistic background noise, we generate synthetic textures~\cite{Sanz12} using a bi-dimensional random process. %The generated texture images are of the same size than the full-image.
-The texture is designed to fit well with the statistics of natural images. We chose an isotropic setting where textures are characterized by solely two parameters, one controlling the median spatial frequency of the noise, the other controlling the bandwidth around the central frequency. Equivalently, this can be considered as the band-pass filtering of a random white noise image. The spatial frequency is set at $0.1\text{ pixel}^{-1}$ to fit that of the original digits. This specific spatial frequency occasionally allows to generate some ``phantom'' digit shapes in the background. Finally, these images are rectified to have a normalized contrast.
+From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by a conditional \emph{information gain}, namely:
+\begin{align}
+\text{IG}_\text{max} &= \max_{x'} \log p(y|x,x') - \log p(y|x)\nonumber
+\end{align}
+with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the ``What'' pathway.
+Estimating the joint conditional dependence in the first term being once again out of reach for computational reasons, the following approximative estimate is used instead {\color{green} à justifier un peu mieux}:
+\begin{align}
+\tilde{\text{IG}}_\text{max}&\simeq \text{IG}_\text{max}\nonumber\\
+&=\max_{x'} \log p(y|x') - \log p(y|x)\label{eq:IG}
+\end{align}
+that is a simple difference between the log accuracy after the saccade minus the log accuracy before the saccade.
+To provide a reliable estimate, the information gain may be averaged over many saccades and many target eccentricities (so that the information gain may be close to zero when the target eccentricity is close to zero).
+For the saccade is subject to predictions errors and execution noise, the saccade landing position may be different from the initial prediction. The final accuracy, as instantiated in the accuracy map, contains this intrinsic imprecision, and is thus necessary lower than the optimal one. The consequence is that in some cases, the approximate information gain may become negative, when the future accuracy is actually lower than the current one. This is for instance the case when the target is exactly positioned at the center of the fovea.
 
-\paragraph{Mixing the signal and the noise.} Finally, both the noise and the target image are merged into a single image. Two different strategies are used. A first strategy emulates a transparent association, with an average luminance computed at each pixel, while a second strategy emulates an opaque association, choosing for each pixel the maximal value. The quantitative difference was tested in simulations, but proved to have a marginal importance.
+In our simulation results, the central accuracy is found to overtake the maximal peripheral accuracy when the target is close to the center of gaze. When closely inspecting the 1-10 pixels eccentricity range (not shown), a decision frontier between a positive and a negative information gain is found to lie at 2-3 pixels away from the center. Inside that range, no additional saccade is expected to be produced, and a categorical response should be given instead.  %(see figure~\ref{fig:center}), %between the first and the second spatial scale,
+While this frontier is not attained, micro-saccades may be pursued in the close vicinity of the target in search of a perfect centering.
+In the opposite case, when the central accuracy estimate is very poor, the comparison can still be considered helpful, for it may allow to ``explain away" the current center of gaze and its neighborhood, encouraging to actuate long-range saccades toward less salient peripheral positions, making it easier to escape from initial prediction errors.
+This should encourage the agent to select a saccade ``away'' from the central position, which is reminiscent of a well-known phenomenon in vision known as the ``inhibition of return''~\cite{Itti01}. Combining accuracy predictions from each pathway may thus allow to refine saccades selection in a way that complies with biological vision.
+%Our main argument is that such an accuracy map is trainable in a rather straightforward way,
+%More generally, this decision principle relies on an interpretation of the Information Gain metric as a difference between central and peripheral accuracy processing.
+%Such heuristic also gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\cite{Itti01}.
+In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits.
+
 %
 \subsection{Foveal vision and the ``What'' pathway}
 %=================================================================
