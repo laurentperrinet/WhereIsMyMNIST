@@ -14,11 +14,12 @@
 \begin{figure}[t!]%[b!]%%[p!]
 	\centering{	\includegraphics[width=\linewidth]{fig_intro}} %
 	\caption{%
-		{\bf Problem setting}: In generic, ecological settings, the visual system faces a challenging problem when searching for one target (from a class of targets) in a cluttered environment. It is synthesized in the following virtual experiment: %
-		\A After a fixation period \FIX\ of $200~\ms$, an observer is presented with a luminous display \DIS\ showing a single target from a known class (here digits) and at a random position. The display is presented for a short period of $500~\ms$ (light shaded area in B), that is enough to perform at most one saccade on the potential target (\SAC , here successful). Finally, the observer has to identify the digit by a keypress \ANS. \emph{NB}: the target contrast is here enhanced to $100\%$ for a better readability. %
+		{\bf Problem setting}: In generic, ecological settings, the visual system is bound with an action selection problem when searching for one target (from a class of targets) in a cluttered environment. It is synthesized in the following virtual experiment: %
+		\A After a fixation period \FIX\ of $200~\ms$, an observer is presented with a luminous display \DIS\ showing a single target from a known class (here digits) put at a random position. The display is presented for a short period of $500~\ms$ (light shaded area in B), that is enough to perform at most one saccade on the potential target (\SAC , here successful). Finally, the observer has to identify the digit by a keypress \ANS. \emph{NB}: the target contrast is here enhanced to $100\%$ for a better readability. %
 		\B Prototypical trace of a saccadic eye movement to the target position. In particular, we show the fixation window \FIX\ and the temporal window during which a saccade is possible (green shaded area). %
-		\C Simulated reconstruction of the visual information from the (interoceptive) retinotopic map at the onset of the display \DIS\ and after a saccade \SAC , the dashed red box indicating the foveal region. In contrast to an exteroceptive representation (see A), this demonstrates that the position of the target has to be inferred from a degraded (sampled) image. In particular, the configuration of the display is such that by adding clutter and reducing the contrast of the digit, %it may become necessary to perform a saccade to be able to identify the digit. T
-		the computational pathway mediating the action has to infer the location of the target \emph{before seeing it}, that is, before being able to actually identify the target's category from a central fixation. }%
+		\C Simulated reconstruction of the visual information from the internal retinotopic map at the onset of the display \DIS\ and after a saccade \SAC , the dashed red box indicating the foveal region. The task does not consist in inferring the location of the target, but rather to infer an action that may provide relevant pixels at the center of fixation, allowing to identify the target's category. By comparison with the external display (see A), the action is processed from log-polar coefficients, representing a focal sample of the total visual field. 
+		Adding clutter and reducing the contrast of the digit allows to monitor the task difficulty. %it may become necessary to perform a saccade to be able to identify the digit. T
+		 }%
 	\label{fig:intro} %
 \end{figure}%
 %%------------------------------%
@@ -26,10 +27,11 @@
 %:
 
 For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, we need to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems.
+{\color{green} Il manque une question spécifique.}
 
 \subsection{Visual Environment}
 
-In order to do so, we provide a simplified visual environment toward which a visual agent can act on.
+{\color{magenta} In order to do so}, we provide a simplified visual environment toward which a visual agent can act on.
 The search experience is formalized and simplified in a way reminiscent to classical psychophysic experiments: an observer is asked to classify digits (for instance as taken from the MNIST dataset, as introduced by~\cite{Lecun1998}) as they are shown with a given size on a computer display.
 However, these digits can be placed at random positions on the display, and visual clutter is added as a background to the image (see Figure~\ref{fig:intro}-A).
 In order to vary the difficulty of the task, different parameters are controlled, such as the target eccentricity, the background noise period and and the signal/noise ratio (SNR).
@@ -41,7 +43,9 @@ This implies in general that the position of the object may be detected in the f
 
 This setup provides the conditions for a separate processing of the visual information.
 %, with visuo-spatial information extracted from the peripheral clutter, and object detailed shape and identity extracted through central foveal examination.
-Indeed, in order to analyze a complex visual scene, there are two types of processing that need to be done. On the one side, you need  to analyze in detail what is at the center of fixation, that is the region of interest currently processed. On the other side, you also need to analyze the surrounding part, even if the resolution is low, in order to choose what is the next center of fixation. This basically means making a choice of “what’s interesting next”. You do not necessarily need to know what it is, but you need to know that it’s interesting enough, and of course you need to know what action to take to move the center of fixation at the right position. This is reminiscent of the What/Where visual processing separation observed in monkeys and humans ventral and dorsal visual pathways \cite{mishkin1983object}.
+Indeed, in order to analyze a complex visual scene, two kinds of processing are interleaved. On the one side, the detailed information present at the center of fixation needs to be analyzed to provide specific environmental cues.
+%, that is the region of interest currently processed. 
+On the other side, the full visual field, i.e. mainly the low resolution part surrounding the fovea, needs to be processed in order to identify regions of interest that deserve fixation. This basically means making a choice of “what’s interesting next”. The actual content of putative peripheral locations does not need to be known in advance, but it needs to look interesting enough, and of course to be reachable by a saccade. This is reminiscent of the What/Where visual processing separation observed in monkeys and humans ventral and dorsal visual pathways \cite{mishkin1983object}.
 
 \begin{figure}[t!]%%[p!]
 	\centering{\includegraphics[width=\linewidth]{fig_methods}}
@@ -64,7 +68,7 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 
 \subsection{Metric training}
 
-Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms is sufficient to allow in particular for the quantification of the difficulty of a task through the failure or success of the training.
+Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms is sufficient to allow for the quantification of the difficulty of a task through the failure or success of the training.
 For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways,  each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the  saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification.  The first one is called the ``What'' network, and the second one is the `Where network''. They are both implemented in Pytorch \cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers.
 
 In a stationary condition, where the target position and identity do not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
