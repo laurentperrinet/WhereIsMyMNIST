@@ -1,0 +1,682 @@
+%!TeX TS-program = pdflatex
+%!TeX encoding = UTF-8 Unicode
+%!TeX spellcheck = en-US
+%!BIB TS-program = bibtex
+% -*- coding: UTF-8; -*-
+% vim: set fenc=utf-8
+%
+%
+% OLDER NOTES TO DIGEST AND REMOVE:
+% General
+% -----------
+%
+% - Vision UCL talks : [https://www.ucl.ac.uk/ioo/research/research-labs-and-groups/child-vision-lab/event/visionucl-talks]
+% - Danilo Rezende: [https://www.youtube.com/watch?v=oRJ1hJTRs-0]
+%
+% Active vision
+% -------------
+%
+% -   Karl Friston et al. **Perceptions as hypotheses: Saccades as
+%     experiments**. In: Frontiers in Psychology 3.MAY (2012), pp. 1--20.
+%     ISSN : 16641078. DOI : 10.3389/fpsyg.2012.00151 . arXiv: NIHMS150003
+%     [https://www.frontiersin.org/articles/10.3389/fpsyg.2012.00151/full]
+%
+% -   **Klaus Obermayer** : The successful candidate will explore the
+%     hypothesis that object-level attentional units are essential
+%     mid-level factors which guide human eye-movements in visual scene
+%     analysis. Based on eye-fixation data from visual search tasks she/he
+%     will first build computational models to emulate the measured
+%     fixation sequences, to quantify the influence of different low- and
+%     high-level visual features, and to characterize the influence of
+%     task-driven changes in object-based attention processes. In a second
+%     step, plausible models will be integrated as "attentional modules"
+%     into a computer vision system for visual scene analysis and will be
+%     evaluated in terms of task success and the number of computations
+%     involved. Potential achievement of the project is an efficient
+%     real-time analysis of dynamic visual scenes.
+%
+% -   **Constantin Rothkopf** at the Technical University Darmstadt. The
+%     position is initially funded by the German Research Foundation DFG
+%     for three years. The project \'Active vision: control of
+%     eye-movements and probabilistic planning\' aims to investigate how
+%     humans carry out eye-movements across different tasks and how this
+%     can be understood with models of probabilistic planning. Recent
+%     publications of the lab on this topic include the following papers:
+%     -   Hoppe, D., & Rothkopf, C. A. (2016). Learning rational temporal
+%         eye movement strategies. Proceedings of the National Academy of
+%         Sciences, 113(29), 8332-8337.
+%     -   Hoppe, D., & Rothkopf, C. A. (2019). Multi-step planning of eye
+%         movements in visual search. Scientific reports, 9(1), 144.
+%
+% Visual search
+% -------------
+%
+% - http://www.scholarpedia.org/article/Visual_search
+%
+% -     Treisman, A., & Gelade, G. (1980). A feature-integration theory of attention. Cognitive Psychology, 12, 97-136. doi:10.1016/0010-0285(80)90005-5.  https://www.sciencedirect.com/science/article/pii/0010028580900055
+%
+% - https://en.wikipedia.org/wiki/Visual_search
+%
+%
+%
+% Saliency map models
+% -------------------
+%
+% -   Laurent Itti and Christof Koch. **A saliency-based search mechanism
+%     for overt and covert shifts of visual attention**. In: Vision
+%     Research 40.10-12 (2000), pp. 1489--1506.
+%
+% Control models
+% --------------
+%
+% -   Najemnik / Where is Waldo? / accuracy model
+%     -   J Najemnik and Wilson S. Geisler. **Optimal eye movement
+%         strategies in visual search**. In: Nature reviews. Neuroscience
+%         434 (2005)
+% -   Infomax model :
+%     -   Nicholas J Butko and Javier R Movellan. **Infomax control of eye
+%         movements**. In: Autonomous Mental Development, IEEE
+%         Transactions on 2.2 (2010)
+%
+% Deep / transformer networks {#deep--transformer-networks}
+% ---------------------------
+%
+% ID deep learning = feed forward alors que la vision est active :
+%
+% -   vision = multi-steps process
+% -   approche basée sur le contrôle
+%
+% **Spatial transformer tutorial** :
+% <https://pytorch.org/tutorials/intermediate/spatial_transformer_tutorial.html>
+%
+% par contre c\'est une transfo affine, alors que nous, on pourraitait
+% faire une transfo log-polaire\...
+%
+% -   Max Jaderberg, Karen Simonyan, Andrew Zisserman, Koray Kavukcuoglu
+%     **Spatial Transformer Networks**. <https://arxiv.org/abs/1506.02025>
+%
+% -   M. Kümmerer, L. Theis, and M. Bethge **Deep Gaze I: Boosting
+%     Saliency Prediction with Feature Maps Trained on ImageNet** ICLR
+%     Workshop, 2015
+%     <https://arxiv.org/pdf/1411.1045.pdf>
+%
+% -   A Unified Theory of Early Visual Representations from Retina to Cortex
+%     through Anatomically Constrained Deep CNNs <https://openreview.net/forum?id=S1xq3oR5tQ>
+%
+% Fovea models
+% ------------
+%
+% -   Philip Kortum and Wilson S. Geisler. **Implementation of a foveated
+%     image coding system for image bandwidth reduction**. In: SPIE
+%     Proceedings 2657 (1996)
+%
+% -   En lisant la page 476 de : <https://www.asc.ohio-state.edu/golubitsky.4/reprintweb-0.5/output/papers/6120261.pdf>,
+%     il y a des nombres intéressants à utiliser pour notre transformation log-polaire...
+%
+% V1 models
+% ---------
+%
+% -   Nicholas J. Priebe. **Mechanisms Of Orientation Selectivity In
+%     Primary Visual Cortex** Annual Review of Vision Science. 2016, 2(1)
+%     .
+%
+% -   A. S. Ecker, F. H. Sinz, E. Froudarakis, P. G. Fahey, S. A.
+%     Cadena, E. Y. Walker, E. Cobos, J. Reimer, et al. **A
+%     rotation-equivariant convolutional neural network model of primary
+%     visual cortex** International Conference on Learning Representations
+%     (ICLR), 2019.
+%     -   <https://openreview.net/pdf?id=H1fU8iAqKX>
+%
+% Crowding
+% --------
+%
+% **Hypothèse:** un système pré-attentif permet un gain de performance en
+% classification par rapport au système par défaut et qu\'en cas de
+% crowding, ce gain est perdu.
+%
+% -   Ziskind, A.J., Hénaff, O., LeCun, Y., & Pelli, D.G. (2014) **The
+%     bottleneck in human letter recognition: A computational model**.
+%     Vision Sciences Society, St. Pete Beach, Florida, May 16-21, 2014,
+%     56.583. <http://f1000.com/posters/browse/summary/1095738>
+%
+% -   D. Pelli (2018) **Despite a 100-fold drop in cortical magnification,
+%     a fixed-size letter is recognized equally well at eccentricities of
+%     0 to 20 deg. How can this be?.** Journal of Vision 2018;18(10):26.
+%     <https://jov.arvojournals.org/article.aspx?articleid=2699020&resultClick=1>
+%
+% -   J. Zhou, N. Benson, J. Winawer, D. Pelli (2018) **Conservation of
+%     crowding distance in human V4**. Journal of Vision2018;18(10):856.
+%     <https://jov.arvojournals.org/article.aspx?articleid=2699845&resultClick=1>
+%
+%
+%
+% What/Where
+% -----------------
+%
+% - Denil, M., Bazzani, L., Larochelle, H., & de Freitas, N. (2012). Learning where to attend with deep architectures for image tracking. Neural computation, 24(8), 2151-2184.
+%
+% -    Benjamin de Haas, Justus-Liebig-Universität Gießen : 'Where' in the ventral stream? Pointers from feature-location tuning and individual salience
+%
+% - Kruger, N., Janssen, P., Kalkan, S., Lappe, M., Leonardis, A., Piater, J., ... & Wiskott, L. (2012). Deep hierarchies in the primate visual cortex: What can we learn for computer vision?. IEEE transactions on pattern analysis and machine intelligence, 35(8), 1847-1871.
+%
+% - Kelvin Xu, Jimmy Ba, Ryan Kiros, Kyunghyun Cho, Aaron Courville, Ruslan Salakhutdinov, Richard Zemel, Yoshua Bengio (2015) Show, Attend and Tell: Neural Image Caption Generation with Visual Attention [https://arxiv.org/pdf/1502.03044]
+%
+%
+%
+% Saliency maps / Attention network
+% -----------------
+%
+%  * General Tutorial : https://towardsdatascience.com/visual-attention-model-in-deep-learning-708813c2912c
+%
+% * Mnih et al, Recurrent Models of Visual Attention, NIPS 2014 [https://papers.nips.cc/paper/5542-recurrent-models-of-visual-attention.pdf]
+% __Applying convolutional neural networks to large images is computationally ex-
+% pensive because the amount of computation scales linearly with the number of
+% image  pixels.   We  present  a  novel  recurrent  neural  network  model  that  is  ca-
+% pable of extracting information from an image or video by adaptively selecting
+% a  sequence  of  regions  or  locations  and  only  processing  the  selected  regions  at
+% high resolution.__
+% * Fu et al, Look Closer to See Better: Recurrent Attention Convolutional Network for Fine Grained Image Recognition, CVPR 2017 [http://openaccess.thecvf.com/content_cvpr_2017/papers/Fu_Look_Closer_to_CVPR_2017_paper.pdf] :
+% --> a coarse full-scale image is treated first, providing both a category and a transformation (translation, zoom) for the next step of classification ==> sequential, "build-up" treatment.
+% * Ren et Zemel, End-to-End Instance Segmentation with Recurrent Attention, CVPR 2017  [http://openaccess.thecvf.com/content_cvpr_2017/papers/Ren_End-To-End_Instance_Segmentation_CVPR_2017_paper.pdf]
+%
+%
+% LEARNING  WHAT AND WHERE TO ATTEND
+% Drew Linsley, Dan Shiebler, Sven Eberhardt and Thomas Serre (2019) ICLR [https://openreview.net/pdf?id=BJgLg3R9KQ]
+%
+% Benchmarking
+% ------------
+%
+% -   M. Kümmerer, T. Wallis, and M. Bethge. **Information-theoretic model
+%     comparison unifies saliency metrics** Proceedings of the National
+%     Academy of Science, 112(52), 16054-16059, 2015
+%     -   <http://www.pnas.org/content/112/52/16054.abstract>
+%
+% -   **Pysaliency** : M. Kümmerer, T. S. A. Wallis, and M. Bethge
+%     **Saliency Benchmarking Made Easy: Separating Models, Maps and
+%     Metrics** The European Conference on Computer Vision (ECCV), 2018.
+%     -   <https://github.com/matthias-k/pysaliency>
+%     -   <http://bethgelab.org/media/publications/1704.08615.pdf>
+%
+% Datasets
+% --------
+%
+% -   Explaining the Human Visual Brain Challenge: <http://algonauts.csail.mit.edu/>
+% -   <https://etra.acm.org/2019/challenge.html>
+%
+%
+% ICANN reports
+% --------
+%
+% Dear Authors,
+%
+% We have received comments of reviewers and, unfortunately, your article has not been recommended for the acceptance.
+%
+% Please, find enclosed reviewer’s comments, which we hope will be useful for you to improve your work.
+%
+% We hope that this rejection will not influence your support of ICANN conferences and we wish you a success in your scientific work.
+%
+% Thank you for considering ICANN2019 for publication of your article.
+%
+% Best regards,
+% Igor Tetko on behalf of ICANN2019 organizers
+%
+%
+% Reports:
+%
+% ---------------
+%
+% ARGUMENTATION:
+%
+% The authors propose a framework to address the problem of visual search via active inference. They evaluate the approach on MNIST. In their experiments, the authors show the advantages of explicitly integrating a foveal mechanism into their system.
+%
+% Generally, the intro and related work section give a good motivation and overview of other methods. However, a clear separation into an introduction section and related work section would be desirable. Also, the whole field of attentional mechanisms for neural networks is ignored [Denil et al. "Learning where to Attend with Deep Architectures for Image Tracking", Larochelle and Hinton "Learning to combine foveal glimpses with a third-order Boltzmann machine"], even though this field is highly relevant for the proposed approach.
+%
+% The Principles section gives a good formal problem formulation. The authors should refrain from general and unfounded statements like "[...] even in simple cases such as vision. [...]". The Implementation section gives many details, which should help to reproduce results. However, the system design is arbitrary in many points, such as choosing LeNet for the "What" pathway. This specific neural network design is over 20 years old and the authors do not motivate why it might be beneficial to use this exact design. It is noteworthy that the authors provide their code, unfortunately, the provided link was not reachable at the time of this review.
+%
+% The experiments section is missing any comparisons to other comparable approaches as baselines. This makes it hard to see how well the proposed approach is actually performing. The experiments are done using digits from MNIST, which is a much simpler case than in the introduction described rededection of a familiar face in a cluttered environment. Of course, the experiments can be seen as a proof of concept, but as stated by the authors, the decoupling into two information streams relies on the naive Bayes assumption. This assumption does not hold true in a more complicated scenario, therefore it is questionable if the approach can be extended to more realistic scenarios.
+%
+% The approach and motivation of this work are interesting, but considering all points listed previously, I recommend to reject the paper.
+%
+%
+% ---------------
+%
+% ---------------
+%
+% ARGUMENTATION:
+%
+% The authors present a foveated vision architecture where one neural network determines where to look in a picture and another one determines what is seen in the picture.
+%
+% The paper is well written, but it is quite hard to understand what the actual research questions are. The introduction is quite lengthy and does not clearly state in a simple single sentence what the problem is that the authors want to solve, what their hypothesis is, and how they want to address the hypothesis. I am not an expert in biomimetic vision, but I know that there are at least a handful of other approaches that provide a foveal vision approach. The authors should compare their work with at least the 3-4 closest approaches and say what their delta is. Since the authors fail to do this, and since the authors fail to clearly state their research goals and questions, the scientific contribution of this paper is not visible to me.
+%
+% I do appreciate the computational machinery, i.e., the simulated foveal views, that the authors provide, and I think that the topic is very important. Therefore, I suggest that the authors re-submit the paper to a similar venue with a more extensive evaluation and a better motivation wrt. the state of the art. However, in this form, I do not recommend to accept the paper.
+%
+%
+% ---------------
+%
+% ---------------
+%
+% ARGUMENTATION:
+%
+% The paper presents a method for active visual search. The problem is an old one in computer vision and the authors do not seem to be completely aware of all the previous results. The theoretical aspects and discussed in details and some experimental results are proposed. Comparisons with existing methods should be provided.
+%
+
+
+% rev 0 = https://www.biorxiv.org/content/10.1101/725879v1.full.pdf #######################################################################################################################
+%%% reviews from PLoS:
+%%
+%%On 23 Dec 2019, at 08:58, PLOS Computational Biology <em@editorialmanager.com> wrote:
+%%
+%%Dear Dr. Perrinet,
+%%
+%%Thank you very much for submitting your manuscript "A dual foveal-peripheral visual processing model implements efficient saccade selection" (PCOMPBIOL-D-19-01274) for consideration at PLOS Computational Biology. As with all papers peer reviewed by the journal, your manuscript was reviewed by members of the editorial board and by several independent peer reviewers. Based on the reports, I regret to inform you that we will not be pursuing this manuscript for publication at PLOS Computational Biology.
+%%
+%%There are several technical issues and suggestions raised by the reviewers, which I would believe could be fixed in a major revision. Unfortunately, however, as reviewer #2 points out, there is some lack of novelty, which precludes this manuscript from being considered further for PLoS Computational Biology. Nonetheless, I hope that the reviewers' comments will be helpful for submission elsewhere, e.g., PLoS One, whose focus is on technically sound work but less on novelty.
+%%
+%%The reviews are attached below this email, and we hope you will find them helpful if you decide to revise the manuscript for submission elsewhere. I am sorry that we cannot be more positive on this occasion. We very much appreciate your wish to present your work in one of PLOS's Open Access publications.
+%%
+%%Thank you for your support, and I hope that you will consider PLOS Computational Biology for other submissions in the future.
+%%
+%%
+%%Sincerely,
+%%
+%%Wolfgang Einhäuser
+%%Deputy Editor
+%%PLOS Computational Biology
+%%
+%%
+%%
+%%**************************************
+%%Reviewer's Responses to Questions
+%%
+%%<b>Comments to the Authors: <br/>Please note here if the review is uploaded as an attachment.</b>
+%%
+%%Reviewer #1: The manuscript proposes a dual foveal-peripheral visual processing model that that classifies MNIST figures over a noisy background. The model predicts input locations with high expected prediction accuracy via a "Where"-Pathway which extracts responses of linear orientation filters spaced retinotopically (higher frequencies closer to the fovea) and linearly decodes a predicted accuracy map from those filters in the same spacing. Then a high-resolution version of the input at that location of highest predicted accuracy is fed to the "What"-pathway that tries to predict which digit has been shown.
+%%The model is trained on simulated data. Model performance is evaluated and analyzed depending on contrast, target eccentricity and number of saccades performed, as well as the dependency on hyper parameters.
+%%
+%%# Novelty and related works
+%%The main novelty in this manuscript is the use of a periphery with more human-like sensitivity compared to, e.g., ref [14] which uses a periphery with constant resolution. I very much like this approach of using a more human-like sensitivity in a foveated detection model and I think it has the potential to be an interesting contribution to the field. The paper gives a good overview of the related works.
+%%
+%%# Claims and results
+%%The main claim stated in the abstract is that the presented approach is beneficial compared to mainstream computer vision. I would like to ask the authors to state this claim more precisely (at least in the main text): Beneficial in what way exactly?Processing time? Computational resources? Robustness? Human-likeness? Other things I didn't think about?
+%%
+%%Additionally, I think this claim, however it is meant exactly, might need additional evidence to be well supported. The authors discuss the the relation with other models (line 555), but this section mainly discusses where the presented model is different from related models. There is no quantitative comparison to other models which I would consider necessary to show the advantages of the presented model. More precisely:
+%%
+%%- I believe the authors that their approach is beneficial compared to, e.g., a classic fully convolutional neural network, however since the presented model always needs at least two sequential processings (first where, then what) this is not completely obvious. Only if the "where" question can be solved with substantially less resources than the local "what" question, the two pathways are really an advantage. Most likely this is the case, but it should be discussed.
+%%
+%%- Less obvious but, as I think, much more interesting is, whether the presented model also has advantages compared to other applications of attention in computer vision. The authors put emphasis on the log-polar processing of the input space for the "where"-pathway as they say this is closer to what we find in the visual system compared to other models with implicit attention in computer vision. I agree that this is the main novelty of the manuscript. However, I'm missing any discussion of how this affects the model. A comparison with a model like ref [14], which seems to be most closely related since it also detects MNIST digits but uses a periphery with constant resolution, would be required to discuss the benefit of the log-polar representation. Is the model more efficient (e.g., when it comes to corrective saccades or with respect to parameters)? Is the performance better in relevant cases? Is it making errors that are more human like than a model like [14]? I think here
+%%the authors are missing a chance to substantially increase the impact of the manuscript.
+%%
+%%# Clarity
+%%The manuscript includes most necessary information to understand the reasoning, the model and the experiments. I'm especially happy to see that all code and data has been released and thank the authors for that.
+%%
+%%I think the clarity of the presentation could be improved in some cases:
+%%- A main part of the model is the output of the "where"-pathway which is a prediction of accuracy. Therefore there are different notions of accuracy in the paper and it is sometimes hard to deduce whether the authors are at a certain place talking about
+%%- actual accuracy when evaluated at a certain location on a certain input (either 0 or 1).
+%%- expected accuracy at a certain location when averaging over all possible digits with the results of figure 3. I think often this is what "actual accuracy" or "ground truth" is used to mean in the manuscript.
+%%- predicted accuracy of a certain location as predicted by the "where"-pathway.
+%%
+%%- I found the section "Peripheral vision: from log-polar feature vectors to log-polar action maps" (starting at line 338) a bit hard to understand. It might benefit from some restructuring.
+%%- the section introduces the log-polar filters and the accuracy map and only at the very end I understood how everything fits together. I think it would be better to first simply describe the architecture of the pathway (linear filters with retinotopic distribution, linear operation and sigmoid to predict local accuracies) and then go into more detail on why the different parts where designed in a certain way. Also, maybe a figure that shows more architectural details of the "where"-pathway than figure 2 might be helpful.
+%%- It would be very helpful to have at least a little bit more details on what the log-polar oriented filters are. Right now there is only a reference to [28].
+%%- I don't really understand lines 391-400.
+%%- According to line 409 the loss function of the classifier is a KL-divergence. However, neither the output of the accuracy map nor the retinotopic vector a are distributions. As far as I understood the, they encode a probabilities for each location. So I don't really see how a KL-divergence could be applicable here.
+%%
+%%- I have problems understanding Figure 7:
+%%- Accuracy should be the dependent variable, correct? Then I would expect it to be on the y axis, not the x axis
+%%- What are the horizontal lines? What do the different colors mean? Why is there sometimes a little marker at the border between the two colors?
+%%- does the figure include dependency on the hyperparameters of the log-polar filters, i.e., number of eccentricities, number of orientations, ...? If not: I think this would be very important to check
+%%
+%%- I'm not sure I understand why "recurrent attention is at odd with the functioning of biological systems" (line 565)
+%%
+%%# Other ideas
+%%I want to list some other ideas that came to my mind while reviewing the paper. I want to emphasize that I don't consider these points relevant for the acceptance of the paper
+%%- It might be interesting to train both pathways jointly
+%%- It's interesting that the "what"-pathway is highly nonlinear but the "where"-pathway is linear. It might be interesting to check whether with simple nonlinearities the performance of the model could be increased.
+%%
+%%Reviewer #2: This paper proposes a foveated visual search model. Both the foveal and peripheral processing of the model are based on deep neural networks. The model is experimentally evaluated on a search task for handwritten digits on cluttered backgrounds.
+%%
+%%The main claim of the paper is that it is “the first case of a bio-realistic log-polar implementation of an active vision framework.” (line 556). However, this is not the case. The “foveated object detector” (FOD) by Akbas and Eckstein (PLOS Computational Biology, 2017) proposed a very similar model to that of the current manuscript and in fact, the FOD is more general in several ways: (i) it can handle real-world objects (not just simple digits), (ii) scale-variance of objects are handled, (iii) a comparison with its sliding-window counterpart is presented, (iv) the case where “the number of targets is unknown” is handled. In general, the current manuscript does a poor job of reviewing the literature. For example, another very similar model (Target Acquisition Model (TAM) by G. Zelinsky) is not mentioned at all. The related work presented by Akbas and Eckstein (2017) is more general and comprehensive.
+%%
+%%The main weakness of the manuscript is its lack of originality, which -- I think - caused by not reviewing the prior art properly. I recommend to re-submit after addressing the lack-of-originality concern and improving the manuscript along the issues/questions I raise below.
+%%
+%%At the beginning of the Introduction, authors use both “image processing” and “computer vision” to refer to the same thing. I think it would be better to stick with just “computer vision”.
+%%
+%%In the Introduction, references should be provided for the following statements: “fovea (a disk of about 6 degrees of diameter…” and “they take about 200 ms to initiate, last about 200 ms and … 600 degrees per second.”
+%%
+%%In line 86, authors say “can be found in [10,11,16] that will be compared further on with our approach.” However, this comparison is only in the form of a discussion (lines 555-585). Upon reading line 86, I expected to see experimental comparisons. In fact, no actual (experimental) comparisons with other models are done. As a reader, at the least, I expected a comparison with a baseline model which implements the classical sliding-window method.
+%%
+%%In line 81, authors claim that “sequential implementations have not been shown effective enough to overtake static object search methods.” However, there are at least three models (FOD, TAM and Infomax) which were shown to be superior to (in some performance metric) classical sliding-window approach. So, the authors should revise their statement.
+%%
+%%In general, the use of citations in text is not professional. There are usages like “study of [19]”, “in [10,11]”, “by [18]”, etc. These should be corrected.
+%%
+%%In line 150, the MNIST dataset appears for the first time, where it should be cited.
+%%
+%%The first sentence in the “Active inference” sub-section reads “This kind of reasoning…” (line 177). Which kind of reasoning? Because this is the start of a section, whatever “This” is referring to should be made more clear. This sentence should be more stand-alone.
+%%
+%%In line 178, I could not understand: “... the cause of a visual scene is couple made of a viewpoint …”. Please revise.
+%%
+%%Throughout the text, the variable “x” is described in several different ways: (i) state of sensor, (ii) partial view of the scene, (iii) visual field, and (iv) visual sample. This might be confusing to the reader. Please be consistent.
+%%
+%%In line 237: “predict for all” -> predict what? Not clear.
+%%
+%%Throughout the text, both “Fig” and “fig” are used. Please be consistent and follow journal’s style rules.
+%%
+%%In Figure 2 part (D), a stopping condition is explicitly given. However, this rule is not explicitly mentioned in the text. The relevant part is the “Concurrent action selection” on page 16. This section should be improved for clarity. And, explicit connections should be drawn to Figure 2.
+%%
+%%The paragraph about generating “Full-scale image” (line 279-282) should be improved. I could not understand how it is done.
+%%
+%%Authors claim the foveal processing has some translational invariance. However, they do not mention the use of any pooling layers in the convolutional net. Are there any pooling layers? If not, how does the conv net achieve translation invariance? Would not it be better to use max-pooling? The architecture of the conv net is not given in the paper. And from the reference [26], I could not find it. Care must be taken when formatting the references. If the reference is a web-page, its URL must be given along with its last accessed date.
+%%
+%%Lines 328-333 should be improved for clarity.
+%%
+%%In line 471, authors say “a much lesser cost than … a systematic image scan.” However, they do not offer even a basic calculation of the reduction in cost.
+%%
+%%Figure fonts are very small in general. As a rule-of-thumb, the fonts used in figures should roughly be the same size as the main text fonts.
+%%
+%%What about inhibition of return? Does your model implement it? What prevents your model to jump to a previously foveated position?
+%%
+%%In Figure 7, what do the blue and red colors mean? There could be several ways to interpret these plots. Please improve the plots and the caption for clarity. Also, the cases B and C are mixed up.
+%%
+%%The authors mention “sub-linear (logarithmic) visual search”. As a reader I expected more than just a mention. How will this be achieved? This claim is not substantiated by any means.
+%%
+%%Many references are missing some fields. For example, check refs [6], [8], [25] and [26]. All refs should be checked for formatting and missing fields.
+%%
+%%The foveal processing module does a 10-way classification. But what about a no-digit example? Does the model predict “no-digit” or “background”? Is there a need for such a decision? Please discuss.
+%%
+%%Finally, there are lots of typos (which can be easily caught by automatic spell-checkers) and grammatical errors. A non-comprehensive list follows.
+%%In the abstract, in the second occurence of “Where”, the letter “W” has an accent on it.
+%%Last sentence of the “Author summary” is grammatically not correct.
+%%Line 62: “provide” -> provides
+%%Line 77: “relies a non-homogeneous” -> check for correctness
+%%Line 127: what does “both” refer to?
+%%Line 145: “implements” -> implement
+%%Line 172: “need to that it’s” ???
+%%Line 180: “how typically looks the” ???
+%%Figure 2 caption: “wether”
+%%Line 279: “position is draw a” ???
+%%Line 308: “here the known” ???
+%%Line 310: “made of a 3 convolution”
+%%Line 346: “ouput”
+%%Line 348: “For to reduce” ???
+%%Line 363: “These position,”
+%%Line 365: “model” -> models
+%%Line 383: opening quotation mark should be corrected. Similar typos can be found in the caption of Figure 4.
+%%Line 416: “1 hours”
+%%Line 435: please check for correctness of grammar
+%%Line 446: “of of”
+%%Line 491: there should be a period at the end of the sentence
+%%Line 560: “lots of model”
+%%
+%%--------------------
+% #######################################################################################################################
+% Template for PLoS
+% Version 3.5 March 2018
+%
+% % % % % % % % % % % % % % % % % % % % % %
+%
+% -- IMPORTANT NOTE
+%
+% This template contains comments intended
+% to minimize problems and delays during our production
+% process. Please follow the template instructions
+% whenever possible.
+%
+% % % % % % % % % % % % % % % % % % % % % % %
+%
+% Once your paper is accepted for publication,
+% PLEASE REMOVE ALL TRACKED CHANGES in this file
+% and leave only the final text of your manuscript.
+% PLOS recommends the use of latexdiff to track changes during review, as this will help to maintain a clean tex file.
+% Visit https://www.ctan.org/pkg/latexdiff?lang=en for info or contact us at latex@plos.org.
+%
+%
+% There are no restrictions on package use within the LaTeX files except that
+% no packages listed in the template may be deleted.
+%
+% Please do not include colors or graphics in the text.
+%
+% The manuscript LaTeX source should be contained within a single file (do not use \input, \externaldocument, or similar commands).
+%
+% % % % % % % % % % % % % % % % % % % % % % %
+%
+% -- FIGURES AND TABLES
+%
+% Please include tables/figure captions directly after the paragraph where they are first cited in the text.
+%
+% DO NOT INCLUDE GRAPHICS IN YOUR MANUSCRIPT
+% - Figures should be uploaded separately from your manuscript file.
+% - Figures generated using LaTeX should be extracted and removed from the PDF before submission.
+% - Figures containing multiple panels/subfigures must be combined into one image file before submission.
+% For figure citations, please use "Fig" instead of "Figure".
+% See http://journals.plos.org/plosone/s/figures for PLOS figure guidelines.
+%
+% Tables should be cell-based and may not contain:
+% - spacing/line breaks within cells to alter layout or alignment
+% - do not nest tabular environments (no tabular environments within tabular environments)
+% - no graphics or colored text (cell background color/shading OK)
+% See http://journals.plos.org/plosone/s/tables for table guidelines.
+%
+% For tables that exceed the width of the text column, use the adjustwidth environment as illustrated in the example table in text below.
+%
+% % % % % % % % % % % % % % % % % % % % % % % %
+%
+% -- EQUATIONS, MATH SYMBOLS, SUBSCRIPTS, AND SUPERSCRIPTS
+%
+% IMPORTANT
+% Below are a few tips to help format your equations and other special characters according to our specifications. For more tips to help reduce the possibility of formatting errors during conversion, please see our LaTeX guidelines at http://journals.plos.org/plosone/s/latex
+%
+% For inline equations, please be sure to include all portions of an equation in the math environment.  For example, x$^2$ is incorrect; this should be formatted as $x^2$ (or $\mathrm{x}^2$ if the romanized font is desired).
+%
+% Do not include text that is not math in the math environment. For example, CO2 should be written as CO\textsubscript{2} instead of CO$_2$.
+%
+% Please add line breaks to long display equations when possible in order to fit size of the column.
+%
+% For inline equations, please do not include punctuation (commas, etc) within the math environment unless this is part of the equation.
+%
+% When adding superscript or subscripts outside of brackets/braces, please group using {}.  For example, change "[U(D,E,\gamma)]^2" to "{[U(D,E,\gamma)]}^2".
+%
+% Do not use \cal for caligraphic font.  Instead, use \mathcal{}
+%
+% % % % % % % % % % % % % % % % % % % % % % % %
+%
+% Please contact latex@plos.org with any questions.
+%
+% % % % % % % % % % % % % % % % % % % % % % % %
+
+\documentclass[10pt,a4paper]{article}
+% \usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+\usepackage[top=0.85in,left=1.5in,footskip=0.75in]{geometry}
+
+% amsmath and amssymb packages, useful for mathematical formulas and symbols
+\usepackage{amsmath,amssymb}
+
+% Use adjustwidth environment to exceed column width (see example table in text)
+% \usepackage{changepage}
+
+% Use Unicode characters when possible
+\usepackage[utf8x]{inputenc}
+
+% textcomp package and marvosym package for additional characters
+\usepackage{textcomp,marvosym}
+
+% cite package, to clean up citations in the main text. Do not remove.
+% \usepackage{cite}
+
+% Use nameref to cite supporting information files (see Supporting Information section for more info)
+\usepackage{nameref,hyperref}
+
+% line numbers
+\usepackage[right]{lineno}
+
+% ligatures disabled
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
+
+% color can be used to apply background shading to table cells only
+\usepackage[table]{xcolor}
+
+% array package and thick rules for tables
+\usepackage{array}
+
+\usepackage{csquotes}
+\usepackage{bm}
+
+% % create "+" rule type for thick vertical lines
+% \newcolumntype{+}{!{\vrule width 2pt}}
+%
+% % create \thickcline for thick horizontal lines of variable length
+% \newlength\savedwidth
+% \newcommand\thickcline[1]{%
+%   \noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+%   \cline{#1}%
+%   \noalign{\vskip\arrayrulewidth}%
+%   \noalign{\global\arrayrulewidth\savedwidth}%
+% }
+%
+% % \thickhline command for thick horizontal lines that span the table
+% \newcommand\thickhline{\noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+% \hline
+% \noalign{\global\arrayrulewidth\savedwidth}}
+%
+%
+% % Remove comment for double spacing
+% %\usepackage{setspace}
+% %\doublespacing
+%
+% % Text layout
+% \raggedright
+% \setlength{\parindent}{0.5cm}
+% \textwidth 5.25in
+% \textheight 8.75in
+
+% Bold the 'Figure #' in the caption and separate it from the title/caption with a period
+% Captions will be left justified
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,%justification=raggedright,
+singlelinecheck=off]{caption}
+\renewcommand{\figurename}{Fig}
+
+\bibliographystyle{alpha}
+
+% Remove brackets from numbering in List of References
+%\makeatletter
+%\renewcommand{\@biblabel}[1]{\quad#1.}
+%\makeatother
+
+\usepackage{lastpage,fancyhdr,graphicx}
+\graphicspath{{../figures/}}%
+%\pagestyle{myheadings}
+\pagestyle{fancy}
+\fancyhf{}
+%\setlength{\headheight}{27.023pt}
+%\lhead{\includegraphics[width=2.0in]{PLOS-submission.eps}}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0pt}
+% \renewcommand{\footrule}{\hrule height 2pt \vspace*{2mm}}
+% \fancyheadoffset[L]{2.25in}
+% \fancyfootoffset[L]{2.25in}
+\lfoot{\today}
+
+\usepackage{siunitx}
+%\renewcommand{\cite}{\citep}%
+\newcommand{\ms}{\si{\milli\second}}%
+\newcommand{\m}{\si{\meter}}%
+\newcommand{\s}{\si{\second}}%
+
+\newcommand{\FIX}{\texttt{FIX}}%
+\newcommand{\DIS}{\texttt{DIS}}%
+\newcommand{\SAC}{\texttt{SAC}}%
+\newcommand{\ANS}{\texttt{ANS}}%
+\newcommand{\A}{\textbf{(A)~}}%
+\newcommand{\B}{\textbf{(B)~}}%
+\newcommand{\C}{\textbf{(C)~}}%
+\newcommand{\D}{\textbf{(D)~}}%
+\newcommand{\E}{\textbf{(E)~}}%
+\newcommand{\F}{\textbf{(F)~}}%
+
+
+\newcommand{\lorem}{{\bf LOREM}}
+\newcommand{\ipsum}{{\bf IPSUM}}
+
+
+%% END MACROS SECTION
+
+
+\begin{document}
+% \vspace{0.2in}
+\input{metadata}
+
+% Title must be 250 characters or less.
+\begin{flushleft}
+{\Large
+\textbf\newline{
+\Title
+} % Please use "sentence case" for title and headings (capitalize only the first word in a title (or heading), the first word in a subtitle (or subheading), and any proper nouns).
+}
+\newline
+% Insert author names, affiliations and corresponding author email (do not include titles, positions, or degrees).
+\\
+\AuthorED, %\textsuperscript{1},
+\AuthorPA, %\textsuperscript{2},
+\AuthorLP%\textsuperscript{2,*}
+\\
+\bigskip
+\Address
+% \textbf{1} \AddressED
+% \\
+% \textbf{2} \AddressLP
+% \\
+\bigskip
+
+% Insert additional author notes using the symbols described below. Insert symbol callouts after author names as necessary.
+%
+% Remove or comment out the author notes below if they aren't used.
+%
+% Primary Equal Contribution Note
+%\Yinyang These authors contributed equally to this work.
+
+% Additional Equal Contribution Note
+% Also use this double-dagger symbol for special authorship notes, such as senior authorship.
+%\ddag These authors also contributed equally to this work.
+
+% Current address notes
+%\textcurrency Current Address: Dept/Program/Center, Institution Name, City, State, Country % change symbol to "\textcurrency a" if more than one current address note
+% \textcurrency b Insert second current address
+% \textcurrency c Insert third current address
+
+% Deceased author note
+%\dag Deceased
+
+% Group/Consortium Author Note
+%\textpilcrow Membership list can be found in the Acknowledgments section.
+
+% Use the asterisk to denote corresponding authorship and provide email address in note below.
+* \EmailLP
+
+\end{flushleft}
+% Please keep the abstract below 300 words
+\section*{Abstract}
+\Abstract
+
+% Please keep the Author Summary between 150 and 200 words
+% Use first person. PLOS ONE authors please skip this step.
+% Author Summary not valid for PLOS ONE submissions.
+\section*{Author summary}
+\AuthorSummary
+\linenumbers
+
+% Use "Eq" instead of "Equation" for equation citations.
+
+\input{intro}
+
+\input{results}
+
+\input{discussion}
+
+\input{methods}
+
+\nolinenumbers
+
+
+\bibliography{Bibliography}
+
+\end{document}

@@ -1,4 +1,4 @@
-% !TEX root = plos-paper.tex
+% !TEX root = DauceAlbigesPerrinet2020.tex
 % !TEX encoding = UTF-8 Unicode
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
@@ -25,7 +25,7 @@
 
 %:
 
-For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, we need to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems. 
+For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, we need to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems.
 
 \subsection{Visual Environment}
 
@@ -55,23 +55,27 @@ Indeed, in order to analyze a complex visual scene, there are two types of proce
 		%Once both networks are trained,
 		For a given display, this generates two sensory inputs (see \B ).
 		If the predicted accuracy in the output of the ``Where'' network is higher than that predicted in the ``What'' network, the position of maximal activity in the ``Where'' pathway serves to generate a saccade which shifts the center of gaze. Else, we interupt the visual search and classify the foveal image using the ``What'' pathway such as to give the answer \ANS . %
-		%\E TODO describe log polar
+		%\E TODO describe log-polar
 		%\F TODO accuracy map
 		\label{fig:methods}}%
 \end{figure}%
 %%------------------------------%
 
 
-\subsection*{Metric training}
+\subsection{Metric training}
 
 Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms is sufficient to allow in particular for the quantification of the difficulty of a task through the failure or success of the training.
+<<<<<<< HEAD
 For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways,  each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the  saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification.  The first one is called the ``What'' network, and the second one is the `Where network''. They are both implemented in Pytorch \cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers. 
+=======
+For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways,  each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the  saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification.  The first one is calle the ``What'' network, and the second one is the `Where network''. They are both implemented in Pytorch \cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers.
+>>>>>>> e79c2a8f8242b96ff93d6c98f0e5702f8a4c21e7
 
 In a stationary condition, where the target position and identity do not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
 %Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
-Following the active inference setup \cite{Najemnik05, Friston12}, we assume  that, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation. 
+Following the active inference setup \cite{Najemnik05, Friston12}, we assume  that, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation.
 This means in short estimating how accurate a categorical target classifier will be after moving the eye.
-%action selection can be interpreted as choosing the saccade that should provide the best target identity estimate. 
+%action selection can be interpreted as choosing the saccade that should provide the best target identity estimate.
 In a full setup, predictive action selection means first predicting the future visual field $x'$ obtained at the center of fixation, and then predicting how good the  %$p(U|x)$ and $p(Y|x)$
 estimate of the target identity $y$, i.e. $p(y|x')$, will be there.
 % a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This . followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
@@ -80,12 +84,12 @@ In practice, %modeling the full sequence of operations that lead to estimate %bo
 %the future $u$ and $y$
 %means predicting
 predicting a future visual field over all possible saccades is too computationally expensive. %in the case of large visual fields.
-Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after saccades $a$, $a'$, $a''$ etc. 
+Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after saccades $a$, $a'$, $a''$ etc.
 If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the central categorical classifier over $x'$ can either be correct (1) or incorrect (0).
 If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ is a number between 0 and 1, that reflects the proportion of correct and incorrect classifications.
-% This means forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here. 
+% This means forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here.
 The putative effect of every saccade can thus be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
-from the current observation $x$. 
+from the current observation $x$.
 % when issuing a saccade $a$ after seeing $\boldsymbol{x}$ (the initial visual field).
 %It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
 %In a biological setting, this would be acchieved for instance by catch-up saccades that would scan the area neighboring the saccade that was actually issued.
@@ -95,11 +99,11 @@ This accuracy map can be trained by trials and errors, with the final classifica
 %, as exemplified by a retinotopic map. The map , preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
 
 From the active inference standpoint,  the separation of the scene analysis in those two independent tasks relies on a simple ``Naïve Bayes'' assumption   (see Methods). %A first task consists in identifying the target (namely inferring $y$ from $x$) and a second task consists in localizing the target (namely inferring $u$ from $x$).
-Each task is assumed to be realized in parallel through  the ``What'' and the ``Where'' pathways by analogy with the ventral and dorsal pathways in the brain (see figure \ref{fig:methods}).
+Each task is assumed to be realized in parallel through  the ``What'' and the ``Where'' pathways by analogy with the ventral and dorsal pathways in the brain (see figure~\ref{fig:methods}).
 %\bf [ref needed]. \emph{Note that %from the retinotopic projection of the visual information,
 %this independence is conditional on action: both pathways should update their beliefs upon decisions made in each respective pathway {\bf (je ne comprends pas bien cette phrase?)}}}\fi.
 %However, we will here simplify the setting by considering only one possible saccade.
-The operations that transform the initial primary visual data should preserve the initial retinotopic organization, so as to form a final retinotopic accuracy map (see figure \ref{fig:methods}C). Accordingly with the visual data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery.
+The operations that transform the initial primary visual data should preserve the initial retinotopic organization, so as to form a final retinotopic accuracy map (see figure~\ref{fig:methods}C). Accordingly with the visual data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery.
 %and telling how accurate the categorical classifier will be after the saccade is carried out~\cite{Dauce18}. %The set of all possible saccade predictions should
 Finally, each different initial visual field may bring out a different accuracy map, indirectly conveying information about the target retinotopic position.
 A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism, implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculo-motor control \cite{sparks1987sensory}.
@@ -125,7 +129,8 @@ Finally, these are evaluated in a coupled, dynamic vision setup.
 	\centering{\B\includegraphics[width=.9\linewidth]{CNS-saccade-20.png}}
 	\centering{\C\includegraphics[width=.9\linewidth]{CNS-saccade-46.png}}
 	\centering{\D\includegraphics[width=.9\linewidth]{CNS-saccade-47.png}}
-	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}		% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
+	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}
+	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\A-- \E Representative active vision samples after training}: \A-- \B  classification success samples, \C-- \E classification failure samples. Digit contrast set to $70\%$.  From left to right: {\bf a.}~The initial 128$\times$128 visual display, with blue cross giving the center of gaze.
 		The visual input is retinotopically transformed and sent to the multi-layer neural network implementing the ``Where'' pathway.
@@ -139,10 +144,10 @@ Finally, these are evaluated in a coupled, dynamic vision setup.
 %=================================================================
 \subsection{Open loop setup}
 %=================================================================
-After training, the ``Where'' pathway is now capable to predict an accuracy map (fig. \ref{fig:saccades}), whose maximal argument drives the eye toward a new viewpoint. There, a central snippet is extracted, that is processed through the ``What'' pathway, allowing to predict the digit's label. Examples of this simple open loop sequence are presented in figure \ref{fig:saccades}, when the digits contrast parameter is set to $70\%$ and the digits eccentricity varies between $0$ and $40$ pixels. The presented examples correspond to strong eccentricity cases, when the target is hardly visible on the display (fig. \ref{fig:saccades}a), and almost invisible on the reconstructed input (fig. \ref{fig:saccades}b). The radial maps (fig. \ref{fig:saccades}c-d) respectively represent the actual and the predicted accuracy maps. The final focus is represented in fig. \ref{fig:saccades}e, with cases of classification success (fig. \ref{fig:saccades}A-B) and cases of classification failures (fig. \ref{fig:saccades}C-E).
-In the case of successful detection (fig. \ref{fig:saccades}A-B), the accuracy prediction is not perfect and the digit is not perfectly centered on the fovea. This ``close match'' still allows for a correct classification, as the digit's pixels are fully present on the fovea. The case of fig. \ref{fig:saccades}B and \ref{fig:saccades}C
- is interesting for it shows two cases of a bimodal prediction, indicating that the network is capable of doing multiple detections at a single glance. The case of \ref{fig:saccades}C corresponds to a false detection, with the true target detected still, though with a lower intensity. The case of fig. \ref{fig:saccades}D is a ``close match'' detection that is not precise enough to correctly center the visual target. Not every pixel of the digit being visible on the fovea, the label prediction is mistaken.
-The last failure case (fig. \ref{fig:saccades}E) corresponds to a correct detection that is harmed by a wrong label prediction, only due to the ``What'' classifier inherent error rate.
+After training, the ``Where'' pathway is now capable to predict an accuracy map (fig.~\ref{fig:saccades}), whose maximal argument drives the eye toward a new viewpoint. There, a central snippet is extracted, that is processed through the ``What'' pathway, allowing to predict the digit's label. Examples of this simple open loop sequence are presented in figure~\ref{fig:saccades}, when the digits contrast parameter is set to $70\%$ and the digits eccentricity varies between $0$ and $40$ pixels. The presented examples correspond to strong eccentricity cases, when the target is hardly visible on the display (fig.~\ref{fig:saccades}a), and almost invisible on the reconstructed input (fig.~\ref{fig:saccades}b). The radial maps (fig.~\ref{fig:saccades}c-d) respectively represent the actual and the predicted accuracy maps. The final focus is represented in fig.~\ref{fig:saccades}e, with cases of classification success (fig.~\ref{fig:saccades}A-B) and cases of classification failures (fig.~\ref{fig:saccades}C-E).
+In the case of successful detection (fig.~\ref{fig:saccades}A-B), the accuracy prediction is not perfect and the digit is not perfectly centered on the fovea. This ``close match'' still allows for a correct classification, as the digit's pixels are fully present on the fovea. The case of fig.~\ref{fig:saccades}B and~\ref{fig:saccades}C
+ is interesting for it shows two cases of a bimodal prediction, indicating that the network is capable of doing multiple detections at a single glance. The case of~\ref{fig:saccades}C corresponds to a false detection, with the true target detected still, though with a lower intensity. The case of fig.~\ref{fig:saccades}D is a ``close match'' detection that is not precise enough to correctly center the visual target. Not every pixel of the digit being visible on the fovea, the label prediction is mistaken.
+The last failure case (fig.~\ref{fig:saccades}E) corresponds to a correct detection that is harmed by a wrong label prediction, only due to the ``What'' classifier inherent error rate.
 % We observed that either the detection of the object's position was correct, thus allowing a classification proportional to the accuracy of the ``what'' pathway, either that the predicted accuracy map was wrong and generated a wrong classification with an accuracy at chance level.
 
 
@@ -162,9 +167,9 @@ The last failure case (fig. \ref{fig:saccades}E) corresponds to a correct detect
 
 
 To test the robustness of our framework, the same experiment was repeated at different signal-to-noise ratios (SNR) of the input images. Both pathways being interdependent, it is crucial to disentangle the relative effect of both sources of errors in the final accuracy. By manipulating the SNR and the target eccentricity, one can precisely monitor the network detection and recognition capabilities, with a detection task ranging from `easy'' (small shift, strong contrast) to ``highly difficult'' (large shift, low contrast). The  digit recognition capability is systematically evaluated in Figure~\ref{fig:results} for different eccentricities and different contrasts.
-%in simulation as the average accuracy obtained at the landing of the predicted saccade (see). For each different visual display (a different digit at a different position with a different noise clutter), a retinocentric visual input is processed (figure \ref{fig:results}-A), providing a predicted accuracy map (figure \ref{fig:results}-B) that can be compared to the actual future accuracy. Then, a saccade is carried out based on the most probable position as computed from the predicted accuracy map (figure \ref{fig:results}-C), and the final accuracy is computed from the ``what'' pathway using LeNet model.
+%in simulation as the average accuracy obtained at the landing of the predicted saccade (see). For each different visual display (a different digit at a different position with a different noise clutter), a retinocentric visual input is processed (figure~\ref{fig:results}-A), providing a predicted accuracy map (figure~\ref{fig:results}-B) that can be compared to the actual future accuracy. Then, a saccade is carried out based on the most probable position as computed from the predicted accuracy map (figure~\ref{fig:results}-C), and the final accuracy is computed from the ``what'' pathway using LeNet model.
 For 3 target contrasts conditions ranging from 0.3 to 0.7, and 10 different eccentricities ranging from 4 to 40 pixels, the final accuracy is tested on $1,000$ trials both on the initial central snippet and the final central snippet (read at the landing of the saccade).
-The orange bars provide the initial classification rate (without saccade) and the blue bars provide the final classification rate (after saccade) -- see figure \ref{fig:results}.  As expected, the accuracy decreases with the eccentricity, for the targets become less and less visible in the periphery. The decrease is rapid in the central classifier case: the accuracy drops to the baseline level
+The orange bars provide the initial classification rate (without saccade) and the blue bars provide the final classification rate (after saccade) -- see figure~\ref{fig:results}.  As expected, the accuracy decreases with the eccentricity, for the targets become less and less visible in the periphery. The decrease is rapid in the central classifier case: the accuracy drops to the baseline level
 at approximately $20$ pixels away from the center of gaze. The saccade-driven accuracy has a much wider range, with a slow decrease up to the border of the visual display (40 pixels away from the center).
 When varying the target contrast, the initial accuracy profile is scaled by the reference accuracy (obtained with a central target), whose values are approximately $53\%$, $82\%$ and $92\%$ for SNRs of $0.3$, $0.5$ and $0.7$. The saccade-driven accuracy profile is also similar at the different SNRs values, yet with the scaling imposed by the ``What'' pathway. This contrast-dependent scaling shows the robustness of our framework to the different factors of difficulty.
 
@@ -183,9 +188,9 @@ More generally, this accuracy difference, that quantifies the benefit of active 
 
 \subsection{Closed-loop setup}
 
-{\color{red} \textbf{Rev 2} What about inhibition of return? Does your model implement it? What prevents your model to jump to a previously foveated position? }
+% {\color{red} \textbf{Rev 2} What about inhibition of return? Does your model implement it? What prevents your model to jump to a previously foveated position? }
 
-The most peripheral targets are difficult to detect in one round, resulting in degraded performances at the periphery. Even when correctly detected, our log polar action maps also precludes precise centering. The peripheral targets are generally poorly centered after one saccade, as shown in figure \ref{fig:saccades}, resulting in classification errors. Sequential search is thus needed to allow for a better recognition. Multi-saccades visual search results are thus presented in figure \ref{fig:results-saccades}.
+Some of the most peripheral targets are difficult to detect in just one saccade, resulting in degraded performances at the periphery (see Figure~\ref{fig:results}). Even when correctly detected, our log-polar action maps also precludes precise centering. As a consequence, peripheral targets are generally poorly centered after the first saccade, as shown for instance in figure~\ref{fig:saccades}-D, resulting in classification errors. The possibility to perform a sequential search using more saccades is thus beneficial to allow for a better recognition. As a matter of fact, our dual-pathway network is capable to perform such a sequence without any additional component, notably without implementing an inhibition of return mechanism such as is usually used~\cite{Itti01}. We present our results on multi-saccades visual search results in figure~\ref{fig:results-saccades}.
 
 
 %: see Figure~\ref{fig:results}
@@ -194,43 +199,16 @@ The most peripheral targets are difficult to detect in one round, resulting in d
 	\centering{\includegraphics[width=\linewidth]{fig-results-saccades.png}}
 	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
-		{\bf Multi-saccades case.} %
-		\A Example of a corrective saccade on a 3-saccades trial. The subjective visual field  is reconstructed from the log-polar visual features, with red square delineated $28\times28$ foveal snippet, after 0, 1, 2 and 3 saccades (from left to right).
-		\B Average classification accuracies measured for different target eccentricities (in pixels) and a different number of saccades. Target contrast set to $0.7$. Orange bars: initial central accuracy (``0 saccade'') in function of the eccentricity, averaged over $1000$ trials per eccentricity. Blue bars: Final classification rate after one, two and three saccades (from left to right, respectively).
+		{\bf Closed-loop setup.} %
+		\A Example of a trial with a sequence of 3 saccades. The subjective visual field  is reconstructed from the log-polar visual features, with red square delineating the $28\times28$ foveal snippet, after 0, 1, 2 and 3 saccades (from left to right). After the first saccade, the accuracy predicted by the ``Where'' network is higher that that predicted by the ``What'' network and a corrective saccade is performed to center the target. After this saccade, the foveal accuracy is higher than that predicted in the periphery and the answer \ANS is given. % TODO : on pourrait mettre le carré central d'une autre couleur pour dire que What ``gagne''
+		\B Average classification accuracies measured for different target eccentricities (in pixels) and a different number of saccades. Target contrast set to $70\%$. Orange bars: initial central accuracy (``0 saccade'') with respect to eccentricity, averaged over $1000$ trials per eccentricity. Blue bars: Final classification rate after one, two and three saccades (from left to right, respectively).
 		\label{fig:results-saccades}}%
 \end{figure}%
 
-An example of a corrective saccade is shown on figure \ref{fig:results-saccades}A. A hardly visible peripheral digit target is first approximetely shifted to the foveal zone. A second saccade allows to improve the target centering. A third saccade only marginally improves the centering.
-As shown in figure  \ref{fig:results-saccades}B, such corrective saccades, that generally only slightly shift the target, still provide a significant improvement in the classification accuracy. Except at the center, the accuracy rises of about 10\% both for the mid-range and the most peripheral eccentricities. Most of the improvement however is provided by the first corrective saccade. The second corrective saccade only shows a barely significant 2-3 \% improvement, only visible at the periphery. The following saccades would mostly implement target tracking, without providing additional accuracy gain. A 3-saccades setup finally allows a wide covering of the visual field, providing a close to central  recognition rate at all eccentricities. The residual peripheral error may correspond to ``opposite side'' target misses cases (figure \ref{fig:saccades}C), when the target is shifted away from the visual field horizon, and the agent can not recover from its initial error.
+An example of a trial with a sequence of 3 saccades is shown on figure~\ref{fig:results-saccades}-A. A hardly visible peripheral digit target is first approximetely shifted to the foveal zone thanks to the first saccade. Then, a new retinal input centered at the new point of fixation is computed, such that it generates a novel predicted accuracy maps in the periphery. The second saccade allows to improve the target centering. As the predicted foveal accuracy given by the ``What'' network is higher than the peripheral one given by the ``Where'' network, a third saccade would not improve the centering: The stopping criteria is met. Interestingly, this shows that the competition between both networks (see~\ref{sec:IG}) is suffficient to implement a closed loop sequence, without needing to include an inhibition of return heuristic. In practice, we observed that in most trials, 1 or 2 saccades were sufficient to reach the actual target, and then that the accuracy of the answer was only dependent to that of the ``What'' classifier. Another behavior was also observed for ``opposite side'' target misses cases (as in figure~\ref{fig:saccades}-C for instance), when the target position is clearly shifted away from the true position and the agent can not recover from its initial error. Still, we observed that this case was marginal in our experimental setting (approximately $A\%$ of trials).
 
-\subsection{Concurrent action selection}
-
-
-Finally, when both pathways are assumed to work in parallel, each one may be used concurrently to choose the most appropriate action. Two concurrent accuracies are indeed  predicted through separate processing pathways, namely the central pixels recognition accuracy through the ``What'' pathway, and the log-polar accuracy map through the ``Where'' pathway. The central accuracy may thus be compared with the maximal accuracy as predicted by the ``Where'' pathway.
-
-From the information theory standpoint, each saccade comes with fresh visual information about the visual scene that can be quantified by a conditional \emph{information gain}, namely:
-\begin{align}
-\text{IG}_\text{max} &= \max_{x'} \log p(y|x,x') - \log p(y|x)\nonumber
-\end{align}
-with the left term representing the future accuracy (after the saccade is realized) and the right term representing the current accuracy as it is obtained from the ``What'' pathway.
-Estimating the joint conditional dependence in the first term being once again out of reach for computational reasons, the following approximative estimate is used instead {\color{green} à justifier un peu mieux}:
-\begin{align}
-\tilde{\text{IG}}_\text{max}&\simeq \text{IG}_\text{max}\nonumber\\
-&=\max_{x'} \log p(y|x') - \log p(y|x)\label{eq:IG}
-\end{align}
-that is a simple difference between the log accuracy after the saccade minus the log accuracy before the saccade.
-To provide a reliable estimate, the information gain may be averaged over many saccades and many target eccentricities (so that the information gain may be close to zero when the target eccentricity is close to zero).
-For the saccade is subject to predictions errors and execution noise, the saccade landing position may be different from the initial prediction. The final accuracy, as instantiated in the accuracy map, contains this intrinsic imprecision, and is thus necessary lower than the optimal one. The consequence is that in some cases, the approximate information gain may become negative, when the future accuracy is actually lower than the current one. This is for instance the case when the target is exactly positioned at the center of the fovea.
-
-In our simulation results, the central accuracy is found to overtake the maximal peripheral accuracy when the target is close to the center of gaze. When closely inspecting the 1-10 pixels eccentricity range (not shown), a decision frontier between a positive and a negative information gain is found to lie at 2-3 pixels away from the center. Inside that range, no additional saccade is expected to be produced, and a categorical response should be given instead.  %(see figure \ref{fig:center}), %between the first and the second spatial scale,
-While this frontier is not attained, micro-saccades may be pursued in the close vicinity of the target in search of a perfect centering.
-In the opposite case, when the central accuracy estimate is very poor, the comparison can still be considered helpful, for it may allow to ``explain away" the current center of gaze and its neighborhood, encouraging to actuate long-range saccades toward less salient peripheral positions, making it easier to escape from initial prediction errors.
-This should encourage the agent to select a saccade ``away'' from the central position, which is reminiscent of a well-known phenomenon in vision known as the ``inhibition of return''~\cite{Itti01}. Combining accuracy predictions from each pathway may thus allow to refine saccades selection in a way that complies with biological vision.
-%Our main argument is that such an accuracy map is trainable in a rather straightforward way,
-%More generally, this decision principle relies on an interpretation of the Information Gain metric as a difference between central and peripheral accuracy processing.
-%Such heuristic also gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\cite{Itti01}.
-In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits.
-\\
+% TODO : à la place, je mettrais soit une stratégie open-loop=1 sacade, soit une stratégie closed-loop qui continue tant que la condition d'arrêt n'est pas remplie. on donne alors les pourcentage du nombre de saccades nécessaires pour atteindre le stopping criterium (ma prédiction= 1:85% 2:10% 3et+:5%)
+Overall, as shown in figure ~\ref{fig:results-saccades}-B, the corrective saccades implemented in this closed-loop setup provide a significant improvement in the classification accuracy. Except at the center, the accuracy increases by about $10\%$ both for the mid-range and the most peripheral eccentricities. Most of the improvement however is provided by the first corrective saccade. The second corrective saccade only shows a barely significant improvement of about $2\%$ which is only visible at the periphery. The following saccades would mostly implement target tracking, without providing additional accuracy gain. A 3-saccades setup finally allows a wide covering of the visual field, providing a close to central  recognition rate at all eccentricities. The residual peripheral error may correspond to ``opposite side'' target misses cases.
 
 \subsection{Quantitative role of parameters}
 %: effect of contrast
@@ -249,7 +227,7 @@ In addition, we controlled that these results are robust to changes in an indivi
 % 	I have problems understanding Figure 7:
 % 	(1) Accuracy should be the dependent variable, correct? Then I would expect it to be on the y axis, not the x axis
 % 	(2) What are the horizontal lines? What do the different colors mean? Why is there sometimes a little marker at the border between the two colors?
-% 	(3) does the figure include dependency on the hyperparameters of the log polar filters, i.e., number of eccentricities, number of orientations, ...? If not: I think this would be very important to check.
+% 	(3) does the figure include dependency on the hyperparameters of the log-polar filters, i.e., number of eccentricities, number of orientations, ...? If not: I think this would be very important to check.
 % }
 % {\color{red} \textbf{Rev2}
 % In Figure 7, what do the blue and red colors mean? There could be several ways to interpret these plots. Please improve the plots and the caption for clarity. Also, the cases B and C are mixed up.}
@@ -265,16 +243,3 @@ The accuracy also changes with the architecture of the foveated input as shown h
 %%------------------------------%
 
 % TODO : make a (minimal) psychophysics experiment= show an image as in figure 1, then in (ANS), make a 2AFC task by showing the true versus a random one -> web experiment using pavlovia?
-
-\subsection{Relation with other models}
-
-{\color{magenta} Our model is, to our best knowledge, the first case of a bio-realistic log-polar implementations of an active vision framework.} We have thus provided a proof of concept that a log-polar encoding retina can efficiently serve object detection and identification over wide visual displays.
-
-There are however a lot of models that reflect to some degree the biological principles of sequential visual processing.
-First, active vision is of course an important topic in mainstream computer vision. In the case of image classification, it is considered as a way to improve object recognition by progressively increasing the definition over identified regions of interest, referred as ``recurrent attention''~\cite{mnih2014recurrent,fu2017look}.
-{\color{magenta} \textbf{Rev 1} I'm not sure I understand why "recurrent attention is at odd with the functioning of biological systems" (line 565)}
-Standing on a similar mathematical background, recurrent attention is however at odd with the functioning of biological systems, with a mere distant analogy with the retinal principles of foveal-surround visual definition.
-
-Phenomenological bio-realistic models, such as the one proposed in Najemnik and Geisler's seminal paper~\cite{Najemnik05}, rely on a rough simplification, with foveal center-surround acuity modeled as a response curve. Despite providing a bio-realistic account of sequential visual search, the model owns no foveal image processing implementation. Stemming on Najemnik and Geisler's principles, a trainable center-surround processing system was proposed in~\cite{Butko2010infomax}, with a sequential scan of an image in a face-detection task, however the visual search task here relies  on a systematic scan over degraded image, with visual processing delegated to standard feature detectors.
-
-Denil at al's paper~\cite{denil2012learning} is probably the one that shows the closest correspondence with our setup. It owns an identity pathway and a control pathway, in a What/Where fashion, just as ours. Interestingly, only the ``what'' pathway is neurally implemented using a random foveal/multi-fixation scan within the fixation zone. The ``Where'' pathway, in contrast, mainly implements object tracking, using  particle filtering with a separately learned generative process. The direction of gaze is here chosen so as to minimize the target position, speed and scale uncertainty, using the variance of the future beliefs as an uncertainty metric. The control part is thus much similar to a dynamic ROI tracking algorithm, with no direct correspondence with foveal visual search, or with the capability to recognize the target.
