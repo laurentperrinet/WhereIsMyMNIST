@@ -193,14 +193,14 @@ It is crucial here to understand that this empirical accuracy difference can be 
  
 
 After a first saccade, while the decision criterion is not attained, additional saccades may be pursued in order to search for a better centering.
-In the false detection case for instance, the central accuracy estimate should be close to the baseline, and may allow to ``explain away'' the current center of gaze and its neighborhood, encouraging to actuate long-range saccades toward less salient peripheral positions, making it easier to escape from initial prediction errors.
+In the false detection case for instance, the central accuracy estimate should be close to the baseline, and may allow to ``explain away'' the current center of gaze and its neighborhood, encouraging to actuate long-range saccades toward less salient peripheral positions, making it possible to escape from initial prediction errors.
 This incitement to select a saccade ``away'' from the central position is reminiscent of a well-known phenomenon in vision known as the ``inhibition of return''~\cite{Itti01}. 
 %As a matter of fact, our dual-pathway network is capable to perform such a sequence without any additional 
-Combining accuracy predictions from each pathway may thus allow to refine saccades selection in a way that complies with the sequential processing observed in biological vision.
+Combining accuracy predictions from each pathway may thus allow to refine saccades selection in a way that complies with the sequential processing observed in biological vision\footnote{Extended to a multi-target case, the Information Gain maximization principle still holds as a general measure of scene understanding improvement through multiple saccades. It is uncertain however wether biologically realistic implementations would be possible in that case.}.
 %Our main argument is that such an accuracy map is trainable in a rather straightforward way,
 %More generally, this decision principle relies on an interpretation of the Information Gain metric as a difference between central and peripheral accuracy processing.
 %Such heuristic also gives a principled formulation of the inhibition of return mechanism which is an important aspect for modeling saccades~\cite{Itti01}.
-In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits \footnote{It is noteworthy that if no specific inhibition of return component is implemented here, it is because the task only consists in identifying a single target. Additional components, such as those used in~\cite{Itti01}, would be necessary in a multi-target scenario.}.
+In particular, we predict that such a mechanism is dependent on the class of inputs, and would be different for searching for faces as compared to digits 
 
 % {\color{red} \textbf{Rev 2} What about inhibition of return? Does your model implement it? What prevents your model to jump to a previously foveated position? }
 
