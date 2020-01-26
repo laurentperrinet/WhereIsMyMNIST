@@ -20,7 +20,7 @@ Interestingly, things work differently when human vision is considered. First, h
 still unsurpassable in  the case of ecological real-time sensory flows.
 Indeed, object recognition can be achieved by the human visual system both rapidly, --~in less than 100 ms~\cite{Kirchner06}~-- and at a low energy cost ($<5~W$).
 On top of that, it is mostly self-organized, robust to visual transforms or lighting conditions and can learn with few examples. If many different anatomical features may explain this efficiency, a main difference lies in the fact that its sensor (the retina) combines a non homogeneous sampling of the world with the capacity to rapidly change its center of fixation. On the one hand, the retina is composed of two separate systems: a central, high definition fovea (a disk of about 6 degrees of diameter in visual angle around the center of gaze) and a large, lower definition peripheral area~\cite{Strasburger11}.
-On the other hand, the human vision is \emph{dynamic}. The retina is attached on the back of the eye which is capable of low latency, high speed eye movements. In particular, saccades are stereotyped eye movements that allow for efficient changes of the position of the center of gaze: they take about $200~\ms$ to initiate, last about $200~\ms$ and usually reach a maximum velocity of approx 600 degrees per second~\cite{Bahill75}. The scanning of a full visual scene is thus not done in parallel but sequentially, and only scene-relevant regions of interest are scanned through saccades. This implies a \emph{decision process} at each step that decides \emph{where to look next}. This behavior is prevalent in biological vision (about a saccade every 2-3 seconds, that is, almost a billion saccade in a lifetime). The interplay of peripheral search and focal inspection allows human observers to engage in an integrated action/perception loop which sequentially scans and analyses the different parts of the image.
+On the other hand, the human vision is \emph{dynamic}. The retina is attached on the back of the eye which is capable of low latency, high speed eye movements. In particular, saccades are stereotyped eye movements that allow for efficient changes of the position of the center of gaze: they take about $200~\ms$ to initiate, last about $200~\ms$ and usually reach a maximum velocity of approx 600 degrees per second~\cite{Bahill75}. The scanning of a full visual scene is thus not done in parallel but sequentially, and only scene-relevant regions of interest are scanned through saccades. This implies a \emph{decision process} at each step that decides \emph{where to look next}. This behavior is prevalent in biological vision (about a saccade every 2-3 seconds, that is, almost a billion saccade in a lifetime). The interplay of peripheral search and focal inspection allows human observers to engage in an integrated action/perception loop which sequentially scans and analyses the different parts of the visual scene.
 
 %The promise of artificial vision to identify objects in natural images is ever increasing.
 % However, these algorithms are still far from human performances, even for simple tasks.
@@ -29,8 +29,9 @@ Take for instance the case of an encounter with a friend in a crowded café. To 
 %toward it given all their possible spatial configurations and respective geometrical visual transformations. 
 Searching for \emph{any} face in a peripheral and crowded display needs thus to precede the recognition of a specific face \emph{identity}.
 
-{\color{green} Pas de problem statement?}
-The problem we address is thus ...
+For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, it is important to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems. 
+The problem we address is thus how to ground an artificial visual processing system on top of
+the material constraints found in human vision, that is conforming to the structure of the visual input and to the capability of the visual apparatus to rapidly scan a visual scene through saccades, in order to find and identify objects of interest. We thus start from an elementary visual search problem, that is how to locate an object in a large, cluttered image, and take human vision as a guide for efficient design.  
 
 %It is one type of active inference~\cite{Friston12} (see below) and we will envision herein how to incorporate it to classical computer vision schemes.
 % (1 / 2.5 * 3600 * 24 * 365 * 75 = 946080000.0 ~= .95e9) X (wakeful + REM = .66)
@@ -65,9 +66,10 @@ are here a consequence of an active seek for the agent to minimize the uncertain
 
 \subsection{Outline}
 
+Most of the focal/sequential visual processing models found in the literature limit the bio-mimetic treatment of the visual data to the structure of the visual data, limiting further processing to multiscale template matching, in the spirit of Viola an Jones \cite{viola2004robust}, building-up posterior beliefs on the basis of a combination of linear features. 
 
 Stemming from the active vision principles, our aim is to produce a principled and resource-effective model of vision.
-We start from an elementary visual search problem, that is how to locate an object in a large, cluttered image, and take human vision as a guide for efficient design.  {\color{green} Motivation du modèle à développer. }
+{\color{green} Motivation du modèle à développer. }
 
 Our framework is made as general as possible, with minimal mathematical treatment, to speak largely to fragmented domains, such as machine learning, neuroscience and robotics. {\color{magenta} We thus expect our foveated active vision model to be helpful for each of those domains.}
 The paper is organized as follows.
