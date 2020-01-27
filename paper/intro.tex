@@ -26,21 +26,21 @@ On the other hand, the human vision is \emph{dynamic}. The retina is attached on
 % However, these algorithms are still far from human performances, even for simple tasks.
 
 Take for instance the case of an encounter with a friend in a crowded café. To catch the moment of his/her arrival, a face-seeking visual search is needed under heavy sensory clutter conditions. To do so, relevant parts of the visual scene need to be scanned sequentially with the gaze. Each saccade may potentially allow  to recognize your friend, provided it is accurately focused on each target faces. The main feature of this task is thus the monitoring of a particular \emph{class} of objects (e.g. human faces) in the periphery of the visual field  before the actual eye displacement, and the processing of the foveal visual data.
-%toward it given all their possible spatial configurations and respective geometrical visual transformations. 
+%toward it given all their possible spatial configurations and respective geometrical visual transformations.
 Searching for \emph{any} face in a peripheral and crowded display needs thus to precede the recognition of a specific face \emph{identity}.
 
-For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, it is important to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems. 
+For biological vision is the result of a continual optimization under strong material and energy constraints via natural selection, it is important to understand both its ground principles and its specific computational and material constraints in order to implement effective biomimetic vision systems.
 The problem we address is thus how to ground an artificial visual processing system on top of
-the material constraints found in human vision, that is conforming to the structure of the visual input and to the capability of the visual apparatus to rapidly scan a visual scene through saccades, in order to find and identify objects of interest. We thus start from an elementary visual search problem, that is how to locate an object in a large, cluttered image, and take human vision as a guide for efficient design.  
+the material constraints found in human vision, that is conforming to the structure of the visual input and to the capability of the visual apparatus to rapidly scan a visual scene through saccades, in order to find and identify objects of interest. We thus start from an elementary visual search problem, that is how to locate an object in a large, cluttered image, and take human vision as a guide for efficient design.
 
 %It is one type of active inference~\cite{Friston12} (see below) and we will envision herein how to incorporate it to classical computer vision schemes.
 % (1 / 2.5 * 3600 * 24 * 365 * 75 = 946080000.0 ~= .95e9) X (wakeful + REM = .66)
 %
 \subsection{State of the art}
 
-%To take benefit from this visuomotor behavior, it is important to understand both its computational and neurophysiological principles. 
+%To take benefit from this visuomotor behavior, it is important to understand both its computational and neurophysiological principles.
 The visual search problem, that is finding and identifying objects in a visual scene, is a classical task in computer vision, appealing to both
-%. Addressing apparently simple questions such as ``find the green bottle on the table'', it is of broad interest in 
+%. Addressing apparently simple questions such as ``find the green bottle on the table'', it is of broad interest in
 machine learning, signal processing and robotics. Crucially, it also speaks to neuroscience, for it refers to the mechanisms underlying foveation and more generally to low-level attention mechanisms.
 When restricted to a mere ``feature search''~\cite{Treisman80}, many computational solutions are proposed in the computer vision literature. Notably, recent advances in deep-learning have been proven efficient to solve the task with models such as faster-RCNN~\cite{Ren17} or YOLO~\cite{Redmon16}. %5}.
 Typical object search implementations predict in the image the probability of proposed bounding boxes around visual objects. While rapid, the number of boxes may significantly increase with image size and the approach more generally necessitates dedicated hardware to run in real time \cite{feng2019computer}. Under fine-tailored algorithmic and material optimization, the visual search problem can be considered ins the best case as \emph{linear} in the number of pixels \cite{strengert2006pyramid}, which still represents a heavy load for real-time image processing. This poses the problem of the \emph{scaling} of current computer vision algorithms to large/high definition visual displays. The scaling problem becomes even more crucial when considering the visual world of living beings.
@@ -66,12 +66,12 @@ are here a consequence of an active seek for the agent to minimize the uncertain
 
 \subsection{Outline}
 
-Despite refined generative models, the processing of the visual data found in active/biomimetic models generally resort to a combination of local/linear features to build-up posterior beliefs. Few model in active vision come with an integrated processing of the visual scene, from early visual treatment toward saccade selection. The difficulty lies in combining object hypothesis space with their spatial mapping. As pointed out earlier, the brain needs to guess where the interesting objects lie in space before actually knowing what they are. Establishing the position of the objects in space is thus crucial, for it resorts to the capability of the eye to reach them with a saccade, so as to finally identify them. Inferring target directions in the peripheral visual field is thus an essential component of focal visual processing, and the acuity of such target selection conditions the capability to rapidly and efficiently process the scene. 
+Despite refined generative models, the processing of the visual data found in active/biomimetic models generally resort to a combination of local/linear features to build-up posterior beliefs. Few model in active vision come with an integrated processing of the visual scene, from early visual treatment toward saccade selection. The difficulty lies in combining object hypothesis space with their spatial mapping. As pointed out earlier, the brain needs to guess where the interesting objects lie in space before actually knowing what they are. Establishing the position of the objects in space is thus crucial, for it resorts to the capability of the eye to reach them with a saccade, so as to finally identify them. Inferring target directions in the peripheral visual field is thus an essential component of focal visual processing, and the acuity of such target selection conditions the capability to rapidly and efficiently process the scene.
 
-Stemming from the active vision principles, we thus address the question of the 
-interplay of the location and identity processing in vision, 
-and provide an artificial vision setup that efficient implements those principles.  
-Our framework is made as general as possible, with minimal mathematical treatment, to speak largely to fragmented domains, such as machine learning, neuroscience and robotics. 
+Stemming from the active vision principles, we thus address the question of the
+interplay of the location and identity processing in vision,
+and provide an artificial vision setup that efficient implements those principles.
+Our framework is made as general as possible, with minimal mathematical treatment, to speak largely to fragmented domains, such as machine learning, neuroscience and robotics.
 %{\color{magenta} We thus expect our foveated active vision model to be helpful for each of those domains.}
 The paper is organized as follows.
 After this introduction, the principles underlying accuracy-based saccadic control are defined in the second section. {\color{magenta} We first define notations, variables and equations for the generative process governing the experiment and the generative model for the active vision agent.}
