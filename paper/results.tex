@@ -63,7 +63,7 @@ On the other side, the full visual field, i.e. mainly the low resolution part su
 \subsection{Accuracy map training}
 
 Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms is sufficient to allow for the quantification of the difficulty of a task through the failure or success of the training.
-For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways, each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification. The first one is called the ``What'' network, and the second one is the ``Where'' network (see Figure~\ref{fig:where} for details). They are both implemented in \texttt{pytorch}~\cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers.
+For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways, each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies. 
 
 In a stationary condition, where the target's position and identity do not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
 %Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
@@ -78,7 +78,7 @@ In practice, %modeling the full sequence of operations that lead to estimate %bo
 %the future $u$ and $y$
 %means predicting
 predicting a future visual field over all possible saccades is too computationally expensive. %in the case of large visual fields.
-Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after a sequence of saccades $a, a', a'', \ldots$.
+Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after different saccades $a, a', a'', \ldots$.
 If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the central categorical classifier over $x'$ can either be correct ($1$) or incorrect ($0$).
 If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ is a number between $0$ and $1$, that reflects the proportion of correct and incorrect classifications.
 % This means forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here.
@@ -88,14 +88,20 @@ from the current observation $x$. %
 %It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
 %In a biological setting, this would be acchieved for instance by catch-up saccades that would scan the area neighboring the saccade that was actually issued.
  Extended to the full action space $A$, this forms an accuracy map that should monitor the selection of saccades. %after processing the visual input,
-This accuracy map can be trained by trials and errors, with the final classification success or failure used as a teaching signal. Our main assumption here is that such a \emph{predictive accuracy map} is at the core of a realistic saccade-based vision systems, with the ``What'' network playing the role of a ``critic'' over the output of the ``Where'' network (see~\cite{sutton1998reinforcement}).
+This accuracy map can be trained by trials and errors, with the final classification success or failure used as a teaching signal. Our main assumption here is that such a \emph{predictive accuracy map} is at the core of a realistic saccade-based vision systems.
+
+From the active inference standpoint, the separation of the scene analysis in two independent tasks relies on a simple ``Naïve Bayes'' assumption (see Methods).
+A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification. The first one is called the ``What'' network, and the second one is the ``Where'' network (see Figure~\ref{fig:where} for details), with the ``What'' network playing the role of a ``critic'' over the output of the ``Where'' network (see~\cite{sutton1998reinforcement}).
+Each processing is assumed to be realized in parallel through each pathway by analogy with the ventral and dorsal pathways in the brain (see figure~\ref{fig:methods}).
+ %A first task consists in identifying the target (namely inferring $y$ from $x$) and a second task consists in localizing the target (namely inferring $u$ from $x$).
+%\bf [ref needed]. \emph{Note that %from the retinotopic projection of the visual information,
+%this independence is conditional on action: both pathways should update their beliefs upon decisions made in each respective pathway {\bf (je ne comprends pas bien cette
+
+
 %Consistently with a baseline approach that would predict for all possible gaze directions over an image, this map should moreover be organized radially to preserve the initial retinotopic organization.
 %, as exemplified by a retinotopic map. The map , preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
 
-Each task is assumed to be realized in parallel through the ``What'' and the ``Where'' pathways by analogy with the ventral and dorsal pathways in the brain (see figure~\ref{fig:methods}).
-From the active inference standpoint, the separation of the scene analysis in those two independent tasks relies on a simple ``Naïve Bayes'' assumption (see Methods). %A first task consists in identifying the target (namely inferring $y$ from $x$) and a second task consists in localizing the target (namely inferring $u$ from $x$).
-%\bf [ref needed]. \emph{Note that %from the retinotopic projection of the visual information,
-%this independence is conditional on action: both pathways should update their beliefs upon decisions made in each respective pathway {\bf (je ne comprends pas bien cette phrase?)}}}\fi.
+% phrase?)}}}\fi.
 %However, we will here simplify the setting by considering only one possible saccade.
 The operations that transform the initial primary visual data should preserve the initial retinotopic organization, so as to form a final retinotopic accuracy map. % (see figure~\ref{fig:methods}C).
 Accordingly with the visual data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery.
@@ -104,7 +110,8 @@ Finally, each different initial visual field may bring out a different accuracy 
 A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism (see figure~\ref{fig:methods}-D), implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculomotor control~\cite{sparks1987sensory}.
 The saccadic motor output showing a similar log-polar compression than the visual input, the saccades should be more precise at short than at long distance (and several saccades may be necessary to precisely reach distant targets). %
 %
-Each network is trained and tested separately. Because the training of the ``Where'' pathway depends on the accuracy given by the ``What'' pathway (and not the reverse), we trained the latter first, though a joint learning also yielded similar results. % TODO : à vérifier
+
+The ``What'' and `Where'' networks are both implemented in \texttt{pytorch}~\cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification. The first one is called the ``What'' network, and the second one is the ``Where'' network (see Figure~\ref{fig:where} for details). They are both implemented in \texttt{pytorch}~\cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers. Each network is trained and tested separately. Because the training of the ``Where'' pathway depends on the accuracy given by the ``What'' pathway (and not the reverse), we trained the latter first, though a joint learning also yielded similar results. % TODO : à vérifier
 Finally, these are evaluated in a coupled, dynamic vision setup.
 
 
