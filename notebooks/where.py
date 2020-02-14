@@ -341,11 +341,8 @@ class WhereNet(torch.nn.Module):
         x = self.bn3(x)
         return x
 
-def where_suffix(args, robust):
-    if robust:
-        suffix = '_robust_{}_{}'.format(args.sf_0, args.B_sf)
-    else:
-        suffix = '_{}_{}'.format(args.sf_0, args.B_sf)
+def where_suffix(args):
+    suffix = '_{}_{}'.format(args.sf_0, args.B_sf)
     suffix += '_{}_{}'.format(args.noise, args.contrast)
     suffix += '_{}_{}'.format(args.offset_std, args.offset_max)
     suffix += '_{}_{}'.format(args.N_theta, args.N_azimuth)
@@ -362,7 +359,6 @@ class WhereTrainer:
                  generate_data=True,
                  retina=None,
                  acc_map=None,
-                 robust=False,
                  save_path=None):
         self.args=args
         self.device=device
@@ -373,10 +369,7 @@ class WhereTrainer:
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
 
         # suffix = f"{args.sf_0}_{args.B_sf}_{args.noise}_{args.contrast}"
-        if robust:
-            suffix_what = "robust_{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
-        else:
-            suffix_what = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
+        suffix_what = "{}_{}_{}_{}".format(args.sf_0, args.B_sf, args.noise, args.contrast)
 
         ## DATASET TRANSFORMS
         # accuracy_path = f"../data/MNIST_accuracy_{suffix}.pt"
@@ -434,7 +427,7 @@ class WhereTrainer:
                                FullfieldToFloatTensor(keep_label=True)
                            ])
 
-        suffix = where_suffix(args, robust)
+        suffix = where_suffix(args)
 
         if not train_loader:
             self.init_data_loader(args, suffix,
@@ -635,7 +628,6 @@ class Where():
                  trainer=None,
                  save_model=True,
                  acc_map=None,
-                 robust=False,
                  save_path=None):
 
         self.args = args
@@ -652,33 +644,10 @@ class Where():
         if what_model:
             self.what_model = what_model
         else:
-            what = What(args, robust=robust) # trains the what_model if needed
+            what = What(args) # trains the what_model if needed
             self.what_model = what.model.to(self.device)
 
 
-        '''from what import WhatNet
-        # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, elf.args.contrast)
-        # model_path = f"../data/MNIST_cnn_{suffix}.pt"
-        model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
-        if not os.path.isfile(model_path):
-            train_loader = self.data_loader(suffix,
-                                            train=True,
-                                            what = True,
-                                            save=save,
-                                            batch_load=batch_load)
-            test_loader = self.data_loader(suffix,
-                                            train=False,
-                                            what = True,
-                                            save=save,
-                                            batch_load=batch_load)
-            print('Training the "what" model ', model_path)
-            from what import main
-            main(args=self.args,
-                 train_loader=train_loader,
-                 test_loader=test_loader,
-                 path=model_path)
-        self.What_model = torch.load(model_path)'''
 
         ######################
         # Accuracy map setup #
@@ -699,7 +668,7 @@ class Where():
         ######################
 
 
-        suffix = where_suffix(args, robust)
+        suffix = where_suffix(args)
         if save_path is None:
             model_path = '/tmp/where_model_{}.pt'.format(suffix)
         else:
@@ -720,7 +689,6 @@ class Where():
                                        generate_data=generate_data,
                                        retina=retina,
                                        acc_map=acc_map,
-                                       robust=robust,
                                        save_path=save_path)
         elif trainer:
             self.model = trainer.model
@@ -737,7 +705,6 @@ class Where():
                                        generate_data=generate_data,
                                        retina=retina,
                                        acc_map=acc_map,
-                                       robust=robust,
                                        save_path=save_path)
         else:
             self.trainer = WhereTrainer(args,
@@ -747,7 +714,6 @@ class Where():
                                        generate_data=generate_data,
                                        retina=retina,
                                        acc_map=acc_map,
-                                       robust=robust,
                                        save_path=save_path)
             for epoch in range(1, args.epochs + 1):
                 self.trainer.train(epoch)
@@ -786,23 +752,7 @@ class Where():
 
     def minibatch(self, data=None):
         # TODO: utiliser https://laurentperrinet.github.io/sciblog/posts/2018-09-07-extending-datasets-in-pytorch.html
-        '''batch_size = data.shape[0]
-        retina_data = np.zeros((batch_size, self.retina.feature_vector_size))
-        accuracy_colliculus = np.zeros((batch_size, self.args.N_azimuth * self.args.N_eccentricity))
-        data_fullfield = np.zeros((batch_size, self.args.N_pic, self.args.N_pic))
-        positions =[]
 
-        for i in range(batch_size):
-            #print(i, data[i, 0, :, :].numpy().shape)
-            data_fullfield[i, :, :], i_offset, j_offset = self.display.draw(data[i, 0, :, :].numpy())
-            positions.append(dict(i_offset=i_offset, j_offset=j_offset))
-            # TODO use one shot matrix multiplication
-            retina_data[i, :]  =  self.retina.retina(data_fullfield[i, :, :])
-            accuracy_colliculus[i,:], _ = self.retina.accuracy_fullfield(self.accuracy_map, i_offset, j_offset)
-
-        retina_data = Variable(torch.FloatTensor(retina_data))
-        accuracy_colliculus = Variable(torch.FloatTensor(accuracy_colliculus))
-        retina_data, accuracy_colliculus = retina_data.to(self.device), accuracy_colliculus.to(self.device)'''
         retina_data, data_fullfield, accuracy_colliculus, _, label, i_offset, j_offset = next(iter(self.loader_test))
         batch_size = retina_data.shape[0]
         positions = [None] * batch_size
@@ -892,7 +842,7 @@ class Where():
             else:
                 #print('Training model...')
                 #self.train(path=None, seed=seed)
-                for epoch in range(1, args.epochs + 1):
+                for epoch in range(1, self.args.epochs + 1):
                     self.trainer.train(epoch)
                     self.trainer.test()
                 torch.save(self.model, path)
@@ -908,39 +858,6 @@ class Where():
                 self.trainer.train(epoch)
                 self.trainer.test()
 
-            '''self.model.train() # set training mode
-            for epoch in tqdm(range(1, self.args.epochs + 1), desc='Train Epoch' if self.args.verbose else None):
-                loss = self.train_epoch(epoch, seed, rank=0)
-                # report classification results
-                if self.args.verbose and self.args.log_interval>0:
-                    if epoch % self.args.log_interval == 0:
-                        status_str = '\tTrain Epoch: {} \t Loss: {:.6f}'.format(epoch, loss)
-                        try:
-                            #from tqdm import tqdm
-                            tqdm.write(status_str)
-                        except Exception as e:
-                            print(e)
-                            print(status_str)
-            self.model.eval()'''
-
-    '''def train_epoch(self, epoch, seed, rank=0):
-        torch.manual_seed(seed + epoch + rank*self.args.epochs)
-        for retina_data, accuracy_colliculus in self.loader_train:
-            # Clear all accumulated gradients
-            self.optimizer.zero_grad()
-
-            # Predict classes using images from the train set
-            prediction = self.model(retina_data)
-            # Compute the loss based on the predictions and actual labels
-            loss = self.loss_func(prediction, accuracy_colliculus)
-            # TODO try with the reverse divergence
-            # loss = self.loss_func(accuracy_colliculus, prediction)
-            # Backpropagate the loss
-            loss.backward()
-            # Adjust parameters according to the computed gradients
-            self.optimizer.step()
-
-        return loss.item()'''
 
     def test(self, dataloader=None):
         if dataloader is None:

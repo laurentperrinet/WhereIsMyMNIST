@@ -63,6 +63,7 @@ import os
 import numpy as np
 import time
 import easydict
+from PIL import Image
 
 from torchvision.datasets.mnist import MNIST as MNIST_dataset
 class MNIST(MNIST_dataset):
@@ -117,6 +118,8 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 noise_batch_size=1000,
                                 mean=0.1307,
                                 std=0.3081,
+                                what_offset_std=15,
+                                what_offset_max=25,
                                 # display
                                 N_pic = 128,
                                 offset_std = 30, #
@@ -174,7 +177,8 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
 
 class MetaML:
     #from what import WhatNet
-    #from where import Where as ML
+    # from where import Where as ML
+
     def __init__(self, args, base=2, N_scan=7, tag=''):
         self.args = args
         self.seed = args.seed

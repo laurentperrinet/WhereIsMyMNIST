@@ -43,7 +43,7 @@ if True:
     mml.scan('bias_deconv', [True, False])
 
 results = {}
-
+    
 def update_results(results, parameter, accuracies, ci=0.01):
     from scipy.stats import beta
 
@@ -60,9 +60,9 @@ def update_results(results, parameter, accuracies, ci=0.01):
         except:
             results[parameter]['p_low'].append(accuracies[value][:-1].mean()*100)
             results[parameter]['p_sup'].append(accuracies[value][:-1].mean()*100)
-
+        
     return results
-
+            
 bases = [np.sqrt(2), 2, 2*np.sqrt(2)]
 bases = [2]
 bases = [np.sqrt(2), 2]
@@ -80,7 +80,7 @@ for base in bases if not args.filename == '../data/debug' else [2]:
     for parameter in ['sf_0', 'B_sf', 'offset_std' , 'noise', 'contrast']: #
         accuracies = mml.parameter_scan(parameter)
         results = update_results(results, parameter, accuracies)
-
+        
     print(50*'-')
     print(' parameter scan : network')
     print(50*'-')
@@ -125,3 +125,4 @@ for base in bases if not args.filename == '../data/debug' else [2]:
                       'rho']:
         accuracies = mml.parameter_scan(parameter)
         results = update_results(results, parameter, accuracies)
+        

@@ -242,7 +242,7 @@ def test(args, model, device, test_loader, loss_function):
     return correct / len(test_loader.dataset)
 
 class What:
-    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0, model=None, robust=False):
+    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0, model=None):
         self.args = args
         self.seed = seed
         self.model = model # sinon hydra ne veut pas lors de l'entrainement d'un reseau where
@@ -250,14 +250,12 @@ class What:
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        if robust:
-            suffix = "robust_{}_{}_{}_{}_{}".format(self.args.sf_0,
-                                                    self.args.B_sf,
-                                                    self.args.noise,
-                                                    self.args.contrast,
-                                                    self.args.what_offset_std)
-        else:
-            suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        suffix = "{}_{}_{}_{}_{}".format(self.args.sf_0,
+                                         self.args.B_sf,
+                                         self.args.noise,
+                                         self.args.contrast,
+                                         self.args.what_offset_std)
+
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
 
