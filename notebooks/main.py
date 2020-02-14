@@ -1,14 +1,14 @@
 """Parameters setting
 
-Serves for initializing/scanning system parameters: 
+Serves for initializing/scanning system parameters:
 
-  - **MNIST LeNet parameters**: 
-    - ``w``: MNIST snippet width 
+  - **MNIST LeNet parameters**:
+    - ``w``: MNIST snippet width
     - ``mean``: LeNet input mean
     - ``std``: LeNet input std
-    
-  - **WhereNet inputs**: 
-    - 2D input image 
+
+  - **WhereNet inputs**:
+    - 2D input image
       - ``N_pic`` : image width
     - Background noise:
       - ``noise``
@@ -18,13 +18,13 @@ Serves for initializing/scanning system parameters:
     - Target positioning:
       - ``offset_std``
       - ``offset_max``
-    - Logpolar encoding: 
+    - Logpolar encoding:
       - ``N_theta``
       - ``N_azimuth``
       - ``N_eccentricity``
       - ``N_phase``
       - ``rho``
-      
+
   - **WhereNet setup**:
     - Parameters:
       - ``bias_deconv``
@@ -37,7 +37,7 @@ Serves for initializing/scanning system parameters:
     - Layers:
       - ``dim1``
       - ``dim2``
-      
+
   - **Train/test**:
     - ``minibatch_size``
     - ``train_batch_size``
@@ -45,11 +45,11 @@ Serves for initializing/scanning system parameters:
     - ``noise_batch_size``
     - ``epochs``
     - ``log_interval``: period with which we report results for the loss
-      
+
   - **Computation**:
     - ``num_processes``
     - ``no_cuda``
-  
+
   - **Others**:
     - ``verbose``
     - ``filename``
@@ -64,7 +64,32 @@ import numpy as np
 import time
 import easydict
 
+from torchvision.datasets.mnist import MNIST as MNIST_dataset
+class MNIST(MNIST_dataset):
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
 
+        Returns:
+            tuple: (image, target) where target is index of the target class.
+        """
+        if self.train:
+            img, target = self.train_data[index], self.train_labels[index]
+        else:
+            img, target = self.test_data[index], self.test_labels[index]
+
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(img.numpy(), mode='L')
+
+        if self.transform is not None:
+            img = self.transform((img, index))
+
+        if self.target_transform is not None:
+            target = self.target_transform((target, index))
+
+        return img, target
 
 def init(filename=None, verbose=1, log_interval=100, do_compute=True):
     if filename is None:
@@ -89,9 +114,9 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 minibatch_size=100, # batch size
                                 train_batch_size=50000, # size of training set
                                 test_batch_size=10000,  # size of testing set
-                                noise_batch_size=1000, 
-                                mean=0.1307, 
-                                std=0.3081, 
+                                noise_batch_size=1000,
+                                mean=0.1307,
+                                std=0.3081,
                                 # display
                                 N_pic = 128,
                                 offset_std = 30, #
@@ -140,7 +165,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
             args.minibatch_size = 22
             #args.offset_std = 8
             args.N_cv = 2
-            
+
         elif not do_recompute: # save if we want to keep the parameters
             with open(filename_json, 'w') as fp:
                 json.dump(args, fp)
@@ -225,7 +250,7 @@ class MetaML:
         if isinstance(self.args[parameter], int):
             # print('integer detected') # DEBUG
             values =  [int(k) for k in values]
-            
+
         accuracies = self.scan(parameter, values)
         # print('accuracies=', accuracies)
         if display:
