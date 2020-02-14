@@ -6,6 +6,7 @@ torch.set_default_tensor_type('torch.FloatTensor')
 from torchvision import datasets, transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import TensorDataset, DataLoader
+from main import MNIST
 from torch.autograd import Variable
 import torchvision
 import torch.optim as optim
