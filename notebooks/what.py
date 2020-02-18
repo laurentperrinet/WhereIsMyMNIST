@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
-from torchvision.datasets.mnist import MNIST as MNIST_dataset
+from main import MNIST
 from torch.autograd import Variable
 import MotionClouds as mc
 import os
@@ -13,31 +13,7 @@ from PIL import Image
 import datetime
 import sys
 
-class MNIST(MNIST_dataset):
-    def __getitem__(self, index):
-        """
-        Args:
-            index (int): Index
 
-        Returns:
-            tuple: (image, target) where target is index of the target class.
-        """
-        if self.train:
-            img, target = self.train_data[index], self.train_labels[index]
-        else:
-            img, target = self.test_data[index], self.test_labels[index]
-
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
-        img = Image.fromarray(img.numpy(), mode='L')
-
-        if self.transform is not None:
-            img = self.transform((img, index))
-
-        if self.target_transform is not None:
-            target = self.target_transform((target, index))
-
-        return img, target
 
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
@@ -57,15 +33,15 @@ class WhatShift(object):
             self.j_offset = int(j_offset)
         else : self.j_offset = j_offset
         self.args = args
-        
+
     def __call__(self, sample_index):
-        
+
         sample = np.array(sample_index[0])
         index = sample_index[1]
 
         # print(index)
-        np.random.seed(index)        
-        
+        np.random.seed(index)
+
         if self.i_offset is not None:
             i_offset = self.i_offset
             if self.j_offset is None:
@@ -88,16 +64,16 @@ class WhatShift(object):
                 j_offset_f = minmax(j_offset_f, self.args.what_offset_max)
                 j_offset = int(j_offset_f)
 
-        
+
         N_pic = sample.shape[0]
         data = np.zeros((N_pic, N_pic))
         i_binf_patch = max(0, -i_offset)
         i_bsup_patch = min(N_pic, N_pic - i_offset)
         j_binf_patch = max(0, -j_offset)
         j_bsup_patch = min(N_pic, N_pic - j_offset)
-        patch = sample[i_binf_patch:i_bsup_patch, 
+        patch = sample[i_binf_patch:i_bsup_patch,
                        j_binf_patch:j_bsup_patch]
-        
+
         i_binf_data = max(0, i_offset)
         i_bsup_data = min(N_pic, N_pic + i_offset)
         j_binf_data = max(0, j_offset)
@@ -145,10 +121,10 @@ class WhatBackground(object):
         #im = np.add(data, im_noise)
         data[data<=0.5] = -np.inf
         im = np.max((data, im_noise), axis=0)
-        
+
         im = np.clip(im, 0., 1.)
         im = im.reshape((28,28,1))
-        
+
         im *= 255
         return im.astype('B') #Variable(torch.DoubleTensor(im)) #.to(self.device)
 
@@ -169,19 +145,19 @@ class WhatNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x #F.log_softmax(x, dim=1)
-    
+
 class WhatTrainer:
     def __init__(self, args, model = None, train_loader=None, test_loader=None, device='cpu', seed=0):
         self.args = args
         self.device = device
         self.seed = seed
-        torch.manual_seed(seed)        
+        torch.manual_seed(seed)
         kwargs = {'num_workers': 1, 'pin_memory': True} if self.device != 'cpu' else {}
         transform=transforms.Compose([
                                WhatShift(args),
-                               WhatBackground(contrast=args.contrast, 
-                                              noise=args.noise, 
-                                              sf_0=args.sf_0, 
+                               WhatBackground(contrast=args.contrast,
+                                              noise=args.noise,
+                                              sf_0=args.sf_0,
                                               B_sf=args.B_sf),
                                transforms.ToTensor(),
                                #transforms.Normalize((args.mean,), (args.std,))
@@ -211,15 +187,15 @@ class WhatTrainer:
                                              **kwargs)
         else:
             self.test_loader = test_loader
-            
+
         if not model:
             self.model = WhatNet().to(device)
         else:
             self.model = model
-            
+
         #self.loss_func = F.nll_loss
-        self.loss_func = nn.CrossEntropyLoss() 
-        
+        self.loss_func = nn.CrossEntropyLoss()
+
         if args.do_adam:
             self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
         else:
@@ -230,7 +206,7 @@ class WhatTrainer:
 
     def test(self):
         return test(self.args, self.model, self.device, self.test_loader, self.loss_func)
-    
+
 def train(args, model, device, train_loader, loss_function, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -266,7 +242,7 @@ def test(args, model, device, test_loader, loss_function):
     return correct / len(test_loader.dataset)
 
 class What:
-    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0, model=None, robust=False):
+    def __init__(self, args, train_loader=None, test_loader=None, force=False, seed=0, model=None):
         self.args = args
         self.seed = seed
         self.model = model # sinon hydra ne veut pas lors de l'entrainement d'un reseau where
@@ -274,38 +250,36 @@ class What:
         torch.manual_seed(args.seed)
         device = torch.device("cuda" if use_cuda else "cpu")
         # suffix = f"{self.args.sf_0}_{self.args.B_sf}_{self.args.noise}_{self.args.contrast}"
-        if robust:
-            suffix = "robust_{}_{}_{}_{}_{}".format(self.args.sf_0, 
-                                                    self.args.B_sf, 
-                                                    self.args.noise, 
-                                                    self.args.contrast, 
-                                                    self.args.what_offset_std)
-        else:
-            suffix = "{}_{}_{}_{}".format(self.args.sf_0, self.args.B_sf, self.args.noise, self.args.contrast)
+        suffix = "{}_{}_{}_{}_{}".format(self.args.sf_0,
+                                         self.args.B_sf,
+                                         self.args.noise,
+                                         self.args.contrast,
+                                         self.args.what_offset_std)
+
         # model_path = f"../data/MNIST_cnn_{suffix}.pt"
         model_path = "../data/MNIST_cnn_{}.pt".format(suffix)
-            
+
         if model is not None and not force:
             self.model = model
-            self.trainer = WhatTrainer(args, 
+            self.trainer = WhatTrainer(args,
                                        model=self.model,
-                                       train_loader=train_loader, 
-                                       test_loader=test_loader, 
+                                       train_loader=train_loader,
+                                       test_loader=test_loader,
                                        device=device,
                                        seed=self.seed)
         elif os.path.exists(model_path) and not force:
             self.model  = torch.load(model_path)
-            self.trainer = WhatTrainer(args, 
+            self.trainer = WhatTrainer(args,
                                        model=self.model,
-                                       train_loader=train_loader, 
-                                       test_loader=test_loader, 
+                                       train_loader=train_loader,
+                                       test_loader=test_loader,
                                        device=device,
                                        seed=self.seed)
-        else:                                                       
-            self.trainer = WhatTrainer(args, 
+        else:
+            self.trainer = WhatTrainer(args,
                                        model=self.model,
-                                       train_loader=train_loader, 
-                                       test_loader=test_loader, 
+                                       train_loader=train_loader,
+                                       test_loader=test_loader,
                                        device=device,
                                        seed=self.seed)
             if self.args.verbose:
@@ -317,8 +291,8 @@ class What:
             print(model_path)
             if (args.save_model):
                 #torch.save(model.state_dict(), "../data/MNIST_cnn.pt")
-                torch.save(self.model, model_path)         
-    
+                torch.save(self.model, model_path)
+
 
 def main(args=None, train_loader=None, test_loader=None, path="../data/MNIST_cnn.pt"):
     # Training settings

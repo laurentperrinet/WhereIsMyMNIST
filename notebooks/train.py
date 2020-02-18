@@ -3,7 +3,7 @@ import easydict
 
 from main import init
 #args = init(filename='debug')
-#args = init(filename='../data/2019-03-27')
+#args = init(filename='../data/2020-02-02')
 args = init()
 
 from display import Display

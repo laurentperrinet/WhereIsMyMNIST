@@ -5,7 +5,7 @@ from where import Where as ML
 from what import WhatNet
 import numpy as np
 import sys
-opts = dict(filename='../data/2019-04-16', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
+opts = dict(filename='../data/2020-02-02', verbose=0, log_interval=0, do_compute=False  if len(sys.argv) > 1 else True)
 #opts = dict(filename='debug', verbose=0, log_interval=0)
 print('do_compute =', opts['do_compute'])
 
