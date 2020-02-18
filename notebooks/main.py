@@ -155,6 +155,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 seed=2019,
                                 N_cv=10,
                                 do_compute=do_compute,
+                                save_model=True,
                                 )
         if filename == 'debug':
             args.filename = '../data/debug'
@@ -177,7 +178,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
 
 class MetaML:
     #from what import WhatNet
-    # from where import Where as ML
+    #
 
     def __init__(self, args, base=2, N_scan=7, tag=''):
         self.args = args
@@ -190,6 +191,7 @@ class MetaML:
         os.makedirs(self.scan_folder, exist_ok=True)
 
     def test(self, args, seed):
+        from where import WhereNet as ML
         # makes a loop for the cross-validation of results
         Accuracy = []
         for i_cv in range(self.args.N_cv):
