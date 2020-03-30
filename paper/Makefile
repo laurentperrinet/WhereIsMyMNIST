@@ -20,3 +20,6 @@ $(SRC)_trackedchanges.pdf: $(SRC).tex Bibliography.bib $(SRC_rev).tex
 	latexdiff --flatten --graphics-markup=both $(SRC_rev).tex $(SRC).tex > $(SRC)_trackedchanges.tex
 	$(LATEXMK) $(SRC)_trackedchanges.tex
 	# open $(SRC)_trackedchanges.pdf
+
+touch:
+	touch *.tex
