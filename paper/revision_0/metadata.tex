@@ -1,0 +1,226 @@
+% !TEX root = DauceAlbigesPerrinet2020.tex
+%!TeX TS-program = pdflatex
+%!TeX encoding = UTF-8 Unicode
+%!TeX spellcheck = en-US
+%!BIB TS-program = bibtex
+% -*- coding: UTF-8; -*-
+% vim: set fenc=utf-8
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%: notes
+%  journals = https://en.wikipedia.org/wiki/List_of_academic_journals_by_preprint_policy
+%
+%: METADATA
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\AuthorPA}{Pierre Albiges}
+\newcommand{\AuthorED}{Emmanuel Dauc\'e}%
+\newcommand{\AuthorLP}{Laurent Perrinet}%
+% \newcommand{\AddressLP}{Institut de Neurosciences de la Timone, CNRS/Aix-Marseille Universit\'e, France}%
+% \newcommand{\AddressED}{Institut de Neurosciences des Systèmes, Inserm/Aix-Marseille Universit\'e, France}%
+\newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS/Aix-Marseille Universit\'e, France}%
+\newcommand{\WebsiteLP}{https://laurentperrinet.github.io/}%
+\newcommand{\EmailLP}{Laurent.Perrinet@univ-amu.fr}%
+\newcommand{\orcidLP}{0000-0002-9536-010X}%
+\newcommand{\orcidED}{0000-0001-6596-8168}%
+\newcommand{\Keywords}{Object detection \and Active Inference \and Visual search \and Visuomotor control \and Deep Learning}
+\newcommand{\Title}{
+%TODO:  (à changer / travailler / masser )
+%%Tentative titles by order of preference :
+%Learning Where to Look Next for What to See :\\ A Foveated Visual Search Model
+%Learning Where to Look Next :\\ A Foveated Visual Search Model%Learning where to see before looking at what it is
+%Seeing where before looking what
+%Learning where to look: a foveated visuomotor control model
+%Looking where it is worth looking
+%Learning where to see
+%Learning where to look for a target before seeing it
+% Learning where it is worth looking at
+%Where is My MNIST?
+%Where move the eye next? Efficient visual search with foveal vision
+%A model of efficient visual search with foveal retina
+%Training
+%Learning efficient accuracy-seeking action selection in foveated vision % implements visual search
+%Training a dual-pathway model for action selection in foveated vision
+%Training action selection in foveated vision using a dual-pathway model
+%Training saccade selection in foveated vision using a dual-pathway model
+%Training saccade selection using a dual-pathway model of foveated vision
+% a dual-pathway model of saccade selection using of foveated vision
+% a dual-pathway model of saccade selection for foveal visual processing
+%A dual-pathway model for foveal visual processing implements saccade selection
+%A foveal dual-pathway model implements saccade selection in visual processing
+%A foveal-peripheral visual processing model implements saccade selection
+%visual processing  using a foveal-peripheral model implements efficient saccade selection
+A dual foveal-peripheral visual processing model implements efficient saccade selection
+}
+\newcommand{\Acknowledgments}{ TODO:  FRM ....... RIck + Karl + Laurent Madelain  - }
+\newcommand{\Abstract}{
+Visual search involves a dual task of localizing and categorizing an object in the visual field of view. We develop a visuomotor model that implements visual search as a focal accuracy-seeking policy, with the target position and category considered as independently drawn from a common generative process. This independence allows to divide the visual processing in two pathways that respectively infer what to see and where to look, consistently with the anatomical ventral `What'' versus dorsal ``Where'' separation. We use this dual principle to train a deep neural network architecture with the foveal accuracy used as a monitoring signal for action selection. This allows in particular to interpret the ``Where'' network as a retinotopic action selection pathway, that drives the fovea toward the target in order to increase the central recognition accuracy. After training, the comparison of both networks accuracies amounts either to select a saccade or to keep the eye focused at the center, so as to identify the target. We test this on a simple task of finding digits in a large, cluttered image. A biomimetic log-polar treatment of the visual information implements the strong compression rate performed at the sensor level by retinotopic encoding, and is preserved up to the action selection level. Simulation results demonstrate that it is possible to learn this dual network. After training, this dual approach is shown to provide ways to implement visual search in a sub-linear fashion, in contrast with mainstream computer vision.
+% {\color{green} Attention à l'usage des temps : présent, passé, futur...}. -> present partout
+%
+%In computer vision, the visual search task consists in extracting a scarce and specific visual information (the ``target'') from a large and crowded visual display. This task is usually implemented by scanning the different possible target identities at all possible spatial positions, hence with strong computational load. The human visual system employs a different strategy, combining a foveated sensor with the capacity to rapidly move the center of fixation using saccades. Saccade-based visual exploration can be idealized as an inference process, assuming that the target position and category are independently drawn from a common generative process. Knowing that process, visual processing is then separated in two specialized pathways, the ``where'' pathway mainly conveying information about target position in peripheral space, and the ``what'' pathway mainly conveying information about the category of the target. We consider here a dual neural network architecture learning independently where to look and then at what to see. This allows in particular to infer target position in retinotopic coordinates, independently to its category. This framework was tested on a simple task of finding digits in a large, cluttered image. Simulation results demonstrate the benefit of specifically learning where to look before actually knowing the target category. The approach is also energy-efficient as it includes the strong compression rate performed at the sensor level, by retina and V1 encoding, which is preserved up to the action selection level, highlighting the advantages of bio-mimetic strategies with regards to traditional computer vision when computing resources are at stake.
+%
+% TODO : include whenever we do more than one saccade...
+% Without a saccade, the accuracy drops to the baseline at half the width of the target from the center of fixation, while actuating a saccade is beneficial in up to 3 times its size, allowing a much wider covering of the image. The ratio between the marginal accuracies shows that this model is computationally an order of magnitude more efficient than that of a classical brute-force framework. Until the foveal classifier is confident, the system should thus perform saccades to the most likely target position. The different accuracy predictions, such as the ones done in the ``what'' and the ``where'' pathway, may also explain more elaborate decision making, such as the inhibition of return.
+%This provides evidence of the importance of identifying ``putative interesting targets'' first and we highlight some possible extensions of our model both in computer vision and modeling.
+% TODO: We compared the results of this model with classical psychophysical results in visual search
+%This generic visual search problem is of broad interest to machine learning, computer vision and robotics, but also to neuroscience, as it speaks to the mechanisms underlying foveation and more generally to low-level attention mechanisms. From a computer vision perspective, the problem is generally addressed by processing the different hypothesis (categories) at all possible spatial configuration through dedicated parallel hardware. The human visual system, however, seems to employ a different strategy, through a combination of a foveated sensor with the capacity of rapidly moving the center of fixation using saccades.
+%Visual processing is done through fast and specialized pathways, one of which mainly conveying information about target position and speed in the peripheral space (the "where" pathway), the other mainly conveying  information about the identity of the target (the "what" pathway). The combination of the two pathways is expected to provide most of the useful knowledge about the external visual scene. Still, it is unknown why such a separation exists.
+}
+\newcommand{\Precis}{
+Separating visual processing into a What and a Where pathways provides a strategy to model visual search. We developed a deep-learning based computational model in which the comparison of predicted accuracies from both pathways allows for efficient saccade selection.
+}
+\newcommand{\AuthorSummary}{
+The visual search task consists in extracting a scarce and specific visual information (the ``target'') from a large and cluttered visual display. In computer vision, this task is usually implemented by scanning all different possible target identities in parallel at all possible spatial positions, hence with strong computational load. The human visual system employs a different strategy, combining a foveated sensor with the capacity to rapidly move the center of fixation using saccades. Then, visual processing is separated in two specialized pathways, the ``where'' pathway mainly conveying information about target position in peripheral space (independently of its category), and the ``what'' pathway mainly conveying information about the category of the target (independently of its position). This object recognition pathway is shown here to have an essential role, providing an ``accuracy drive'' that serves to guide the eye toward peripheral objects in order to increase the peripheral accuracy, much like in the ``actor/critic'' framework. Put together, all those principles are shown to provide ways toward both adaptive and resource-efficient visual processing systems.
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\documentclass[10pt,a4paper]{llncs}
+%\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+%
+%\usepackage{graphicx}
+%\usepackage{geometry}
+%
+%\usepackage{amsmath}
+%\usepackage{amssymb}
+%\usepackage{a4}
+%
+%\usepackage{csquotes}
+%\usepackage{bm}
+%
+%\usepackage{graphicx}
+%\DeclareGraphicsExtensions{.pdf}%,.png,.jpg}
+%%\graphicspath{{.}}%
+%
+%\usepackage{color}
+%
+%%opening
+%\title{
+%\Title
+%%\thanks{\Acknowledgments }
+%}
+%\author{\AuthorED \inst{1}\orcidID{\orcidED} \and \AuthorPA \inst{1,2} \and \AuthorLP \inst{2}\orcidID{\orcidLP }  }
+%\institute{\AddressED
+%\and \AddressLP
+%%\if 1\ICANN \else
+%%\\  \email{\EmailLP } \url{https://laurentperrinet.github.io/} \fi
+%}
+%\date{}
+%%============ bibliography ===================
+%%\usepackage[numbers,comma,sort&compress,round]{natbib} %
+%\usepackage[
+%%style=alphabetic-verb,
+%style=authoryear-comp,
+%%style=apa,
+%%maxcitenames=2,
+%%maxnames = 2,
+%%giveninits=true,
+%%uniquename=init,
+%%sorting=none,
+%doi=true,
+%url=false,
+%isbn=false,
+%eprint=true,
+%texencoding=utf8,
+%bibencoding=utf8,
+%autocite=superscript,
+%backend=bibtex,
+%%articletitle=false
+%]{biblatex}%
+%%\addbibresource{Bibliography.bib}%
+%\bibliography{Bibliography.bib} % the ref.bib file
+%\newcommand{\citep}[1]{\parencite{#1}}
+%\newcommand{\citet}[1]{\textcite{#1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{siunitx}
+%%\renewcommand{\cite}{\citep}%
+%\newcommand{\ms}{\si{\milli\second}}%
+%\newcommand{\m}{\si{\meter}}%
+%\newcommand{\s}{\si{\second}}%
+%
+%\newcommand{\FIX}{\texttt{FIX}}%
+%\newcommand{\DIS}{\texttt{DIS}}%
+%\newcommand{\SAC}{\texttt{SAC}}%
+%\newcommand{\ANS}{\texttt{ANS}}%
+%\newcommand{\A}{\textbf{(A)~}}%
+%\newcommand{\B}{\textbf{(B)~}}%
+%\newcommand{\C}{\textbf{(C)~}}%
+%\newcommand{\D}{\textbf{(D)~}}%
+%\newcommand{\E}{\textbf{(E)~}}%
+%\newcommand{\F}{\textbf{(F)~}}%
+%
+%%	% \usepackage{times}
+%%	%\inner 0.5in
+%%	% \oddsidemargin -0.5in		% margin, in addition to 1" standard
+%%	% \textwidth 17cm		% 8.5" - 2*(1+\oddsidemargin)
+%%
+%%	% \topmargin -1in		% in addition to 1.5" standard margin
+%%	% \textheight 10.69in 		% 11 - ( 1.5 + \topmargin + <bottom-margin> )
+%%
+%%	% \columnsep 0.25in
+%%	%
+%%	\parindent 0pt
+%%	\parskip 0pt
+%%
+%%\setlength{\parskip}{0pt}
+%%\setlength{\parsep}{0pt}
+%%\setlength{\headsep}{0pt}
+%%\setlength{\topskip}{0pt}
+%%\setlength{\topmargin}{0pt}
+%%\setlength{\topsep}{0pt}
+%%\setlength{\partopsep}{0pt}
+%%
+%%%\usepackage[compact]{titlesec}
+%%%\titlespacing{\section}{0pt}{*0}{*0}
+%%%\titlespacing{\subsection}{0pt}{*0}{*0}
+%%%\titlespacing{\subsubsection}{0pt}{*0}{*0}
+%%	% \usepackage{titlesec}
+%%    %
+%%	% \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+%%	%\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+%%	%\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+%%
+%%%\flushbottom \sloppy
+%%%\pagestyle{empty} % No page numbers
+%%
+%%
+%%\renewcommand{\paragraph}{\emph}%
+%
+%
+%\begin{document}
+%
+%\maketitle
+%
+%\begin{abstract}
+%\Abstract
+%
+%\keywords{\Keywords}
+%
+%
+%\end{abstract}
+%%
+%%\newpage
+%
+%\input{intro}
+%%
+%%\newpage
+%
+%\input{methods}
+%%
+%%\newpage
+%
+%\input{results}
+%%
+%%\newpage
+%
+%\input{discussion}
+%%
+%%\newpage
+%% \input{appendix}
+%
+%
+%%%%-----------------------------------------------------------------
+%%{\bf References} \\
+%
+%\printbibliography[heading=subbibliography]
+%
+%
+%
+%\end{document}
