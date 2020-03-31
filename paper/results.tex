@@ -3,30 +3,16 @@
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
 % !TEX spellcheck = en-US
-
-
 \section{Setup}
 \label{sec:principles}
 %=================================================================
 %=================================================================
 \subsection{Experimental design}
-In order to implement our visual processing setup,
-we provide a simplified visual environment toward which a visual agent can act on.
-This visual search task is formalized and simplified in a way reminiscent to classical psychophysic experiments: an observer is asked to classify digits (for instance as taken from the MNIST dataset, as introduced by~\cite{Lecun1998}) as they are shown with a given size on a computer display.
-However, these digits can be placed at random positions on the display, and visual clutter is added as a background to the image (see Figure~\ref{fig:intro}-A).
-In order to vary the difficulty of the task, different parameters are controlled, such as the target eccentricity, the background noise period and and the signal/noise ratio (SNR).
+In order to implement our visual processing setup, we provide a simplified visual environment toward which a visual agent can act on. This visual search task is formalized and simplified in a way reminiscent to classical psychophysic experiments: an observer is asked to classify digits (for instance as taken from the MNIST dataset, as introduced by~\cite{Lecun1998}) as they are shown with a given size on a computer display. However, these digits can be placed at random positions on the display, and visual clutter is added as a background to the image (see Figure~\ref{fig:intro}-A). In order to vary the difficulty of the task, different parameters are controlled, such as the target eccentricity, the background noise period and and the signal/noise ratio (SNR).
 The agent initially fixates the center of the screen. Due to the peripheral clutter, he needs to explore the visual scene through saccades to provide the answer. He controls a foveal visual sensor that can move over the visual scene through saccades (see Figure~\ref{fig:intro}-B). When a saccade is actuated, the center of fixation moves toward a new location, which updates the visual input (see Figure~\ref{fig:intro}-C).
-The lower the SNR and the larger the initial target eccentricity, the more difficult the identification. There is a range of eccentricities for which it is impossible to identify the target from a single glance, so that a saccade is necessary to issue a proper response.
-%We will define a neural network which implements this control process.
-%The agent aims at understanding the visual scene, here identifying both the target position and identity from visual samples.
-This implies in general that the position of the object may be detected in the first place in the peripheral clutter before being properly identified.
+The lower the SNR and the larger the initial target eccentricity, the more difficult the identification. There is a range of eccentricities for which it is impossible to identify the target from a single glance, so that a saccade is necessary to reduce the relative eccentricity and issue a proper response. This setup implies also that the position of the object may be detected in the peripheral clutter \emph{before} being properly identified.
 
-This setup provides the conditions for a separate processing of the visual information.
-%, with visuo-spatial information extracted from the peripheral clutter, and object detailed shape and identity extracted through central foveal examination.
-%Indeed, in order to analyze a complex visual scene, two kinds of processing are interleaved.
-On the one side, the detailed information present at the center of fixation needs to be analyzed to provide specific environmental cues.
-%, that is the region of interest currently processed.
-On the other side, the full visual field, i.e. mainly the low resolution part surrounding the fovea, needs to be processed in order to identify regions of interest that deserve fixation. This basically means making a choice of “what’s interesting next”. The actual content of putative peripheral locations does not need to be known in advance, but it needs to look interesting enough, and of course to be reachable by a saccade. This is reminiscent of the What/Where visual processing separation observed in monkeys and humans ventral and dorsal visual pathways~\cite{mishkin1983object}.
+This setup provides the conditions for a separate processing of the visual information. On the one side, the detailed information present at the center of fixation needs to be analyzed to provide specific environmental cues. On the other side, the full visual field, i.e. mainly the low resolution part surrounding the fovea, needs to be processed in order to identify regions of interest that deserve fixation. This basically means making a choice of “what’s interesting next”. The actual content of putative peripheral locations does not need to be known in advance, but it needs to look interesting enough, and of course to be reachable by a saccade. This is reminiscent of the What/Where visual processing separation observed in monkeys and humans ventral and dorsal visual pathways~\cite{mishkin1983object}.
 
 \begin{figure}[t!]%%[p!]
 	\centering{\includegraphics[width=\linewidth]{fig_methods}}
@@ -40,76 +26,25 @@ On the other side, the full visual field, i.e. mainly the low resolution part su
 		\label{fig:methods}}%
 \end{figure}%
 %%------------------------------%
-
-
+%
 \subsection{Accuracy map training}
+%
+Can a ``Where'' network be learned? The ease of use of the ``Deep Learning'' framework is sufficient to allow for the demonstration of the existence of a solution to this visual search task through the success of the training. More specifically, these modern parametric classifiers are composed of many layers (hence the terminology) that can be trained through gradient descent over arbitrary input and output feature spaces. For our specific problem, the anatomy of the agent is composed of two separate pathways for which each respective processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion to the visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one visual position to another. Crucially, the processing of the visual field is done through distinct pathways, each pathway being assumed to rely on different morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the saccade planning should rely on the full visual field, with peripheral regions having a lower density of sensors and thus a lower sensitivity to high spatial frequencies.
 
-Modern parametric classifiers are composed of many layers (hence the term ``Deep Learning'') that can be trained through gradient descent over arbitrary input and output feature spaces. The ease of use of those tightly optimized training algorithms is sufficient to allow for the quantification of the difficulty of a task through the failure or success of the training.
-For our specific problem, the simplified anatomy of the agent is composed of two separate pathways for which each processing is realized by such a neural network (see Figure~\ref{fig:methods}). The proposed computational architecture is connected in a closed-loop fashion with a visual environment, with the capacity to produce saccades whose effect is to shift the visual field from one place to another. Crucially, the processing of the visual field is done through distinct pathways, each pathway being assumed to rely on different sensor morphologies. By analogy with biological vision, the target identification is assumed to rely on the very central part of the retina (the fovea), that comes with higher density of cones, and thus higher spatial precision. In contrast, the saccade planning should rely on the full visual field, with peripheral regions having a lower sensor density and a lesser sensitivity to high spatial frequencies.
-
-In a stationary condition, where the target's position and identity do not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity.
-%Examining the current visual field $x$ allows to form two hypotheses, namely $p(U|x)$ and $p(Y|x)$. It may happen, however, that the current inferences may not be accurate enough and there may be a ``better'' eye direction from which more evidence could be grabbed, i.e. it may be worth issuing a saccade so that $p(U'|x')$ and $p(Y|x')$ should be more accurate.
-Following the active inference setup~\cite{Najemnik05, Friston12}, we assume that, instead of trying to detect the actual position of the target, the agent tries to maximize the scene understanding benefit of doing a saccade. The focus is thus put on action selection metric rather than spatial representation.
-This means in short estimating how accurate a categorical target classifier will be after moving the eye.
-%action selection can be interpreted as choosing the saccade that should provide the best target identity estimate.
-In a full setup, predictive action selection means first predicting the future visual field $x'$ obtained at the center of fixation, and then predicting how good the %$p(U|x)$ and $p(Y|x)$
-estimate of the target identity $y$, i.e. $p(y|x')$, will be at this location.
-% a full sequence of operations comprises first an initial visual examination through the where and the what pathways. This . followed by ($ii$) a decision, ($iii$) a saccade realization and ($iv$) a second visual examination that should finally ($v$) determine the category of the target.
-%It is worth noting that active inference needs either the current identity $y$ or the current eye direction $u$ to be readable from the present view, in order to effectively predict future inferences, through computationally intensive predictions.
-In practice, %modeling the full sequence of operations that lead to estimate %both $p(U'|x')$ and $p(Y|x')$
-%the future $u$ and $y$
-%means predicting
-predicting a future visual field over all possible saccades is too computationally expensive. %in the case of large visual fields.
-Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after different saccades $a, a', a'', \ldots$.
-If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the central categorical classifier over $x'$ can either be correct ($1$) or incorrect ($0$).
-If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ is a number between $0$ and $1$, that reflects the proportion of correct and incorrect classifications.
-% This means forming an \emph{accuracy map} from the current view. This is the essence of the \emph{sampling-based metric prediction} that we develop here.
-The putative effect of every saccade can thus be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ %regarding the target identity, both assuming $p(U|\boldsymbol{x})$ and $p(Y|\boldsymbol{x})$
-from the current observation $x$. %
-% when issuing a saccade $a$ after seeing $\boldsymbol{x}$ (the initial visual field).
-%It more or less corresponds to inferring the true target identity $\hat{y}$, i.e. $p(\hat{y}|x')$, including the update of the eye direction, that is a sample of the ``real'' generative process.
-%In a biological setting, this would be acchieved for instance by catch-up saccades that would scan the area neighboring the saccade that was actually issued.
- Extended to the full action space $A$, this forms an accuracy map that should monitor the selection of saccades. %after processing the visual input,
-This accuracy map can be trained by trials and errors, with the final classification success or failure used as a teaching signal. Our main assumption here is that such a \emph{predictive accuracy map} is at the core of a realistic saccade-based vision systems.
+In a stationary condition, where the target's position and identity do not change over time, each saccade thus provides a new viewpoint over the scene, allowing to form a new estimation of the target identity. Following the active inference setup~\cite{Najemnik05, Friston12}, we assume that, instead of trying to detect the actual position of the target, the agent tries to maximize the counter-factual benefit in scene understanding that would be gained by any potential saccade. The focus is thus put on action selection metric rather than spatial representation. This means in short estimating how accurate a categorical target classifier will be after moving the eye. In a full setup, predictive action selection means first predicting the future visual field denoted $x'$ which is obtained at the center of fixation, and then predicting how good the estimate of the target identity, denoted $y$, i.e. $p(y|x')$, will be at this location. In practice, predicting a future visual field over all possible saccades is too computationally expensive.  Better off instead is to record, for every context $x$, the improvement obtained in recognizing the target after different saccades $a, a', a'', \ldots$. If $a$ is a possible saccade and $x'$ the corresponding future visual field, the result of the central categorical classifier over $x'$ can either be correct ($1$) or incorrect ($0$). If this experiment is repeated many times over many visual scenes, the probability of correctly classifying the future visual field $x'$ from $a$ is a number between $0$ and $1$, that reflects the frequency of correct classifications. The putative effect of every saccade can thus be condensed in a single number, the \emph{accuracy}, that quantifies the final benefit of issuing saccade $a$ from the current observation $x$.  Extended to the full action space $A$, this forms an accuracy map that should monitor the selection of saccades. This accuracy map can be trained by trials and errors, with the final classification success or failure used as a teaching signal. Our main assumption here is that such a \emph{predictive accuracy map} is at the core of a realistic saccade-based vision systems.
 
 From the active inference standpoint, the separation of the scene analysis in two independent tasks relies on a simple ``Naïve Bayes'' assumption (see Methods).
-Each processing is assumed to be realized in parallel through different pathways by analogy with the ventral and dorsal pathways in the brain (see Figure~\ref{fig:methods}).
-A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification. The first one is called the ``What'' network, and the second one is the ``Where'' network (see Figure~\ref{fig:where} for details).
-This combination of a scalar drive with action selection is reminiscent of the actor/critic principle proposed for long time in the reinforcement learning community~\cite{sutton1998reinforcement}. In biology, the ventral and the dorsolateral division of the striatum have been suggested to implement such an actor-critic separation~\cite{joel2002actor, takahashi2008silencing}. Consistently with those findings, our central accuracy drive and peripheral action selection map can respectively be considered as the ``critic'' and the ``actor'' of an accuracy-driven action selection scheme, with foveal identification/disambiguation taken as a ``visual reward''.
-% with the ``What'' network playing the role of a ``critic'' over the output of the ``Where'' network (see~\cite{sutton1998reinforcement}).
+Each processing is assumed to be realized in parallel through different pathways by analogy with the ventral and dorsal pathways in the visual pathways (see Figure~\ref{fig:methods}). A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification. The first one is called the ``What'' network, and the second one is the ``Where'' network (see Figure~\ref{fig:where} for details). This combination of a scalar drive with action selection is reminiscent of the actor/critic principle proposed for long time in the reinforcement learning community~\cite{sutton1998reinforcement}. In biology, the ventral and the dorsolateral division of the striatum have been suggested to implement such an actor-critic separation~\cite{joel2002actor, takahashi2008silencing}. Consistently with those findings, our central accuracy drive and peripheral action selection map can respectively be considered as the ``critic'' and the ``actor'' of an accuracy-driven action selection scheme, with foveal identification/disambiguation taken as a ``visual reward''.
 
- %A first task consists in identifying the target (namely inferring $y$ from $x$) and a second task consists in localizing the target (namely inferring $u$ from $x$).
-%\bf [ref needed]. \emph{Note that %from the retinotopic projection of the visual information,
-%this independence is conditional on action: both pathways should update their beliefs upon decisions made in each respective pathway {\bf (je ne comprends pas bien cette
+The operations that transform the initial visual data should preserve the initial retinotopic organization, so as to form a final retinotopic accuracy map. Accordingly with the visual data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery. Finally, each different initial visual field may bring out a different accuracy map, indirectly conveying information about the target retinotopic position. A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism (see Figure~\ref{fig:methods}-D), implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculomotor control~\cite{sparks1987sensory}. The saccadic motor output showing a similar log-polar compression than the visual input, the saccades should be more precise at short than at long distance (and several saccades may be necessary to precisely reach distant targets). %
 
-
-%Consistently with a baseline approach that would predict for all possible gaze directions over an image, this map should moreover be organized radially to preserve the initial retinotopic organization.
-%, as exemplified by a retinotopic map. The map , preserving the initial retinotopic organization. %with high predicted accuracies reflecting a high probability of target presence at given locations.
-
-% phrase?)}}}\fi.
-%However, we will here simplify the setting by considering only one possible saccade.
-The operations that transform the initial primary visual data should preserve the initial retinotopic organization, so as to form a final retinotopic accuracy map. % (see Figure~\ref{fig:methods}C).
-Accordingly with the visual data, the retinotopic accuracy map may thus provide more detailed accuracy predictions in the center, and coarser accuracy predictions in the periphery.
-%and telling how accurate the categorical classifier will be after the saccade is carried out~\cite{Dauce18}. %The set of all possible saccade predictions should
-Finally, each different initial visual field may bring out a different accuracy map, indirectly conveying information about the target retinotopic position.
-A final action selection (motor map) should then overlay the accuracy map through a winner-takes-all mechanism (see Figure~\ref{fig:methods}-D), implementing the saccade selection in biologically plausible way, as it is thought to be done in the superior colliculus, a brain region responsible for oculomotor control~\cite{sparks1987sensory}.
-The saccadic motor output showing a similar log-polar compression than the visual input, the saccades should be more precise at short than at long distance (and several saccades may be necessary to precisely reach distant targets). %
-%
-
-The ``What'' and `Where'' networks are both implemented in \texttt{pytorch}~\cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers. A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retina-mimetic central log-polar magnification. The first one is called the ``What'' network, and the second one is the ``Where'' network (see Figure~\ref{fig:where} for details).
-%They are both implemented in \texttt{pytorch}~\cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers.
+In practice, the ``What'' and `Where'' networks are both implemented in \texttt{pytorch}~\cite{NEURIPS2019_9015}, and trained with gradient descent over multiple layers. %A first classifier is thus assigned to process only the pixels found at the center of fixation, while a second one processes the full visual field with a retinotopic log-polar encoding. The first one is called the ``What'' network, and the second one is the ``Where'' network (see Figure~\ref{fig:where} for details).
 Each network is trained and tested separately. Because the training of the ``Where'' pathway depends on the accuracy given by the ``What'' pathway (and not the reverse), we trained the latter first, though a joint learning also yielded similar results. % TODO : à vérifier
 Finally, these are evaluated in a coupled, dynamic vision setup.
-
-
-
 %=================================================================
 \section{Results}
 \label{sec:results}
 %=================================================================
-
-
-
 %------------------------------%
 \begin{figure}[t!]%%[p!]
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
