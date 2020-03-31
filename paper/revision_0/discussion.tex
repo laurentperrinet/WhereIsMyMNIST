@@ -1,0 +1,57 @@
+% !TEX root = DauceAlbigesPerrinet2020.tex
+% !TEX encoding = UTF-8 Unicode
+% -*- coding: UTF-8; -*-
+% vim: set fenc=utf-8
+% !TEX spellcheck = en-US
+\section{Discussion} \label{sec:discussion}
+\subsection{Summary}
+
+In summary, we have proposed a visuomotor action-selection model that implements a focal accuracy-seeking policy across the image. Our main modeling assumption here is an \emph{accuracy-driven} monitoring of action, stating in short that the ventral classification accuracy drives the dorsal selection on an accuracy map. The comparison of both accuracies amounts either to select a saccade or to keep the eye focused at the center, so as to identify the target. The predicted accuracy map has, in our case, the role of a value-based action selection map, as it is the case in model-free reinforcement learning.
+However, it also owns a probabilistic interpretation, making it possible to combine concurrent accuracy predictions (such as the ones done through the ``What'' and the ``Where'' pathways), to explain more elaborate aspect of the decision making processes, such as the inhibition of return~\cite{Itti01}, without specific design.  	
+
+Moreover, one crucial aspect highlighted by our model is the importance of centering objects in recognition. Despite the robust translation invariance observed on the ``What'' pathway, a small tolerance radius of about $4$ pixels around the target's center needs to be respected to maximize the classification accuracy. The translation invariance is in our case an effect of the max-pooling operations in the convolutional layers, build-in at the core of the ``What'' layer.
+This relates to the idea of finding an absolute referential for an object, for which the recognition is easier. If the center of fixation is fixed, the log-polar encoding of an object has the notable properties to map object rotations and scalings toward translations in the radial and angular directions of the visual domain~\cite{Traver10}. Extensions to scale and rotation invariance would in principle be feasible through central log polar encoding, with little additional computational cost. This prospect is left for future work.
+%The translation invariance found in convolutional processing may thus be extended to both rotation and scale invariance in the log-polar domain. Incorporating this scale and rotation invariance may thus extend the generalization capabilities of the model.
+
+
+
+\subsection{Comparison with other models}
+
+A lot of computer models found in the literature reflect to some degree the foveal/sequential visual processing principles developed here.
+Since the question of a normative and quantitative comparison with them is important, no specific or unified dataset is proposed at present
+to address this specific case. Every model found uses a different retinal encoding, different computing methodologies and different training datasets.
+We thus provide here a qualitative comparison with the more prominent computer-based focal vision models proposed in the literature
+
+%The only feasible comparisons are those with non-focal image processing/computer vision methods, in our case state-of-the art convolutional neural networks, that we provide in figs 4, 5 and 6 (as our central vision is implemented this way). }
+
+
+%{\color{magenta} Our model is, to our best knowledge, the first case of a bio-realistic log-polar implementations of an active vision framework.}
+
+First, active vision is of course an important topic in mainstream computer vision. In the case of image classification, it is considered as a way to improve object recognition by progressively increasing the definition over identified regions of interest, referred as ``recurrent attention''~\cite{mnih2014recurrent,fu2017look}.
+%{\color{magenta} \textbf{Rev 1} I'm not sure I understand why "recurrent attention is at odd with the functioning of biological systems" (line 565)}
+Standing on a similar mathematical background, recurrent attention is however at odd with the functioning of biological systems, with a mere distant analogy with the retinal principles of foveal-surround visual definition.
+
+Phenomenological models, such as the one proposed in Najemnik and Geisler's seminal paper~\cite{Najemnik05}, rely on a rough simplification, with foveal center-surround acuity modeled as a response curve. Despite providing a bio-realistic account of sequential visual search, the model owns no foveal image processing implementation. Stemming on Najemnik and Geisler's principles, a trainable center-surround processing system was proposed in~\cite{Butko2010infomax}, with a sequential scan of an image in a face-detection task, however the visual search task here relies on a systematic scan over a dynamically-blurred image, with all the visual processing delegated to standard feature detectors.
+
+In contrast, the Akbas and Eckstein model (“foveated object detector”~\cite{akbas2017object}) uses an explicit bio-inspired log-polar encoding
+for the peripheral processing, with trainable local features.
+With a focus put on the processing gain provided by this specific compression,
+the model approaches the performance of state-of-the-art linear feature detectors, with multi-scale template matching (bounding box approach). However the use of
+a local/linear template matching processing makes here again the analogy with the brain quite shallow.
+
+%If some conclusions are similar (like the sub-linear cost of a sequential/foveal processing), this does not preclude originality and novelty of our method.
+
+Denil et al's paper~\cite{denil2012learning} is probably the one that shows the closest correspondence with our setup. It owns an identity pathway and a control pathway, in a What/Where fashion, just as ours. Interestingly, only the ``What'' pathway is neurally implemented using a random foveal/multi-fixation scan within the fixation zone. The ``Where'' pathway, in contrast, mainly implements object tracking, using particle filtering with a separately learned generative process. The direction of gaze is here chosen so as to minimize the target position, speed and scale uncertainty, using the variance of the future beliefs as an uncertainty metric. The control part is thus much similar to a dynamic ROI tracking algorithm, with no direct correspondence with foveal visual search, or with the capability to recognize the target
+
+\subsection{Perspectives}
+
+We have thus provided a proof of concept that a log-polar retinotopy can efficiently serve object detection and identification over wide visual displays. Despite its simplicity, the generative model used to generate our visual display allowed to assess the effectiveness and robustness of our learning scheme, that should be extended to more complex displays and more realistic closed-loop setups. In particular, the restricted $28\times28$ input used for the foveal processing is a mere placeholder, that should be replaced by more elaborate computer vision frameworks, such as Inception~\cite{szegedy2015going} or VGG-19~\cite{simonyan2014very}, that can handle a more ecological natural image classification.
+
+The main advantage of our peripheral image processing is its cost-efficacy. Our full log-polar processing pathway consistently conserves the high compression rate performed by retina and V1 encoding up to the action selection level. The organization of both the visual filters and the action maps in concentric log-polar elements, with radially exponentially growing spatial covering, can thus serve as a baseline for a future sub-linear (logarithmic) visual search in computer vision. Our work thus illustrates one of the main advantages of using a focal/sequential visual processing framework, that is providing a way to process large images with a sub-linear processing cost.
+% {\color{red} \textbf{Rev 2} The authors mention “sub-linear (logarithmic) visual search”. As a reader I expected more than just a mention. How will this be achieved? This claim is not substantiated by any means.}
+This may allow to detect an object in large visual environments, which should be particularly beneficial when the computing resources are under constraint, such as for drones or mobile robots.
+
+%If real world computer vision is an objective we address, and probably the most important issue in foveal image processing, %i.e. attaining YOLO-like performances on large images with fovea-based processing.
+If the methodology and principles developed here are clearly intended to deal with real images, an important contribution of the paper is providing principles that justify the separation between a ventral and a dorsal stream in the early visual pathways. If some forms of "dual pathway models" have been proposed in the past (through separating the central and the peripheral processing, like in~\cite{denil2012learning}, and also in one instance of~\cite{akbas2017object} model), their guiding principles stem on computing efficacy rather than biological fidelity. Our principled ventral/dorsal concurrent processing, rooted on dorsal accuracy map predictions, is thus we think important and novel.
+
+Finally, our approach relies on a strong idealization, assuming the presence of a unique target. This is well adapted to a fast changing visual scene as is demonstrated by our ability to perform as fast as 5 saccades per second to detect faces in a cluttered environment~\cite{Martin18}. However, some visual scenes ---such as when looking at a painting in a museum--- allow for a longer inspection of its details. The presence of many targets in a scene should be addressed, which amounts to sequentially select targets, in combination with implementing a more elaborate inhibition of return mechanism to account for the trace of the performed saccades. This would generate more realistic visual scan-paths over images. Actual visual scan-paths over images could also be used to provide priors over action selection maps that should improve realism. Identified regions of interest may then be compared with the baseline bottom-up approaches, such as the low-level feature-based saliency maps~\cite{Itti01}. Maximizing the Information Gain over multiple targets needs to be envisioned with a more refined probabilistic framework extending previous models~\cite{Friston12}, which would include phenomena such as mutual exclusion over overt and covert targets. How the brain may combine and integrate these various probabilities is still an open question, that amounts to the fundamental binding problem. %
