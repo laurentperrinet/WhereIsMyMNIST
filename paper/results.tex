@@ -74,7 +74,8 @@ After training, the ``Where'' pathway is now capable to predict an accuracy map 
 \begin{figure}[t!]%%[p!]
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
 	% \centering{\includegraphics[width=\linewidth]{CNS-results-contrast.png}}
-	\centering{\includegraphics[width=\linewidth]{CNS-results-contrast.png}}
+	%\centering{\includegraphics[width=\linewidth]{CNS-results-contrast.png}}
+	\centering{\includegraphics[width=\linewidth]{fig_results_robust_contrast.pdf}}
 	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\bf Effect of contrast and target eccentricity.} %
@@ -103,8 +104,12 @@ Some of the most peripheral targets are thus difficult to detect in just one sac
 %: see Figure~\ref{fig:results}
 \begin{figure}[t!]%%[p!]
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
-	\centering{\includegraphics[width=\linewidth]{fig-results-saccades.png}}
-	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
+	%\centering{\includegraphics[width=\linewidth]{fig-results-saccades.png}}
+	\centering{{\bf (A)}
+		\includegraphics[width=\linewidth]{../figures/fig_multi_saccades_example.pdf}}
+	\centering{{\bf (B)}
+		\includegraphics[width=\linewidth]{../figures/fig_results_robust_saccades.pdf}}
+	%\includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\bf Multiple saccade setup.} %
 		\A Example of a trial with a sequence of $3$ saccades. The subjective visual field is reconstructed from the log-polar visual features, with the red square delineating the $28\times28$ foveal snippet, after $0$, $1$, $2$ and $3$ saccades (from left to right). After the first saccade, the accuracy predicted by the ``Where'' network is higher than that predicted by the ``What'' network and a corrective saccade is realized to center the target. After this second saccade, the foveal accuracy is higher than that predicted in the periphery and the answer \ANS\ is given.
