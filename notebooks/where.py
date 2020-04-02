@@ -872,7 +872,7 @@ class Where():
             accuracy.append(correct.mean())
         return np.mean(accuracy)
 
-    def multi_test(self, nb_saccades, dataloader=None, batch_size=None, dynamic=False):
+    def multi_test(self, nb_saccades, dataloader=None, batch_size=None, dynamic=False, fig=None):
         # multi-saccades
         if dataloader is None:
             dataloader = self.loader_test
@@ -903,14 +903,14 @@ class Where():
                 num_max = nb_saccades
                 cpt_saccades = 0
                 for num_saccade in range(num_max):
-                    if idx == 0:
-                        fig = plt.figure(figsize = (5, 5))
-                        ax = fig.add_subplot(111)
+                    if idx == 0 and fig is not None:
+                        
+                        ax = fig.add_subplot(1,nb_saccades,num_saccade+1)
                         data_retina = self.retina.retina(fullfield_shift)
                         ax = self.retina.show(ax, self.retina.retina_invert(data_retina))
                         #plt.imshow(fullfield_shift)
-                        plt.title(str(cpt_saccades))
-                        plt.show()
+                        ax.set_title(str(cpt_saccades))
+                        #plt.show()
 
                     # WHAT_POSTERIOR_TEST
                     im = self.extract(data_fullfield[idx, :, :], i_ref, j_ref).detach().numpy()
@@ -953,20 +953,24 @@ class Where():
                 #accuracy_fullfield[idx, :, :] = coll_shift
                 pred_accuracy_colliculus[idx, :] = pred_accuracy_center # (LogPolar) central prediction
                 #pred_accuracy_trans
-                if idx == 0:
+                '''if idx == 0:
                     fig = plt.figure(figsize = (5, 5))
                     ax = fig.add_subplot(111)
                     data_retina = self.retina.retina(fullfield_shift)
                     ax = self.retina.show(ax, self.retina.retina_invert(data_retina))
                     #plt.imshow(fullfield_shift)
                     plt.title(str(cpt_saccades))
-                    plt.show()
+                    plt.show()'''
         else:
             do_control= False
 
         correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze(), do_control=do_control)
         #print(correct)
-        return np.mean(correct)
+        if fig is None:
+            return np.mean(correct)
+        else:
+            return fig
+       
 
     def show(self, gamma=.5, noise_level=.4, transpose=True, only_wrong=False):
         for idx, (data, target) in enumerate(self.display.loader_test):
