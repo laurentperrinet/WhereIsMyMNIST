@@ -75,7 +75,7 @@ After training, the ``Where'' pathway is now capable to predict an accuracy map 
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
 	% \centering{\includegraphics[width=\linewidth]{CNS-results-contrast.png}}
 	%\centering{\includegraphics[width=\linewidth]{CNS-results-contrast.png}}
-	\centering{\includegraphics[width=\linewidth]{fig_results_robust_contrast.pdf}}
+	\centering{\includegraphics[width=\linewidth]{../figures/fig_results_robust_contrast.pdf}}
 	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\bf Effect of contrast and target eccentricity.} %
@@ -97,7 +97,7 @@ In the case of multiple saccades (see next section), the total cost is $O(k\time
 This is to be contrasted, for instance, with the linear cost obtained with a full convolutional scan with a window of size C and a stride of 1, that is precisely $O(C\times n)$. Various optimizations can of course be considered, of which the well-known max-pooling principle used in deep learning, but anyway
 image processing (without compression loss) is generally considered as linear in the size of the visual data processed \cite{strengert2006pyramid}
 
-Our sub-linear processing time thus justifies a strategy that may have been chosen in a variety of natural vision systems. The compromise between the urgency to detect and the need to be accurate may justify the different balances which may exist in different species. In particular, this may justify the differences observed between preys (with a less sparse cone density at the periphery) and predators (with a tendency of a denser foveal regions). % TODO ref needed !!
+Our sub-linear processing time thus justifies a strategy that may have been chosen in a variety of natural vision systems. The compromise between the urgency to detect and the need to be accurate may justify the different balances which may exist in different species. In particular, this may justify the differences observed between preys (with a less sparse cone density at the periphery) and predators (with a tendency toward  denser foveal regions). % TODO ref needed !!
 
 %
 \subsection{Multiple saccades setup}
