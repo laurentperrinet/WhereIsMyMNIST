@@ -15,6 +15,9 @@ LATEXMK = latexmk -bibtex -pdf
 $(SRC).pdf: $(SRC).tex Bibliography.bib
 	$(LATEXMK) $(SRC).tex
 
+
+figures/fig_methods.svg
+
 # post-production
 $(SRC)_trackedchanges.pdf: $(SRC).tex Bibliography.bib $(SRC_rev).tex
 	latexdiff --flatten --graphics-markup=both $(SRC_rev).tex $(SRC).tex > $(SRC)_trackedchanges.tex

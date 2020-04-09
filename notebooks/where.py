@@ -909,7 +909,7 @@ class Where():
                         data_retina = self.retina.retina(fullfield_shift)
                         ax = self.retina.show(ax, self.retina.retina_invert(data_retina))
                         #plt.imshow(fullfield_shift)
-                        ax.set_title(str(cpt_saccades))
+                        ax.set_title('Saccade # ' + str(cpt_saccades))
                         #plt.show()
 
                     # WHAT_POSTERIOR_TEST
