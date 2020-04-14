@@ -79,7 +79,7 @@ After training, this shift-dependent accuracy map is validated by systematically
 % TODO : add a figure showing the architecture of the V1 feature vector + where pathway ?
 Here, we assume the ``Where'' implements the following action selection: where to look next in order to reduce the uncertainty about the target identity?
 The ``Where'' pathway is thus devoted to choosing the next saccade by predicting the location of the target in the (log-polar) visual field.
-This implies moving the eye such as to increase the ``What'' categorization accuracy. For a given visual field, each possible future saccade has an expected accuracy, that can be trained from the ``What'' pathway output. To accelerate the training, we use a shortcut that is training the network on a translated accuracy map. The output is thus an accuracy map, that tells for each possible visuomotor displacement the value of the future accuracy.
+This implies moving the eye such as to increase the ``What'' categorization accuracy. For a given visual field, each possible future saccade has an expected accuracy, that can be trained from the ``What'' pathway output. To accelerate the training, we use an equivalent strategy by training the network on a translated accuracy map. The output is thus an accuracy map, that tells for each possible visuomotor displacement the value of the future accuracy.
 
 \paragraph{Primary visual representation: log-polar orientation filters}
 In order to reduce the processing cost, and in accordance with observations~\cite{connolly1984representation,sparks1987sensory}, a similar log-polar compression pattern is assumed to be conserved from the retina up to the visuo-motor layers.
