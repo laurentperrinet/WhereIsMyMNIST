@@ -555,7 +555,10 @@
 singlelinecheck=off]{caption}
 \renewcommand{\figurename}{Fig}
 
-\bibliographystyle{alpha}
+\usepackage[comma,sort&compress,round]{natbib} %
+% \bibliographystyle{alpha}
+\renewcommand{\cite}[1]{\citep{#1}}
+% \newcommand{\citet}[1]{\cite{#1}}
 
 % Remove brackets from numbering in List of References
 %\makeatletter
@@ -903,7 +906,7 @@ The visual search task consists in extracting a scarce and specific visual infor
 
 \nolinenumbers
 
-
+\bibliographystyle{plainnat}
 \bibliography{Bibliography}
 
 \end{document}
