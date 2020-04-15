@@ -5,6 +5,26 @@
 % -*- coding: UTF-8; -*-
 % vim: set fenc=utf-8
 %
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%: METADATA
+%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\AuthorPA}{Pierre Albiges}
+\newcommand{\AuthorED}{Emmanuel Dauc\'e}%
+\newcommand{\AuthorLP}{Laurent U Perrinet}%
+\newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS/Aix-Marseille Universit\'e, France}%
+\newcommand{\WebsiteLP}{https://laurentperrinet.github.io/}%
+\newcommand{\EmailLP}{Laurent.Perrinet@univ-amu.fr}%
+\newcommand{\orcidLP}{0000-0002-9536-010X}%
+\newcommand{\orcidED}{0000-0001-6596-8168}%
+\newcommand{\Keywords}{Object detection \and Active Inference \and Visual search \and Visuomotor control \and Deep Learning}
+\newcommand{\Title}{
+A dual foveal-peripheral visual processing model implements efficient saccade selection
+}
+\newcommand{\Acknowledgments}{ TODO:  FRM ....... RIck + Karl + Laurent Madelain  - }
+\newcommand{\Precis}{
+Separating visual processing into a What and a Where pathways provides a strategy to model visual search. We developed a deep-learning-based computational model in which the comparison of predicted accuracies from both pathways allows to implement efficient saccade selection.
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % % % % % % % % % % % % % % % % % % % %
 \documentclass[10pt,a4paper]{article}
 % \usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
@@ -126,41 +146,6 @@ singlelinecheck=off]{caption}
 %============ hyperref ===================
 \usepackage[pdfborder={0 0 0}]{hyperref}%
 % \vspace{0.2in}
-% !TEX root = DauceAlbigesPerrinet2020.tex
-%!TeX TS-program = pdflatex
-%!TeX encoding = UTF-8 Unicode
-%!TeX spellcheck = en-US
-%!BIB TS-program = bibtex
-% -*- coding: UTF-8; -*-
-% vim: set fenc=utf-8
-%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%: METADATA
-%: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\AuthorPA}{Pierre Albiges}
-\newcommand{\AuthorED}{Emmanuel Dauc\'e}%
-\newcommand{\AuthorLP}{Laurent U Perrinet}%
-\newcommand{\Address}{Institut de Neurosciences de la Timone, CNRS/Aix-Marseille Universit\'e, France}%
-\newcommand{\WebsiteLP}{https://laurentperrinet.github.io/}%
-\newcommand{\EmailLP}{Laurent.Perrinet@univ-amu.fr}%
-\newcommand{\orcidLP}{0000-0002-9536-010X}%
-\newcommand{\orcidED}{0000-0001-6596-8168}%
-\newcommand{\Keywords}{Object detection \and Active Inference \and Visual search \and Visuomotor control \and Deep Learning}
-\newcommand{\Title}{
-A dual foveal-peripheral visual processing model implements efficient saccade selection
-}
-\newcommand{\Acknowledgments}{ TODO:  FRM ....... RIck + Karl + Laurent Madelain  - }
-% \newcommand{\Abstract}{
-% Visual search involves a dual task of localizing and categorizing an object in the visual field of view. We develop a visuomotor model that implements visual search as a focal accuracy-seeking policy, with the target position and category drawn independently from
-% a common generative process.
-% We use this principle to train a deep neural network, composed of two pathways, namely the ``What'' and the ``Where'' pathways. Consistently with the anatomical separation between the ventral versus dorsal pathways,
-% those networks respectively infer what to see and where to look.
-% The ``What'' network is a classical deep learning classifier, that only processes a small region around the center of fixation, providing a ``foveal'' accuracy. In contrast, the `Where'' network processes the full visual field in a biomimetic fashion, using a log-polar retinotopic encoding, which is preserved up to the action selection level. The foveal accuracy is used as a monitoring signal to train the `Where'' network for it is expected to drive the fovea toward the target in order to increase the central recognition accuracy. After training, the comparison of both networks accuracies amounts to either select a saccade or to keep the eye focused at the center, to identify the target. We test this on a simple task of finding a digit in a large, cluttered image.  Our simulation results demonstrate the effectiveness of this approach, increasing by one order of magnitude the radius of the visual field toward which the agent can detect and recognize a target, either through a single or multiple saccades. Importantly, our log-polar treatment of the visual information implements the strong compression rate performed at the sensory level, providing ways to implement visual search in a sub-linear fashion, in contrast with mainstream computer vision. }
-\newcommand{\Precis}{
-Separating visual processing into a What and a Where pathways provides a strategy to model visual search. We developed a deep-learning-based computational model in which the comparison of predicted accuracies from both pathways allows to implement efficient saccade selection.
-}
-% \newcommand{\AuthorSummary}{
-% A visual search task consists in extracting a scarce and specific visual information (the ``target'') from a large and cluttered visual display. In computer vision, this task is usually implemented by scanning all different possible target identities in parallel at all possible spatial positions, hence with strong computational load. The human visual system employs a different strategy, combining a foveated sensor with the capacity to rapidly move the center of fixation using saccades. Then, visual processing is separated in two specialized pathways. First, the ``where'' pathway conveys information about target position in peripheral space, independently of its category. On the other hand, the ``what'' pathway conveys information about the category of the target (independently of its position). This object recognition pathway is shown here to have an essential role, providing an ``accuracy drive'' that serves to guide the eye toward peripheral objects to increase the peripheral accuracy, much like in the ``actor/critic'' framework. Put together, all those principles are shown to provide ways toward both adaptive and resource-efficient visual processing systems.}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% END MACROS SECTION
 \begin{document}
 \linenumbers
@@ -193,11 +178,8 @@ Separating visual processing into a What and a Where pathways provides a strateg
 % Please keep the abstract below 300 words
 \section*{Abstract}
 % \Abstract
-% Manu : j'ai fusionné les 2 abstracts
-%A visual search task consists in extracting a scarce and specific visual information (the ``target'') from a large and cluttered visual display. In computer vision, this task is usually implemented by scanning all different possible target identities in parallel at all possible spatial positions, hence with strong computational load. The human visual system employs a different strategy, combining a foveated sensor with the capacity to rapidly move the center of fixation using saccades.
 We develop a visuomotor model that implements visual search as a focal accuracy-seeking policy, with the target's position and category drawn independently from a common generative process.  Consistently with the anatomical separation between the ventral versus dorsal pathways, the model is composed of two pathways, that respectively infer what to see and where to look. The ``What'' network is a classical deep learning classifier, that only processes a small region around the center of fixation, providing a ``foveal'' accuracy. In contrast, the ``Where'' network processes the full visual field in a biomimetic fashion, using a log-polar retinotopic encoding, which is preserved up to the action selection level. In our model, the foveal accuracy is used as a monitoring signal to train the ``Where'' network, much like in the ``actor/critic'' framework. After training, the ``Where'' network provides an ``accuracy map'' that serves to guide the eye toward peripheral objects. Finally, the comparison of both networks accuracies amounts to either select a saccade or to keep the eye focused at the center to identify the target. We test this setup on a simple task of finding a digit in a large, cluttered image.  Our simulation results demonstrate the effectiveness of this approach, increasing by one order of magnitude the radius of the visual field toward which the agent can detect and recognize a target, either through a single saccade or with multiple ones. Importantly, our log-polar treatment of the visual information exploits the strong compression rate performed at the sensory level, providing ways to implement visual search in a sub-linear fashion, in contrast with mainstream computer vision.
-
-
+%
 \input{intro}
 
 \input{results}
@@ -210,5 +192,5 @@ We develop a visuomotor model that implements visual search as a focal accuracy-
 
 \bibliographystyle{plainnat}
 \bibliography{Bibliography}
-
+%
 \end{document}
