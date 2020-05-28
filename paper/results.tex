@@ -49,13 +49,49 @@ Finally, these are evaluated in a coupled, dynamic vision setup.
 %=================================================================
 %------------------------------%
 \begin{figure}[t!]%%[p!]
+	\centering{
+\includegraphics[width=\linewidth]{CNS-saccade.pdf}
+}
+%
+%	\centering{
+%		\begin{tikzpicture}%[thick,scale=1, every node/.style={scale=1} ]
+%		\node [anchor=north west] (imgA) at (.05\linewidth, .050\linewidth){\includegraphics[width=.95\linewidth]{CNS-saccade-8.png}};
+%		\draw [anchor=north west] (0., .000\linewidth) node {\A};
+%		\node [anchor=north west] (imgB) at (.05\linewidth, -.150\linewidth){\includegraphics[width=.95\linewidth]{CNS-saccade-20.png}};
+%		\draw [anchor=north west] (0., -.200\linewidth) node {\B};
+%		\node [anchor=north west] (imgC) at (.05\linewidth, -.350\linewidth){\includegraphics[width=.95\linewidth]{CNS-saccade-46.png}};
+%		\draw [anchor=north west] (0., -.400\linewidth) node {\C};
+%		\node [anchor=north west] (imgD) at (.05\linewidth, -.550\linewidth){\includegraphics[width=.95\linewidth]{CNS-saccade-47.png}};
+%		\draw [anchor=north west] (0., -.600\linewidth) node {\D};
+%		\node [anchor=north west] (imgE) at (.05\linewidth, -.750\linewidth){\includegraphics[width=.95\linewidth]{CNS-saccade-32.png}};
+%		\draw [anchor=north west] (0., -.800\linewidth) node {\E};
+%		\draw [anchor=south] (.080\linewidth, .050\linewidth) node {{\bf (a)}};
+%		\draw [anchor=south] (.280\linewidth, .050\linewidth) node {{\bf (b)}};
+%		\draw [anchor=south] (.475\linewidth, .050\linewidth) node {{\bf (c)}};
+%		\draw [anchor=south] (.670\linewidth, .050\linewidth) node {{\bf (d)}};
+%		\draw [anchor=south] (.850\linewidth, .050\linewidth) node {{\bf (e)}};
+%		\end{tikzpicture}
+%}
+
+%	\centering{
+%
+%		\begin{tikzpicture}%[thick,scale=1, every node/.style={scale=1} ]
+%		\node [anchor=north west] (imgA) at (0.000\linewidth,.656\linewidth){\includegraphics[width=\linewidth]{fig_multi_saccades_example.pdf}};
+%		\node [anchor=north west] (imgB) at (0.000\linewidth,.343\linewidth){\includegraphics[width=\linewidth]{fig_results_robust_saccades.pdf}};
+%		\draw [anchor=north west] (0.000\linewidth, .666\linewidth) node {$\mathsf{(A)}$};
+%		\draw [anchor=north west] (0.000\linewidth, .353\linewidth) node {$\mathsf{(B)}$};
+%		\end{tikzpicture}
+%}
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
-	\centering{{\bf a.} \hspace{1.6cm} {\bf b.} \hspace{1.6cm} {\bf c.} \hspace{1.6cm} {\bf d.} \hspace{1.6cm} {\bf e.}}
-	\centering{\A\includegraphics[width=.9\linewidth]{CNS-saccade-8.png}}
-	\centering{\B\includegraphics[width=.9\linewidth]{CNS-saccade-20.png}}
-	\centering{\C\includegraphics[width=.9\linewidth]{CNS-saccade-46.png}}
-	\centering{\D\includegraphics[width=.9\linewidth]{CNS-saccade-47.png}}
-	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}
+%	\centering{
+%	{\bf a.} \hspace{1.6cm} {\bf b.} \hspace{1.6cm} {\bf c.} \hspace{1.6cm} {\bf d.} \hspace{1.6cm} {\bf e.}}
+%	\centering{\A\includegraphics[width=.9\linewidth]{CNS-saccade-8.png}}
+%	\centering{\B\includegraphics[width=.9\linewidth]{CNS-saccade-20.png}}
+%	\centering{\C\includegraphics[width=.9\linewidth]{CNS-saccade-46.png}}
+%	\centering{\D\includegraphics[width=.9\linewidth]{CNS-saccade-47.png}}
+%	\centering{\E\includegraphics[width=.9\linewidth]{CNS-saccade-32.png}}
+	
+	
 	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\A-- \E Representative samples of active vision after training the ``Where'' network}: \A-- \B classification success samples, \C-- \E classification failure samples. Digit contrast set to $70\%$. From left to right: {\bf a.}~The initial 128$\times$128 visual display, with blue cross giving the initial center of gaze.
@@ -77,7 +113,7 @@ After training, the ``Where'' pathway is now capable to predict an accuracy map 
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
 	% \centering{\includegraphics[width=\linewidth]{CNS-results-contrast.png}}
 	%\centering{\includegraphics[width=\linewidth]{CNS-results-contrast.png}}
-	\centering{\includegraphics[width=\linewidth]{../figures/fig_results_robust_contrast.pdf}}
+	\centering{\includegraphics[width=\linewidth]{fig_results_robust_contrast.pdf}}
 	% \includegraphics[]{../../2019-07-15_CNS/figures/CNS-saccade-8.png} % TRUE
 	\caption{
 		{\bf Effect of contrast and target eccentricity.} %
@@ -110,13 +146,16 @@ Some of the most peripheral targets are thus difficult to detect in just one sac
 %: see Figure~\ref{fig:results}
 \begin{figure}[t!]%%[p!]
 	\centering{
-		\begin{tikzpicture}%[thick,scale=1, every node/.style={scale=1} ]
-		\node [anchor=north west] (imgA) at (0.000\linewidth,.656\linewidth){\includegraphics[width=\linewidth]{../figures/fig_multi_saccades_example.pdf}};
-		\node [anchor=north west] (imgB) at (0.000\linewidth,.343\linewidth){\includegraphics[width=\linewidth]{../figures/fig_results_robust_saccades.pdf}};
-		\draw [anchor=north west] (0.000\linewidth, .666\linewidth) node {$\mathsf{(A)}$};
-		\draw [anchor=north west] (0.000\linewidth, .353\linewidth) node {$\mathsf{(B)}$};
-		\end{tikzpicture}
+	\includegraphics[width=\linewidth]{fig_saccades.pdf}
 	}
+	
+%	
+%		\begin{tikzpicture}%[thick,scale=1, every node/.style={scale=1} ]
+%		\node [anchor=north west] (imgA) at (0.000\linewidth,.656\linewidth){\includegraphics[width=\linewidth]{fig_multi_saccades_example.pdf}};
+%		\node [anchor=north west] (imgB) at (0.000\linewidth,.343\linewidth){\includegraphics[width=\linewidth]{fig_results_robust_saccades.pdf}};
+%		\draw [anchor=north west] (0.000\linewidth, .666\linewidth) node {$\mathsf{(A)}$};
+%		\draw [anchor=north west] (0.000\linewidth, .353\linewidth) node {$\mathsf{(B)}$};
+%		\end{tikzpicture}
 	%\flushleft{\bf (A) \hspace{4.2cm} (B) \hspace{2cm} (C) \hspace{4cm} (D)\hspace{6cm}}
 	%\centering{\includegraphics[width=\linewidth]{fig-results-saccades.png}}
 	% \centering{{\bf (A)}
