@@ -128,6 +128,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 contrast=.7, #
                                 sf_0=0.1,
                                 B_sf=0.1,
+                                do_mask=True,
                                 # foveation
                                 N_theta=6,
                                 N_azimuth=24,

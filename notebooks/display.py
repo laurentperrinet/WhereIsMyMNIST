@@ -92,7 +92,7 @@ class Display:
             im_noise = None
         return place_object(data, i_offset, j_offset, im_noise=im_noise, N_pic=self.args.N_pic,
                             contrast=self.args.contrast, noise=self.args.noise,
-                            sf_0=self.args.sf_0, B_sf=self.args.B_sf)
+                            sf_0=self.args.sf_0, B_sf=self.args.B_sf, do_mask=self.args.do_mask)
 
     def show(self, ax, data_fullfield, ms=26, markeredgewidth=6, do_cross=True):
         ax.imshow(data_fullfield, cmap=plt.gray(), vmin=0, vmax=1)
