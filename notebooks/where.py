@@ -903,13 +903,16 @@ class Where():
                 num_max = nb_saccades
                 cpt_saccades = 0
                 for num_saccade in range(num_max):
-                    if idx == 0 and fig is not None:
+                    if idx <20  and fig is not None:
                         
                         ax = fig.add_subplot(1,nb_saccades,num_saccade+1)
                         data_retina = self.retina.retina(fullfield_shift)
                         ax = self.retina.show(ax, self.retina.retina_invert(data_retina))
                         #plt.imshow(fullfield_shift)
                         ax.set_title('Saccade # ' + str(cpt_saccades))
+                        
+                        extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+                        fig.savefig('Example #'+str(idx)+' Saccade #' + str(cpt_saccades) + '.png', bbox_inches=extent)
                         #plt.show()
 
                     # WHAT_POSTERIOR_TEST
