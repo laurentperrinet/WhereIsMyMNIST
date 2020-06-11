@@ -46,12 +46,18 @@ The abstract should briefly summarize the contents of the paper in
 %
 \section{First Section}
 
-Friston et al (refs) have proposed a very general setup in order to interpret brain and body persistence (at the cellular and multi-cellular level) in the terms of an exchange process that takes its roots in the metabolic principles of assimilation and excretion. Generally speaking, an organism has to monitor a certain number of state variables (biomarkers) within given bounds to ensure its own survival in the world. In the course of the lifetime of the organism, the observations that comply with good survival conditions are actively controlled, and for that reason will occur more often than the ones corresponding to some warning (off the road) condition. 
+Friston et al (refs) interpret brain and body persistence (at the cellular and multi-cellular level) in the terms of an exchange process that takes its roots in the metabolic of living beings. Generally speaking, an organism has to monitor a certain number of state variables (biomarkers) within given bounds to ensure its own survival in the world. In the course of the lifetime of the organism, the observations that comply with good survival conditions are actively controlled, and for that reason will occur more often than the ones corresponding to some warning (off the road) condition. 
 [CES PRINCIPES ONT ETE EXPRIMES DEPUIS PLUS D'UN SIECLE - ]
 Put in a probabilistic setup, a probability distribution $p$ can be defined over the space of every possible observation $\mathcal{X}$, and, for any observation $x$, its information content $-\log p(x)$ was proposed as a metric of the ``surprise'' provoked by observing it [REFS] \footnote{Both the observation space and the distribution is specific of the living organism considered, for different metabolic processes or different habits provide different observations.}. It is then proposed in [SAME REF] that a general optimization drive, that is avoiding surprising observations, is the rationale behind the puzzling diversity of the many mechanistic processes taking place in the brain and the body. In short, every effort put in emitting a spike, updating a synapse or engaging in a motor act stems on maintaining the observation field within the most unsurprising state possible.
 
 Of course, these many operations are done under limited observability conditions. The brain, in particular, is limited by the transmission characteristics of its sensors. The sensors have evolved toward maximizing their efficiency under strong energy constraints. Superior mammals vision, for instance, has evolved toward a foveated sensor, maintaining a high density of cones at the center of the visual field, and a much lower density at the periphery. This limited luminance transmission is combined with a high mobility of the eye, that allows to displace the center of sight, at up to 900 degr/s, in order to foveate the most interesting parts of the total visual scene. Moving the eye fast toward the most relevant information is the strategy adopted here, that interestingly combines elements of action selection (moving the eye) with visual information processing, making it an ideal test-bed for implementing the active inference principles postulated in [REF].
 
+
+% an organism has the capability to intervene on the world (make an effort) in order to modify its environment (or its posture etc)
+% intervention = instanciation
+% process states : etats du processus interne
+% state variables of the internal process / state update
+% state update through sampling
 The active inference setup postulates that an intervention variable, noted $y$, has a causal effect on the sensors. The intervention variable can be intrinsic, like for instance a motor command emitted by the agent, or extrinsic, such as an hypothesis about the hidden state of the external world. After $y$ is emitted, its effect is observed at the sensors. The effect of $y$ may, in the general case, be captured by a generative probability density, i.e $p(X,Y)$, that decomposes into $p(X|Y)p(Y)$ with $p(Y)$ a prior on the intervention (a routine or an habit) and $p(X|Y)$ a predictive model that should be confronted to the real data. 
 
 
@@ -60,20 +66,27 @@ Following the previous remarks, an agent may attempt to manipulate $y$ so as to 
 It is assumed that an approximate quantity, called the Free Energy, is used as an upper bound of the surprise. The Free Energy relies on the inversion of the forward model through Bayes rule. Its classic formulation is :
 $$F(x,q) = - \mathbb{E}_{y \sim q(Y|x)} [\log p(x|y) - \log q(y|x) + \log p(y)]$$
 with $q(Y|x)$ an approximate posterior distribution over the observation, and $y$ a sample on $q$. Each quantities, i.e. $q(y|x)$ and $p(x|y)$, respectively correspond to the inference and the prediction in the predictive coding setup [REF]. 
+% Le principe de Free energy est principalement une architecture cognitive, un mécanisme de calcul possible permettant d'approcher/estimer la valeur de la surprise.
+% Mathematical framework
+% The free energy aradigm provides a mechanistic/computational method to approach the surprise
+% The FEP is a theory of action selection. 
 
 Reading $x$ allows then to confront an intervention with its effect. The difference between $\log q(y|x)$ and $\log p(y)$ is an estimate of the information gain provided by $x$, that effectively quantifies the size, or ``cost'' of the intervention to attain an effect $x$. It is said the ``epistemic cost'' [REF]. The general meaning of the Free Energy formula is to minimize the intervention so as to maximize the effect.
+% intervention = state update
 
 In order to choose an action, however, the agent needs to estimate the consequence of such an intervention. Internally guessing/sampling the effect of many hypotheses or many actions, before actuating them, is the deliberation process prior to action selection. 
+% foresee / counterfactual
 At the core of the active inference is thus a sampling operation: sampling an action and/or sampling an hypothesis from the current intervention repertoire $p(Y)$.  We note $\tilde{y}\sim p(Y)$ a sample over the  intervention space, representing a putative intervention. Assuming now that the agent owns a forward model, $\tilde{x}\sim p(X|\tilde{y})$ is a sample of the putative effect of $\tilde{y}$, given the forward model.
 This prediction, made prior to the real intervention, finally allows to simulate an approximate inference, i.e. $q(y|\tilde{x})$. Under this internal simulation setup, $\mathbb{E}_{y \sim q(Y|\tilde{x})}\log q(y|\tilde{x}) - \log p(y)$ is the \emph{expected information gain}. It quantifies how much is known about $\tilde{y}$ after reading $\tilde{x}$. By the symmetry of the information gain, 
 $$\mathbb{E}_{y \sim q(Y|\tilde{x})}[\log q(y|\tilde{x}) - \log p(y)]
 \simeq \mathbb{E}_{y \sim q(Y|\tilde{x})}[\log p(\tilde{x}|y) - \log p(\tilde{x})]$$
 The right formula shows that the expected information gain also quantifies how much is known about $\tilde{x}$ after inferring $y$ from  $\tilde{x}$. 
+% p(X) et p(Y) reposent sur la même "routine"
 In other words, it quantifies how much of the future outcome is predicted by the intervention, and thus how much the surprise should be reduced by the intervention. In that case, choosing an action and/or an hypothesis whose effect is well predicted (or readable) should be privileged. This means maximizing the information gain, as it is postulated by [REF]. 
 
-The existence of an exhaustive forward model in animal brains is not proven at present. One reason is its high computational load given  limited computation resources.  
+The existence of an exhaustive forward/backward model, from the intervention toward the effect and back, is not proven at present to be implemented in animal brains. One reason is its high computational load given  limited computation resources.  
 
-
+% division y_\text{int} (intrinsic interventon) and y_\text{ext} (extrinsic intervention)
 \section{Methods}
 
 
