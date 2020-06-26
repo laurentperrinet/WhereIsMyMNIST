@@ -792,21 +792,24 @@ class Where():
         pred_accuracy_colliculus = F.sigmoid(prediction).detach().numpy()
         return pred_accuracy_colliculus
 
-    def index_prediction(self, pred_accuracy_colliculus, do_shortcut=True):
-        if do_shortcut:
-            test = pred_accuracy_colliculus.reshape((self.args.N_azimuth, self.args.N_eccentricity))
-            indices_ij = np.where(test == max(test.flatten()))
-            azimuth = indices_ij[0][0]
-            eccentricity = indices_ij[1][0]
-            im_colliculus = self.retina.colliculus_transform[azimuth, eccentricity, :].reshape((self.args.N_pic, self.args.N_pic))
+    def index_prediction(self, pred_accuracy_colliculus, do_shortcut=True, logpol = False):
+        test = pred_accuracy_colliculus.reshape((self.args.N_azimuth, self.args.N_eccentricity))
+        indices_ij = np.where(test == max(test.flatten()))
+        azimuth = indices_ij[0][0]
+        eccentricity = indices_ij[1][0]
+        if logpol:
+            return azimuth, eccentricity
         else:
-            im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
+            if do_shortcut:
+                im_colliculus = self.retina.colliculus_transform[azimuth, eccentricity, :].reshape((self.args.N_pic, self.args.N_pic))
+            else:
+                im_colliculus = self.retina.accuracy_invert(pred_accuracy_colliculus)
 
-        # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html
-        i, j = np.unravel_index(np.argmax(im_colliculus.ravel()), im_colliculus.shape)
-        i_pred = i - self.args.N_pic//2
-        j_pred = j - self.args.N_pic//2
-        return i_pred, j_pred
+            # see https://laurentperrinet.github.io/sciblog/posts/2016-11-17-finding-extremal-values-in-a-nd-array.html
+            i, j = np.unravel_index(np.argmax(im_colliculus.ravel()), im_colliculus.shape)
+            i_pred = i - self.args.N_pic//2
+            j_pred = j - self.args.N_pic//2
+            return i_pred, j_pred
 
     def what_class(self, data_fullfield, pred_accuracy_colliculus, do_control=False):
         batch_size = pred_accuracy_colliculus.shape[0]

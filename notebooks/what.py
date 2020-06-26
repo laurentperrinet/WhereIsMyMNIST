@@ -14,7 +14,6 @@ import datetime
 import sys
 
 
-
 def MotionCloudNoise(sf_0=0.125, B_sf=3., alpha=.0, N_pic=28, seed=42):
     mc.N_X, mc.N_Y, mc.N_frame = N_pic, N_pic, 1
     fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
