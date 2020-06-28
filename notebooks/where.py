@@ -875,7 +875,8 @@ class Where():
             accuracy.append(correct.mean())
         return np.mean(accuracy)
 
-    def multi_test(self, nb_saccades, dataloader=None, batch_size=None, dynamic=False, fig=None):
+    def multi_test(self, nb_saccades, dataloader=None, batch_size=None, dynamic=False, 
+                   get_T_data=False, fig=None):
         # multi-saccades
         if dataloader is None:
             dataloader = self.loader_test
@@ -973,7 +974,10 @@ class Where():
         correct = self.test_what(data_fullfield.numpy(), pred_accuracy_colliculus, digit_labels.squeeze(), do_control=do_control)
         #print(correct)
         if fig is None:
-            return np.mean(correct)
+            if get_T_data:
+                return np.mean(correct), correct
+            else:
+                return np.mean(correct)
         else:
             return fig
        
