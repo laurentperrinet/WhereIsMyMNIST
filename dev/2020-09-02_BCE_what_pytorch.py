@@ -7,6 +7,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 
+do_BCE = False
 
 class Net(nn.Module):
     def __init__(self):
@@ -30,10 +31,12 @@ class Net(nn.Module):
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
-        # output = F.log_softmax(x, dim=1)
-        # output = torch.sigmoid(x)
-        # return output
-        return x
+        if not do_BCE:
+            output = F.log_softmax(x, dim=1)
+            # output = torch.sigmoid(x)
+            return output
+        else:
+            return x
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -42,12 +45,10 @@ def train(args, model, device, train_loader, optimizer, epoch):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        # loss = F.nll_loss(output, target)
-        # target_onehot = torch.zeros_like(output)
-        # target_onehot[:, target] = 1
-        # target_onehot = F.one_hot(target)
-        # print(target_onehot.shape, F.one_hot(target).shape)
-        loss = F.binary_cross_entropy_with_logits(output, F.one_hot(target).float())
+        if not do_BCE:
+            loss = F.nll_loss(output, target)
+        else:
+            loss = F.binary_cross_entropy_with_logits(output, F.one_hot(target).float())
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
@@ -66,8 +67,10 @@ def test(model, device, test_loader):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            # test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
-            test_loss += F.binary_cross_entropy_with_logits(output, F.one_hot(target).float(), reduction='sum').item()  # sum up batch loss
+            if not do_BCE:
+                test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            else:
+                test_loss += F.binary_cross_entropy_with_logits(output, F.one_hot(target).float(), reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
