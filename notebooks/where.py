@@ -509,7 +509,7 @@ class WhereTrainer:
                     print('Generating {}ing dataset'.format(use))
                 for i, (data, acc) in enumerate(data_loader):
                     if self.args.verbose:
-                        print(i, (i+1) * args.minibatch_size)
+                        print('batch #', i, (i+1) * args.minibatch_size)
                     if i == 0:
                         if fullfield:
                             full_data_features = data[0]

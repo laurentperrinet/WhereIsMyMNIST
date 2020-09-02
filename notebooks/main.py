@@ -149,7 +149,7 @@ def init(filename=None, verbose=1, log_interval=100, do_compute=True):
                                 epochs=60,
                                 # simulation
                                 num_processes=1,
-                                no_cuda=True,
+                                no_cuda=False,
                                 log_interval=log_interval, # period with which we report results for the loss
                                 verbose=verbose,
                                 filename=filename,
