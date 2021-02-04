@@ -1,0 +1,6 @@
+LogGabor
+matplotlib
+numpy
+torch
+pyqrcode 
+pypng
