@@ -4,3 +4,6 @@ numpy
 torch
 pyqrcode 
 pypng
+watermark
+easydict
+MotionClouds
